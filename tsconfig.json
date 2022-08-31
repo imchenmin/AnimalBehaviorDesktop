@@ -4,6 +4,7 @@
     "target": "esnext",
     "useDefineForClassFields": true,
     "module": "esnext",
+    "importHelpers": true,
     "moduleResolution": "node",
     "strict": true,
     "jsx": "preserve",
@@ -14,7 +15,12 @@
     "paths": {
       "~/*": ["src/*"]
     },
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "references": [
+    { "path": "./tsconfig.node.json" }
+  ]
 }
