@@ -11,7 +11,7 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import 'element-plus/dist/index.css'
 
 // import vue-router
-import router from "~/router/index"
+import router from "routers/index"
 
 // import pinia
 import { createPinia } from 'pinia'
