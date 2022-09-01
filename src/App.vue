@@ -136,4 +136,7 @@ const tableData = ref(Array.from({ length: 20 }).fill(item))
 .common-layout .el-main {
   padding: 0;
 }
+a {
+  text-decoration-line: none;
+}
 </style>

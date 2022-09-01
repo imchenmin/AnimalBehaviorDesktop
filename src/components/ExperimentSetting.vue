@@ -14,13 +14,6 @@
             <el-form-item label="备注">
                 <el-input v-model="form.desc" type="textarea" />
             </el-form-item>
-            <h2>视频源</h2>
-            <el-form-item label="Resources">
-                <el-radio-group v-model="form.resource">
-                    <el-radio label="视频文件" />
-                    <el-radio label="视频流" />
-                </el-radio-group>
-            </el-form-item>
             <h2>分析选项</h2>
             <el-form-item>
                 <el-button type="primary" @click="onSubmit">Create</el-button>
@@ -54,4 +47,7 @@ const onSubmit = () => {
 }
 </script>
 <style>
+h2 {
+    padding-left: 40px;
+}
 </style>
