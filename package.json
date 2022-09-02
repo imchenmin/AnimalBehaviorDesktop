@@ -16,6 +16,7 @@
         "electron-builder": "^23.3.3",
         "element-plus": "^2.2.13",
         "i": "^0.3.7",
+        "nedb": "^1.8.0",
         "nedb-promises": "^6.1.0",
         "pinia": "^2.0.21",
         "pinia-plugin-persistedstate": "^2.1.1",
