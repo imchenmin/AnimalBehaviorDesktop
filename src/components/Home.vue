@@ -2,7 +2,7 @@
   <el-card type="border-card" class="intro-panel">
     <template #header>
       <div class="card-header">
-        <span>{{ store.softwareName }}</span>
+        <span>{{ version.softwareName }}</span>
         <el-button class="button" text>Operation button</el-button>
       </div>
     </template>
@@ -14,22 +14,23 @@
   </el-card>
 </template>
 <script>
-import { useStore } from '~/stores/store'
+import useStore from '~/store'
 export default {
-    setup() {
-        const store = useStore();
-        return {
-            store
-        }
+  setup() {
+    const { version } = useStore();
+    return {
+      version
     }
+  }
 }
 </script>
 <style>
 .intro-panel {
-    width: 600px;
-    margin: auto;
-    margin-top: 50px;
+  width: 600px;
+  margin: auto;
+  margin-top: 50px;
 }
+
 .card-header {
   display: flex;
   justify-content: space-between;

@@ -21,6 +21,8 @@ const pinia = createPinia()
 import VueGoodTablePlugin from 'vue-good-table-next'
 import 'vue-good-table-next/dist/vue-good-table-next.css'
 
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+
 const app = createApp(App);
 app.use(ElementPlus);
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
@@ -28,6 +30,8 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 }
 app.use(VueGoodTablePlugin);
 app.use(router)
+pinia.use(piniaPluginPersistedstate)
 app.use(pinia)
+
 
 app.mount("#app");

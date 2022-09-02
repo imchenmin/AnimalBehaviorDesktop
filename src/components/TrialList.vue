@@ -17,8 +17,16 @@ export default {
         return {
             columns: [
                 {
-                    label: 'Name',
+                    label: 'ID',
                     field: 'name',
+                    type: 'Integer'
+                },
+                {
+                    label: '出生日期',
+                    field: 'birthDay',
+                    type: 'date',
+                    dateInputFormat: 'yyyy-MM-dd',
+                    dateOutputFormat: 'MM月dd日',
                 },
                 {
                     label: '分组',
@@ -34,26 +42,20 @@ export default {
                         trigger: 'enter', //only trigger on enter not on keyup 
                     },
                 },
+
                 {
-                    label: 'Created On',
-                    field: 'createdAt',
-                    type: 'date',
-                    dateInputFormat: 'yyyy-MM-dd',
-                    dateOutputFormat: 'MMM do yy',
-                },
-                {
-                    label: 'Percent',
-                    field: 'score',
+                    label: '备注',
+                    field: 'string',
                     type: 'percentage',
                 },
             ],
             rows: [
-                { id: 1, name: "John", group: '实验组', createdAt: '2011-10-31', score: 0.03343 },
-                { id: 2, name: "Jane", group: '实验组', createdAt: '2011-10-31', score: 0.03343 },
-                { id: 3, name: "Susan", group: '实验组', createdAt: '2011-10-30', score: 0.03343 },
-                { id: 4, name: "Chris", group: '实验组', createdAt: '2011-10-11', score: 0.03343 },
-                { id: 5, name: "Dan", group: '实验组', createdAt: '2011-10-21', score: 0.03343 },
-                { id: 6, name: "John", group: '实验组', createdAt: '2011-10-31', score: 0.03343 },
+                { id: 1, name: "John", group: '实验组', birthDay: '2011-10-31', score: 0.03343 },
+                { id: 2, name: "Jane", group: '实验组', birthDay: '2011-10-31', score: 0.03343 },
+                { id: 3, name: "Susan", group: '实验组', birthDay: '2011-10-30', score: 0.03343 },
+                { id: 4, name: "Chris", group: '实验组', birthDay: '2011-10-11', score: 0.03343 },
+                { id: 5, name: "Dan", group: '实验组', birthDay: '2011-10-21', score: 0.03343 },
+                { id: 6, name: "John", group: '实验组', birthDay: '2011-10-31', score: 0.03343 },
             ],
         }
     }

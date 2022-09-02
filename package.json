@@ -18,6 +18,7 @@
         "i": "^0.3.7",
         "nedb-promises": "^6.1.0",
         "pinia": "^2.0.21",
+        "pinia-plugin-persistedstate": "^2.1.1",
         "vite-plugin-electron": "^0.9.2",
         "vue": "^3.2.36",
         "vue-good-table": "^2.21.11",

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 
-export const useStore = defineStore('experiments', {
+export const useExperimentsStore = defineStore('experiments', {
     state: () => {
         return {
             location: 'chenmin',
@@ -13,5 +13,7 @@ export const useStore = defineStore('experiments', {
             unit_of_degree: "",
             behavior_unit: ""
         }
-    }
+    },
+    persist: true
 })
+export default useExperimentsStore
