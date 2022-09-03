@@ -43,7 +43,9 @@ async function createWindow() {
       nodeIntegration: true,
       contextIsolation: false,
     },
-  })
+  },
+  // win.addDevToolsExtension('~/Google/Chrome/User Data/Default/Extensions/nhdogjmejiglipccpnnnanhbledajbpd/3.1.6_0')
+  )
 
   if (app.isPackaged) {
     win.loadFile(indexHtml)

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import db from '../nedb'
 
 export const useExperimentsStore = defineStore('experiments', {
     state: () => {
@@ -6,14 +7,27 @@ export const useExperimentsStore = defineStore('experiments', {
             location: 'chenmin',
             descripttion: "",
             name: "",
-            video_sorce_type: "",
-            video_sorce_uri: "",
-            unit_of_distance: "", //单位制 
-            unit_of_time: "",
-            unit_of_degree: "",
-            behavior_unit: ""
+            analysis_method: "",
+            records: [],
+            loading: false,
         }
     },
-    persist: true
+    persist: true,
+    actions: {
+        fetchAllRecords() {
+            this.loading = true;
+            db.find({}, (err, records) => {
+                this.records = records;
+            });
+            this.loading = false;
+        },
+        addRecord(payload: Object) {
+            this.loading = true;
+            db.insert(payload, (err, record) => {
+                this.records.push(record);
+            });
+            this.loading = false;
+        }
+    }
 })
 export default useExperimentsStore

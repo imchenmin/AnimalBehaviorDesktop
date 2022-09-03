@@ -6,7 +6,8 @@ export const useVersionStore = defineStore('version', {
         return {
             author: 'chenmin',
             email: 'zbcmb@outlook.com',
-            softwareName: "具安动物行为分析"
+            softwareName: "具安动物行为分析",
+            DeviceID: "demo"
         }
     },
     persist: true

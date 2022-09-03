@@ -3,7 +3,9 @@
     <el-header style="text-align: right; font-size: 12px">
       <el-menu :default-active="activeIndex2" class="el-menu-demo" mode="horizontal" background-color="#545c64"
         text-color="#fff" active-text-color="#ffd04b" @select="handleSelect">
-        <el-menu-item index="1"><router-link to="/">Gianttek</router-link></el-menu-item>
+        <el-menu-item index="1">
+          <router-link to="/">Gianttek</router-link>
+        </el-menu-item>
         <el-sub-menu index="2">
           <template #title>文件</template>
           <el-menu-item index="2-1">item one</el-menu-item>
@@ -16,8 +18,8 @@
             <el-menu-item index="2-4-3">item three</el-menu-item>
           </el-sub-menu>
         </el-sub-menu>
-        <el-menu-item index="3" >编辑</el-menu-item>
-        <el-menu-item index="4" >查看</el-menu-item>
+        <el-menu-item index="3">编辑</el-menu-item>
+        <el-menu-item index="4">查看</el-menu-item>
         <el-menu-item index="5">帮助</el-menu-item>
       </el-menu>
     </el-header>
@@ -46,11 +48,11 @@
                   检测设置
                 </el-menu-item>
               </router-link>
-              <router-link to="/trial-control-settings">
+              <!-- <router-link to="/trial-control-settings">
                 <el-menu-item index="1-4">
                   试验控制
                 </el-menu-item>
-              </router-link>
+              </router-link> -->
               <router-link to="/trial-list">
                 <el-menu-item index="1-5">
                   试验列表
@@ -71,6 +73,11 @@
                   <DataAnalysis />
                 </el-icon>结果分析
               </template>
+              <router-link to="/detection-settings">
+                <el-menu-item index="1-3">
+                  检测设置
+                </el-menu-item>
+              </router-link>
             </el-sub-menu>
           </el-menu>
         </el-scrollbar>
@@ -122,6 +129,7 @@ const tableData = ref(Array.from({ length: 20 }).fill(item))
   position: relative;
   background-color: var(--el-color-primary-light-7);
   color: var(--el-text-color-primary);
+  padding: 0;
 }
 
 .common-layout .el-aside {
@@ -136,7 +144,16 @@ const tableData = ref(Array.from({ length: 20 }).fill(item))
 .common-layout .el-main {
   padding: 0;
 }
+
 a {
   text-decoration-line: none;
+}
+.common-layout {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
 }
 </style>

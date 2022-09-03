@@ -18,20 +18,25 @@ import { createPinia } from 'pinia'
 const pinia = createPinia()
 
 // import vue-good-table
-import VueGoodTablePlugin from 'vue-good-table-next'
-import 'vue-good-table-next/dist/vue-good-table-next.css'
-
+// import pinia persistedstate
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+
+// import vxetable
+import VXETable from 'vxe-table'
+import 'vxe-table/lib/style.css'
+
+// import echarts
+import ECharts from 'vue-echarts'
+import "echarts"
 
 const app = createApp(App);
 app.use(ElementPlus);
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
     app.component(key, component)
 }
-app.use(VueGoodTablePlugin);
 app.use(router)
 pinia.use(piniaPluginPersistedstate)
 app.use(pinia)
-
-
+app.use(VXETable)
+app.component('v-chart', ECharts)
 app.mount("#app");
