@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, ipcMain } from 'electron'
+import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
 
@@ -32,6 +32,7 @@ const url = "http://127.0.0.1:3000"
 const indexHtml = join(ROOT_PATH.dist, 'index.html')
 
 async function createWindow() {
+  const remote = require('@electron/remote/main')
   win = new BrowserWindow({
     title: 'Main window',
     icon: join(ROOT_PATH.public, 'favicon.ico'),
@@ -44,9 +45,9 @@ async function createWindow() {
       contextIsolation: false,
     },
   },
-  // win.addDevToolsExtension('~/Google/Chrome/User Data/Default/Extensions/nhdogjmejiglipccpnnnanhbledajbpd/3.1.6_0')
   )
-
+  remote.initialize()
+  remote.enable(win.webContents)
   if (app.isPackaged) {
     win.loadFile(indexHtml)
   } else {

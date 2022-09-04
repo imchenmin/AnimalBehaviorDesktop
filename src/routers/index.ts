@@ -7,7 +7,7 @@ import ExperimentSetting from "~/components/ExperimentSetting.vue"
 import ArenaSetting from "~/components/ArenaSetting.vue"
 import TrialControlSetting from "~/components/TrialControlSetting.vue"
 import TrialList from "~/components/TrialList.vue"
-import DetectionSetting from "~/components/DetectionSetting.vue"
+import DetectionResult from "~/components/DetectionResult.vue"
 
 // 路由信息
 let routes = [
@@ -37,9 +37,9 @@ let routes = [
     component: TrialList
   },
   {
-    path: "/detection-settings",
-    name: "DetectionSetting",
-    component: DetectionSetting
+    path: "/detection-result",
+    name: "DetectionResult",
+    component: DetectionResult
   },
 ];
 

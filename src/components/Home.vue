@@ -12,6 +12,7 @@
     <h2>了解更多</h2>
     <h2>新闻</h2>
   </el-card>
+  <div>下面存放处理列表，来保证让用户知道现在在处理什么</div>
 </template>
 <script>
 import useStore from '~/store'

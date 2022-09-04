@@ -1,5 +1,7 @@
 const Datastore = require('nedb');
 
-const db = new Datastore({ filename: 'records.json', autoload: true });
+// 存放历史的实验记录的位置
+const history_db = new Datastore({ filename: 'history.json', autoload: true });
 
-export default db;
+
+export default {history_db}
