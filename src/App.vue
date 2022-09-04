@@ -5,6 +5,7 @@
         <el-button><router-link to="/">home</router-link></el-button>
         <el-button><router-link to="/exp-settings">实验设置</router-link></el-button>
         <el-button><router-link to="/trial-list">拍摄录制</router-link></el-button>
+        <el-button><router-link to="/arena-settings">区域分析</router-link></el-button>
         <el-button><router-link to="/detection-result">结果分析</router-link></el-button>
         <router-view></router-view>
       </el-main>
