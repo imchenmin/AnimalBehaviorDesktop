@@ -459,27 +459,35 @@
             var playBtn = document.querySelector('.play_pause');
             let {totalT,presentT} = {totalT:0,presentT:0};
             vv.addEventListener('canplaythrough',function(){
-
                     //console.log("Height: " + vv.videoHeight + ", Width: " + vv.videoWidth);
-                    vv.width = vv.videoWidth;
-                    vv.height = vv.videoHeight;
-                    mb.style.width = vv.videoWidth+"px";
-                    mb.style.height = vv.videoHeight+"px";
+                    //vv.width = vv.videoWidth;
+                    //vv.height = vv.videoHeight;
+                    //mb.style.width = vv.videoWidth+"px";
+                    //mb.style.height = vv.videoHeight+"px";
                     //console.log("Height: " + mb.style.width + ", Width: " + mb.style.height);
-                    canvas.style.width = vv.videoWidth+"px";
-                    canvas.style.height = vv.videoHeight+"px";
-                    canvas.width = vv.videoWidth;
-                    canvas.height = vv.videoHeight;
+                    // canvas.style.width = vv.videoWidth+"px";
+                    // canvas.style.height = vv.videoHeight+"px";
+                    // canvas.width = vv.videoWidth;
+                    // canvas.height = vv.videoHeight;
+                    vv.width = 800;
+                    vv.height = 450;
+                    mb.style.width = "800px";
+                    mb.style.height = "450px";
+                    canvas.style.width = "800px";
+                    canvas.style.height = "450px";
+                    canvas.width = 800;
+                    canvas.height = 450;
                     cb.style.left = "auto";
-                    cb.style.width = vv.videoWidth+"px";
-                    cb.children[1].style.width = vv.videoWidth-210+"px";
+                    //cb.style.width = vv.videoWidth+"px";
+                    cb.style.width = "800px";
+                    cb.children[1].style.width = vv.width-210+"px";
                     totalT = vv.duration;
                     durationTimer.innerHTML = formatTime(totalT);
                     // document.getElementById('t').style.marginLeft =vv.videoWidth/2-260;
                     // document.getElementById('a').style.marginLeft =vv.videoWidth/2-260;
                     // document.getElementById('addcanvas').style.marginLeft = vv.videoWidth/2-260;
 
-                    });
+            });
             vv.addEventListener('timeupdate',function(){
                 presentT = this.currentTime;
                 var videoCurrent = formatTime(presentT);
@@ -672,6 +680,80 @@
                 uploadbutton.value=null;
                     
             });
+            //get result
+            var __this = this;
+            function runit(){
+                // fileImport()
+                console.log(__this.videopath)
+                if (__this.videopath==""){
+                    return;}
+                let data =[]
+                var father_board = document.getElementById('main');
+                var all_rectangles = document.getElementsByClassName('rectangle');
+                var all_ud_canvases = document.getElementsByClassName('ud_canvas');
+                let csvString = "";
+                data.push(vv.videoWidth);
+                data.push(vv.videoHeight);
+                data.push(all_rectangles.length);
+                let i=0;
+                for (i=0; i<all_rectangles.length; i++){
+                        var child = all_rectangles[i];
+                        let temp = "";
+                        temp = temp + child.getAttribute('name') + "," + child.style.left+ "," +child.style.top+"," +child.style.height+"," +child.style.width+","+child.style.transform;
+                        //temp.push(child.getAttribute('name'),child.style.left,child.style.top,child.style.height,child.style.width,child.style.transform);
+                        //console.log(temp);
+                        data.push(temp);
+
+                }
+                data.push(all_ud_canvases.length);
+                for (i=0; i<all_ud_canvases.length; i++){
+                        var child = all_ud_canvases[i];
+                        let temp = "";
+                        temp = temp + child.getAttribute('name')+ ","+child.getAttribute('data-points')
+                        //temp.push(child.getAttribute('name'),child.getAttribute('data-points'));
+                        //console.log(temp);
+                        data.push(temp);
+                }
+                console.log(data)
+                console.log(__this.videoname)
+                //console.log(that.videopath)
+                data.push(__this.videopath)
+                data.push(__this.videoname)
+                console.log(data)
+                // var argvs= {
+                //     data: JSON.stringify({
+                //         'argvs': data
+                //     })
+                // }
+                // $.ajax(
+                // {
+                // type: "POST",
+                // url: "127.0.0.1:5001/execute",
+                // data: argvs,
+                // success: function(msg)
+                // {       
+                //         console.log("success");
+                        
+                // },
+                // error: function (xhr, status, error) {
+                //         alert(error);
+                // }
+                // });
+                fetch('http://127.0.0.1:5001/api/runtrack', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        argvs: data
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(console.log("success"))
+
+            }
+            document.getElementById('rundetect').onclick = runit;
+
+            
         },
         methods: {
             onUploadMark(){
