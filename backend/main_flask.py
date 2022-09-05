@@ -1,4 +1,6 @@
 from distutils.command.config import config
+import sys
+sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend')
 from camera_device import Camera
 from flask import Flask
 app = Flask(__name__)
