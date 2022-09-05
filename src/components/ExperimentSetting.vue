@@ -1,6 +1,7 @@
 <template>
     <el-scrollbar>
-        <el-form ref="ruleFormRef" :model="form" :rules="rules" label-width="120px">
+        <el-dialog v-model="createNewProjectVisible" title="新建项目">
+            <el-form ref="ruleFormRef" :model="form" :rules="rules" label-width="120px">
             <h2>实验信息</h2>
             <el-form-item label="实验名称" prop="name">
                 <el-input v-model="form.name" />
@@ -58,6 +59,11 @@
                 <el-button>Cancel</el-button>
             </el-form-item>
         </el-form>
+        </el-dialog>
+        <el-button @click="createNewProjectVisible = true">添加新项目</el-button>
+        <el-table :data="data">
+            <el-table-column prop="name" label="项目名"/>
+        </el-table>
     </el-scrollbar>
 
 </template>
@@ -66,9 +72,12 @@ import { reactive, onMounted } from 'vue'
 import { computed, ref } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import useStore from '../store'
+const { settings,experiments, } = useStore()
 
 let fs = require("fs")
 const ruleFormRef = ref<FormInstance>()
+const createNewProjectVisible = ref(false)
+experiments.loadProject()
 const form = reactive({
     name: '',
     date1: new Date(),
@@ -81,7 +90,7 @@ const form = reactive({
     mouse_dob: new Date(),
     tracking_mouse_number: 1
 })
-const { settings,experiments } = useStore()
+const data = experiments.opened_project
 settings.getHomeDir()
 form.parent_path = settings.default_parent_folder
 const checkFolderExist = (rule: any, value: any, callback: any) => {
@@ -114,10 +123,6 @@ const rules = reactive<FormRules>({
 
 })
 
-
-
-
-
 const folder_path = computed(() => form.parent_path + '/' + form.name)
 const isReadyToCreate = computed(() => form.name != '' && form.parent_path != '' && form.type != '')
 const onSelectFolder = () => {
@@ -146,17 +151,19 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                     const record = {
                         folder_path: folder_path.value,
                         name: form.name,
-                        descripttion: form.desc,
+                        description: form.desc,
                         analysis_method: form.type,
                         date: form.date1,
                         record_mouse_info: form.record_mouse_info,
                         mouse_gender: form.mouse_gender,
                         mouse_genetype: form.mouse_genetype,
                         mouse_dob: form.mouse_dob,
-                        tracking_mouse_number: form.tracking_mouse_number
+                        tracking_mouse_number: form.tracking_mouse_number,
+                        detection_behavior_kinds: ['a']
                     }
-                    experiments.$patch(record)
-                    experiments.addRecord(record)
+                    let ret = experiments.addProject(record)
+                    createNewProjectVisible.value = false
+                    formEl.resetFields()
                 }
             })
         }

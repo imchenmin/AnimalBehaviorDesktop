@@ -10,7 +10,7 @@
           </el-button>
         </template>
         <div class="progress-area">
-          <el-progress :percentage="10"/>
+          <el-progress :percentage="10" />
         </div>
       </el-popover>
 
@@ -21,8 +21,9 @@
         <router-link to="/exp-settings">实验设置</router-link>
       </el-button>
       <el-button>
-        <router-link to="/trial-list">拍摄录制</router-link>
+        <router-link to="/camera">拍摄录制</router-link>
       </el-button>
+
       <el-button>
         <router-link to="/arena-settings">结果分析</router-link>
       </el-button>
@@ -30,16 +31,8 @@
     </el-header>
     <el-container>
       <el-aside>
-        <el-list>
-
-        </el-list>
       </el-aside>
       <el-main>
-        <el-button><router-link to="/">home</router-link></el-button>
-        <el-button><router-link to="/exp-settings">实验设置</router-link></el-button>
-        <el-button><router-link to="/camera">拍摄录制</router-link></el-button>
-        <el-button><router-link to="/arena-settings">区域分析</router-link></el-button>
-        <el-button><router-link to="/detection-result">结果分析</router-link></el-button>
         <router-view></router-view>
       </el-main>
       <el-footer>
@@ -49,8 +42,8 @@
 </template>
 
 <script lang="ts" setup>
-</script>
 
+</script>
 <style scoped>
 * {
   -webkit-touch-callout: none;

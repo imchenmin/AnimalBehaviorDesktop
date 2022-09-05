@@ -1,42 +1,50 @@
 import { defineStore } from 'pinia'
 const Datastore = require('nedb');
 import path from 'path'
+import ExperiemntObj from '../objects/experiment'
 export const useExperimentsStore = defineStore('experiments', {
     state: () => {
         return {
-            descripttion: "",
-            name: "",
-            analysis_method: "",
-            records: [],
-            loading: false,
-            folder_path: ".",
-            date: new Date(),
-            record_mouse_info: false,
-            mouse_gender: '',
-            mouse_genetype: '',
-            mouse_dob: new Date(),
-            tracking_mouse_number: 1
+            current_project_id: -1,
+            project_config_list: [],
+            opened_project: new Array<ExperiemntObj>,
         }
     },
     persist: true,
-    getters: {
-        db: (state) => new Datastore({ filename: path.join(state.folder_path,'records.pkg'), autoload: true })
-    },
     actions: {
-        fetchAllRecords() {
-            this.loading = true;
-            this.db.find({}, (err, records) => {
-                this.records = records;
-            });
-            this.loading = false;
+        loadProject() {
+            this.opened_project  = []
+            let fs = require("fs")
+            for ( let i of this.project_config_list) {
+                fs.exists(i,  (exists) => {
+                    if (!exists) {
+                        console.log("project not found", i)
+                    } else {
+                        const db =  new Datastore({filename: i, autoload: true})
+                        db.find({}, (err, docs)=> {
+                            if (!err) {
+                                this.opened_project.push(docs[0])
+                            }else {
+                                console.log("project database load error",  i)
+                            }
+                        })
+                    }
+                })
+                
+            }
+
         },
-        addRecord(payload: Object) {
-            this.loading = true;
-            this.db.insert(payload, (err, record) => {
-                this.records.push(record);
-            });
-            this.loading = false;
+        addProject(payload: ExperiemntObj) {
+            this.project_config_list.push(path.join(payload.folder_path, 'project.json'))
+            this.opened_project.push(payload)
+            const db = new  Datastore({filename: path.join(payload.folder_path, 'project.json'), autoload: true})
+            db.insert(payload)
+            return true
+        },
+        closeProject() {
+            this.opened_project = null
         }
+
     }
 })
 export default useExperimentsStore

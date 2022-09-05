@@ -1,9 +1,5 @@
 <template >
-    <p>    编辑和存放实验组结构的地方。比如每一只动物对应的视频和组别。实验组，控制组。</p>
     <el-form :model="record">
-        <el-form-item label="实验名">
-            <el-input v-model="record.name" />
-        </el-form-item>
         <el-form-item>
             <el-button type="primary" @click="handleOpen">打开相机</el-button>
             <el-button type="primary" @click="handleStart">开始录制</el-button>
@@ -18,6 +14,7 @@
 import useStore from '../store'
 
 export default {
+    props: ['project_path','pid'],
     data: () => ({
         record: {
             name: '',
@@ -29,12 +26,6 @@ export default {
         }
     }),
     methods: {
-        handleAdd() {
-            const { experiments } = useStore()
-            experiments.addRecord(this.record)
-            this.$router.push('/')
-            
-        },
         handleOpen(){
             fetch('http://127.0.0.1:5001/api/open_camera', {
                 method: 'post',

@@ -6,8 +6,8 @@ import Home from "~/components/Home.vue"
 import ExperimentSetting from "~/components/ExperimentSetting.vue"
 import ArenaSetting from "~/components/ArenaSetting.vue"
 import TrialControlSetting from "~/components/TrialControlSetting.vue"
-import Camera from "~/components/Camera.vue"
 import DetectionResult from "~/components/DetectionResult.vue"
+import Camera from "~/components/Camera.vue"
 
 // 路由信息
 let routes = [
@@ -27,14 +27,9 @@ let routes = [
     component: ArenaSetting
   },
   {
-    path: "/trial-control-settings",
-    name: "TrialControlSetting",
-    component: TrialControlSetting
-  },
-  {
-    path: "/trial-list",
-    name: "TrialList",
-    component: TrialList
+    path: "/camera",
+    name: "Camera",
+    component: Camera
   },
   {
     path: "/detection-result",
