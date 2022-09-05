@@ -7,18 +7,20 @@ export const useExperimentsStore = defineStore('experiments', {
         return {
             current_project_id: -1,
             project_config_list: [],
-            opened_project: new Array<ExperiemntObj>,
+            opened_project: new Array<ExperiemntObj>(),
         }
     },
     persist: true,
     actions: {
         loadProject() {
-            this.opened_project  = []
+            this.opened_project  = new Array<ExperiemntObj>()
             let fs = require("fs")
+            let count = 0
             for ( let i of this.project_config_list) {
                 fs.exists(i,  (exists) => {
                     if (!exists) {
                         console.log("project not found", i)
+                        this.project_config_list.splice(count, 1)
                     } else {
                         const db =  new Datastore({filename: i, autoload: true})
                         db.find({}, (err, docs)=> {
@@ -30,6 +32,7 @@ export const useExperimentsStore = defineStore('experiments', {
                         })
                     }
                 })
+                count++
                 
             }
 
@@ -43,6 +46,9 @@ export const useExperimentsStore = defineStore('experiments', {
         },
         closeProject() {
             this.opened_project = null
+        },
+        get_from_id(idx: string) {
+            return this.opened_project.find(element => element._id == idx)
         }
 
     }

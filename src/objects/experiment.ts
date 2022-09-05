@@ -10,5 +10,6 @@ class ExperiemntObj {
     mouse_dob: Date;
     tracking_mouse_number: number;
     detection_behavior_kinds: Array<string>;
+    _id: string;
 }
 export default ExperiemntObj

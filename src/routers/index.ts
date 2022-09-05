@@ -27,7 +27,7 @@ let routes = [
     component: ArenaSetting
   },
   {
-    path: "/camera",
+    path: "/camera/:folder",
     name: "Camera",
     component: Camera
   },

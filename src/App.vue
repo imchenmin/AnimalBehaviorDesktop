@@ -21,7 +21,7 @@
         <router-link to="/exp-settings">实验设置</router-link>
       </el-button>
       <el-button>
-        <router-link to="/camera">拍摄录制</router-link>
+        <router-link to="/camera">拍摄录制</router-link> 
       </el-button>
 
       <el-button>
