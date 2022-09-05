@@ -6,7 +6,7 @@ import Home from "~/components/Home.vue"
 import ExperimentSetting from "~/components/ExperimentSetting.vue"
 import ArenaSetting from "~/components/ArenaSetting.vue"
 import TrialControlSetting from "~/components/TrialControlSetting.vue"
-import TrialList from "~/components/TrialList.vue"
+import Camera from "~/components/Camera.vue"
 import DetectionResult from "~/components/DetectionResult.vue"
 
 // 路由信息
