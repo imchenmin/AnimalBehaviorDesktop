@@ -11,5 +11,8 @@ class ExperiemntObj {
     tracking_mouse_number: number;
     detection_behavior_kinds: Array<string>;
     _id: string;
+    record_state: boolean;
+    tracking_state: boolean;
+    detection_state: boolean;
 }
 export default ExperiemntObj

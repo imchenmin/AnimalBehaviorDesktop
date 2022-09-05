@@ -13,34 +13,33 @@ export const useExperimentsStore = defineStore('experiments', {
     persist: true,
     actions: {
         loadProject() {
-            this.opened_project  = new Array<ExperiemntObj>()
+            this.opened_project = new Array<ExperiemntObj>()
             let fs = require("fs")
             let count = 0
-            for ( let i of this.project_config_list) {
-                fs.exists(i,  (exists) => {
+            for (let i of this.project_config_list) {
+                fs.exists(i, (exists) => {
                     if (!exists) {
                         console.log("project not found", i)
-                        this.project_config_list.splice(count, 1)
                     } else {
-                        const db =  new Datastore({filename: i, autoload: true})
-                        db.find({}, (err, docs)=> {
+                        const db = new Datastore({ filename: i, autoload: true })
+                        db.find({}, (err, docs) => {
                             if (!err) {
                                 this.opened_project.push(docs[0])
-                            }else {
-                                console.log("project database load error",  i)
+                            } else {
+                                console.log("project database load error", i)
                             }
                         })
                     }
                 })
                 count++
-                
+
             }
 
         },
         addProject(payload: ExperiemntObj) {
             this.project_config_list.push(path.join(payload.folder_path, 'project.json'))
             this.opened_project.push(payload)
-            const db = new  Datastore({filename: path.join(payload.folder_path, 'project.json'), autoload: true})
+            const db = new Datastore({ filename: path.join(payload.folder_path, 'project.json'), autoload: true })
             db.insert(payload)
             return true
         },

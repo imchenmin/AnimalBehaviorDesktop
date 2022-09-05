@@ -61,14 +61,12 @@
             </el-form>
         </el-dialog>
         <el-button @click="createNewProjectVisible = true">添加新项目</el-button>
-        <el-table :data="data">
+        <el-table :data="tabledata">
             <el-table-column prop="name" label="项目名" />
             <el-table-column prop="analysis_method" label="项目类型" />
             <el-table-column label="拍摄状态">
                 <template #default="scope">
-                    <div v-if="!isVideoExist(scope.row)">文件不存在，请
-                        <router-link to="/camera/{{scope.row.folder_path}}">录制</router-link>
-                    </div>
+                    {{ scope.row.folder_path}}
                 </template>
             </el-table-column>
             <el-table-column label="检测状态">
@@ -85,25 +83,27 @@
 </template>
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { computed, ref, onBeforeMount } from 'vue'
+import { computed, ref, onBeforeMount,nextTick } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import useStore from '../store'
 import path from 'path'
+import ExperiemntObj from '../objects/experiment'
+
 
 const { settings, experiments, } = useStore()
-const data = experiments.opened_project
+const tabledata = experiments.opened_project
 let fs = require("fs")
+let util = require('util')
 const ruleFormRef = ref<FormInstance>()
 const createNewProjectVisible = ref(false)
 experiments.loadProject()
-const isVideoExist = (row) => {
+const isVideoExist = async (row) => {
     let current_project = experiments.get_from_id(row._id)
     if (!current_project) return false
-    console.log(row)
-    return fs.exists(path.join(current_project.folder_path, 'video.mp4'), (exists) => {
-        if (exists) return true
-        else return false
-    })
+    const exists =  await util.promisify(fs.exists)(path.join(current_project.folder_path, 'video.mp4'))
+    console.log(exists)
+    return exists
+
 }
 const isResultExist = (_id: string) => {
     return false

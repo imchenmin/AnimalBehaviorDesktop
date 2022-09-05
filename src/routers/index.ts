@@ -13,11 +13,6 @@ import Camera from "~/components/Camera.vue"
 let routes = [
   {
     path: "/",
-    name: 'home',
-    component: Home,
-  },
-  {
-    path: "/exp-settings",
     name: "ExperimentSetting",
     component: ExperimentSetting
   },
