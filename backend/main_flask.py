@@ -1,14 +1,17 @@
 from distutils.command.config import config
+from camera_device import Camera
 from flask import Flask
 app = Flask(__name__)
 from flask import request
 from flask import json
+from flask_cors import CORS
+CORS(app, resources=r'/*')	# 注册CORS, "/*" 允许访问所有api
 
 config_json = None
-
+cam = Camera()
 @app.route('/')
 def hello_world():
-   return 'Hello World'
+    return 'Hello World'
 
 @app.route('/api/config',methods=['POST','GET'])
 def load_config():
@@ -34,8 +37,21 @@ def load_config():
                 mimetype='application/json'
             )
 
+@app.route('/api/open_camera',methods=['POST','GET'])
+def open_camera():
+    cam.open()
 
-    
+@app.route('/api/start_record',methods=['POST','GET'])
+def start_record():
+    cam.start('D://test')
+
+@app.route('/api/close_camera',methods=['POST','GET'])
+def close_camera():
+    cam.close()
+
+@app.route('/api/stop_record',methods=['POST','GET'])
+def stop_record():
+    cam.stop()
 
 if __name__ == '__main__':
-   app.run(host='127.0.0.1',port=5001)
+    app.run(host='127.0.0.1',port=5001)

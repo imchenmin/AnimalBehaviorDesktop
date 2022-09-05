@@ -27,7 +27,7 @@ declare module '@vue/runtime-core' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     TrialControlSetting: typeof import('./components/TrialControlSetting.vue')['default']
-    TrialList: typeof import('./components/TrialList.vue')['default']
+    Camera: typeof import('./components/Camera.vue')['default']
     VideoView: typeof import('./components/VideoView.vue')['default']
   }
 }
