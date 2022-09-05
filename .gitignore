@@ -15,3 +15,6 @@ pnpm-lock.yaml
 Footer
 history.json
 records.pkg
+
+**/__pycache__
+*.pyc
