@@ -28,9 +28,10 @@ let routes = [
     props: true
   },
   {
-    path: "/detection-result",
+    path: "/detection-result/:exp_id",
     name: "DetectionResult",
-    component: DetectionResult
+    component: DetectionResult,
+    props: true
   },
 ];
 

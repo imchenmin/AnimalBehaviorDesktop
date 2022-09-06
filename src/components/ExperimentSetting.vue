@@ -62,13 +62,14 @@
         </el-dialog>
         <el-header>
             <el-breadcrumb separator="/">
-            <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
-        </el-breadcrumb>
+                <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
+            </el-breadcrumb>
         </el-header>
         <el-button @click="createNewProjectVisible = true">添加新项目</el-button>
         <el-table :data="tabledata">
             <el-table-column prop="name" label="项目名" />
             <el-table-column prop="analysis_method" label="项目类型" />
+            <el-table-column prop="date" label="创建日期" />
             <el-table-column label="拍摄状态">
                 <template #default="scope">
                     <div v-if="!scope.row.record_state">文件未录制，请
@@ -77,9 +78,20 @@
                     <div v-if="scope.row.record_state">已录制</div>
                 </template>
             </el-table-column>
-            <el-table-column label="检测状态">
+
+            <el-table-column label="查看结果">
                 <template #default="scope">
-                    <router-link :to="{path:  '/arena-settings/' +scope.row._id}">处理</router-link>
+                    <div v-if="!scope.row.record_state">-</div>
+                    <div v-if="scope.row.record_state">
+                        <div v-if="scope.row.analysis_method == 'tracking'">
+                            <router-link :to="{ path: '/arena-settings/' + scope.row._id }">查看</router-link>
+                        </div>
+                        <router-link :to="{ path: '/detection-result/' + scope.row._id }"
+                                v-if="scope.row.analysis_method == 'detection'">处理</router-link>
+                        <div v-if="scope.row.detection_state">
+                            <router-link :to="{ path: '/detection-result/' + scope.row._id }">查看</router-link>
+                        </div>
+                    </div>
                 </template>
             </el-table-column>
         </el-table>
@@ -196,7 +208,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                                 mouse_genetype: form.mouse_genetype,
                                 mouse_dob: form.mouse_dob,
                                 tracking_mouse_number: form.tracking_mouse_number,
-                                detection_behavior_kinds: ['a'],
+                                detection_behavior_kinds: ['理毛','扶墙站立','不扶墙站立'],
                                 record_state: false,
                                 detection_state: false,
                                 tracking_state: false

@@ -1,4 +1,16 @@
 <template>
+    <el-page-header @back="$router.push('/')">
+        <template #breadcrumb>
+            <el-breadcrumb separator="/">
+                <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
+                <el-breadcrumb-item :to="{ path: '/' }">{{ current_exp.name }}</el-breadcrumb-item>
+                <el-breadcrumb-item :to="{ path: '/' }">追踪识别</el-breadcrumb-item>
+            </el-breadcrumb>
+        </template>
+        <template #content>
+            <span> {{ current_exp.name }} - Tracking </span>
+        </template>
+    </el-page-header>
     <div id="main" style="border: solid black 1px; height:600; width:800; curssor: default; " ref="mainboard">
         <video id="video_id" class="video-js" preload  style="position: absolute;" data-setup="{}" ref="videoObj">
             <source src="" type='video/mp4' ref="videosource"/>
