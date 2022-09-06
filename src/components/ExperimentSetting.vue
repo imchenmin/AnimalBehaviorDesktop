@@ -78,13 +78,10 @@
                 </template>
             </el-table-column>
             <el-table-column label="检测状态">
-                <!-- <template #default="scope">
-                    <div v-if="!isVideoExist(scope.row._id) && isResultExist(scope.row._id)">文件未处理，请
-                        <router-link to="/camera/{{scope.row.folder_path}}">处理</router-link>
-                    </div>
-                </template> -->
+                <template #default="scope">
+                    <router-link :to="{path:  '/arena-settings/' +scope.row._id}">处理</router-link>
+                </template>
             </el-table-column>
-
         </el-table>
     </el-scrollbar>
 
