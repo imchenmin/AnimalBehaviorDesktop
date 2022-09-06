@@ -69,6 +69,7 @@
         <el-table :data="tabledata">
             <el-table-column prop="name" label="项目名" />
             <el-table-column prop="analysis_method" label="项目类型" />
+            <el-table-column prop="date" label="创建日期" />
             <el-table-column label="拍摄状态">
                 <template #default="scope">
                     <div v-if="!scope.row.record_state">文件未录制，请
@@ -207,7 +208,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                                 mouse_genetype: form.mouse_genetype,
                                 mouse_dob: form.mouse_dob,
                                 tracking_mouse_number: form.tracking_mouse_number,
-                                detection_behavior_kinds: ['a'],
+                                detection_behavior_kinds: ['理毛','扶墙站立','不扶墙站立'],
                                 record_state: false,
                                 detection_state: false,
                                 tracking_state: false

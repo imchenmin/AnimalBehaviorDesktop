@@ -1,4 +1,16 @@
 <template>
+    <el-page-header @back="$router.push('/')">
+        <template #breadcrumb>
+            <el-breadcrumb separator="/">
+                <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
+                <el-breadcrumb-item :to="{ path: '/' }">{{ current_exp.name }}</el-breadcrumb-item>
+                <el-breadcrumb-item :to="{ path: '/' }">追踪识别</el-breadcrumb-item>
+            </el-breadcrumb>
+        </template>
+        <template #content>
+            <span> {{ current_exp.name }} - Tracking </span>
+        </template>
+    </el-page-header>
     <div id="main" style="border: solid black 1px; height:600; width:800; curssor: default; " ref="mainboard">
         <video id="video_id" class="video-js" preload  style="position: absolute;" data-setup="{}" ref="videoObj">
             <source src="" type='video/mp4' ref="videosource"/>
@@ -49,12 +61,15 @@
                 current_exp: null
             };
         },
-        mounted() {
-            //draw rectangle
+        beforeMount() {
             const { settings, experiments, } = useStore()
             this._id = this.$route.params._id
             this.current_exp = experiments.get_from_id(this._id)
+        },
+        mounted() {
+            //draw rectangle
             this.videopath = this.current_exp.folder_path
+            console.log(this.current_exp)
             let videourl = this.videopath+"/"+this.videoname
             console.log(videourl)
             this.$refs.videosource.src = videourl

@@ -1,5 +1,6 @@
 <template >
-    <el-page-header @back="$router.push('/')">
+    <el-header>
+        <el-page-header @back="$router.push('/')">
         <template #breadcrumb>
             <el-breadcrumb separator="/">
                 <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
@@ -11,6 +12,8 @@
             <span> {{ current_exp.name }} </span>
         </template>
     </el-page-header>
+    </el-header>
+
 
     <el-form :model="record">
         <el-form-item>
