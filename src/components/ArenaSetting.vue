@@ -1,7 +1,7 @@
 <template>
     <div id="main" style="border: solid black 1px; height:600; width:800; curssor: default; " ref="mainboard">
         <video id="video_id" class="video-js" preload  style="position: absolute;" data-setup="{}" ref="videoObj">
-            <source src="" type='video/mp4' />
+            <source src="" type='video/mp4' ref="videosource"/>
         </video>
         <div id="canvaslist" style="position: absolute;" ref="canvaslist">
             <canvas id="canvas" ref="canvas"></canvas>
@@ -31,20 +31,33 @@
     <input type="file" id="file-uploader" style="margin-left:140; display: none;" accept="video/*" @change="selectvideo" ref="videoInput" />
     
 </template>
-<script>
+<script >
     import {smalltalk} from "../assets/js/smalltalk.min.js"
     import "../assets/css/smalltalk.min.css"
     import "../assets/css/control_bar.css"
     import "../assets/css/font-awesome.min.css"
+    import ExperiemntObj from '../objects/experiment'
+    import useStore from '../store'
+
+
     export default {
         data(){
             return{
-                videoname : "",
+                videoname : "video.mp4",
                 videopath : "",
+                _id: "",
+                current_exp: null
             };
         },
         mounted() {
             //draw rectangle
+            const { settings, experiments, } = useStore()
+            this._id = this.$route.params._id
+            this.current_exp = experiments.get_from_id(this._id)
+            this.videopath = this.current_exp.folder_path
+            let videourl = this.videopath+"/"+this.videoname
+            console.log(videourl)
+            this.$refs.videosource.src = videourl
             var isMove = false;
             function getDragAngle(event){
                 var element = event.target;

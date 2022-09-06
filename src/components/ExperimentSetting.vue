@@ -77,6 +77,7 @@
                     <div v-if="scope.row.record_state">已录制</div>
                 </template>
             </el-table-column>
+
             <el-table-column label="查看结果">
                 <template #default="scope">
                     <div v-if="!scope.row.record_state">-</div>
@@ -90,10 +91,8 @@
                             <router-link :to="{ path: '/detection-result/' + scope.row._id }">查看</router-link>
                         </div>
                     </div>
-
                 </template>
             </el-table-column>
-
         </el-table>
     </el-scrollbar>
 

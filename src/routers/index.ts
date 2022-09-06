@@ -17,7 +17,7 @@ let routes = [
     component: ExperimentSetting
   },
   {
-    path: "/arena-settings",
+    path: "/arena-settings/:_id",
     name: "ArenaSetting",
     component: ArenaSetting
   },
