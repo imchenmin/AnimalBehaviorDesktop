@@ -1,16 +1,19 @@
 import sys,os
-import deeplabcut
-#track part
-sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
-from track_process import *
-from draw_result import draw_raw_img
-from ouput_video import output_video
-from convert_dlc_to_simple_csv import convert_dlc_to_simple_csv
-import gazeheatplot
-from deeplabcut import analyze_videos
+# import deeplabcut
+# #track part
+# sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
+# from track_process import *
+# from draw_result import draw_raw_img
+# from ouput_video import output_video
+# from convert_dlc_to_simple_csv import convert_dlc_to_simple_csv
+# import gazeheatplot
+# from deeplabcut import analyze_videos
 ###
 from distutils.command.config import config
+import sys
+sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend')
 from camera_device import Camera
+from wash_recognition import start_wash_recognition
 from flask import Flask
 app = Flask(__name__)
 from flask import request
@@ -54,7 +57,10 @@ def open_camera():
 
 @app.route('/api/start_record',methods=['POST','GET'])
 def start_record():
-    cam.start('D://test')
+    filename = json.loads(request.data)
+    filename = filename['video_filename']
+    print(filename)
+    cam.start(filename)
 
 @app.route('/api/close_camera',methods=['POST','GET'])
 def close_camera():
@@ -114,7 +120,13 @@ def execute():
     isPoiWithinPoly(csv_path,polylist,namelist,video_name,video_path,resultpath)
     output_video(video_path,video_name,polylist,namelist,resultpath)
     return ('done')
-
+	
+@app.route('/api/wash_recognition', methods=['POST', 'GET'])
+def wash_recognition():
+    filename = json.loads(request.data)
+    print('nmsl')
+    print(filename['data'])
+    start_wash_recognition(filename['data'])
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1',port=5001)
