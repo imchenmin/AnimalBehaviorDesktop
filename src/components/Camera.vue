@@ -41,7 +41,7 @@ export default {
     computed: {
         current_exp() {
             const { experiments } = useStore()
-            console.log(this.exp_id)
+            // console.log(this.exp_id,this.$router.params.exp_id)
             return experiments.get_from_id(this.exp_id)
         }
     },

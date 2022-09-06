@@ -34,6 +34,7 @@ export const useExperimentsStore = defineStore('experiments', {
                 }
                 count++
             }
+            console.log("load finish")
 
         },
         addProject(payload: ExperiemntObj) {
@@ -41,6 +42,7 @@ export const useExperimentsStore = defineStore('experiments', {
             this.opened_project.push(payload)
             const db = new Datastore({ filename: path.join(payload.folder_path, 'project.json'), autoload: true })
             db.insert(payload)
+            console.log("add finish")
             return true
         },
         closeProject() {
