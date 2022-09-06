@@ -2,7 +2,7 @@ import cv2 as cv
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-def draw_raw_img(namelist,polylist,width,height,videoname):
+def draw_raw_img(namelist,polylist,width,height,videoname,resultpath):
     font = cv.FONT_HERSHEY_SIMPLEX
     newImg = np.zeros((height, width,3), np.uint8)
     newImg.fill(255)
@@ -19,7 +19,7 @@ def draw_raw_img(namelist,polylist,width,height,videoname):
         midy/=len(polylist[i])
         cv.putText(newImg,namelist[i],(int(midx),int(midy)), font, 2,(0,0,0),4,cv.LINE_AA)
         #cv.putText(newImg,namelist[i],(int(midx),int(midy)), font, 0.5,( 0,0,0),1,cv.LINE_AA)
-    cv.imwrite("result/"+videoname+'_raw.png', newImg, [cv.IMWRITE_PNG_COMPRESSION, 0])
+    cv.imwrite(resultpath+videoname+'_raw.png', newImg, [cv.IMWRITE_PNG_COMPRESSION, 0])
 
 # def read_points(path):
 #     df = pd.read_table(path,sep=',',header=None)
