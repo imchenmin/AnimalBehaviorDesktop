@@ -1,17 +1,30 @@
 <template lang="">
-    <div>
-        检测设置，需要选择视频路径。并且提供预览和播放控制控件。
-    </div>
+    <el-page-header @back="$router.push('/')">
+        <template #breadcrumb>
+            <el-breadcrumb separator="/">
+                <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
+                <el-breadcrumb-item :to="{ path: '/' }">{{ current_exp.name }}</el-breadcrumb-item>
+                <el-breadcrumb-item :to="{ path: '/' }">Camera</el-breadcrumb-item>
+            </el-breadcrumb>
+        </template>
+        <template #content>
+            <span> {{ current_exp.name }} </span>
+        </template>
+    </el-page-header>
     <v-chart class="chart" :option="option" />
     <p> as</p>
 </template>
-<script>
+<script lang="ts">
 import { ref, defineComponent } from 'vue';
 import VChart, { THEME_KEY } from 'vue-echarts';
 import * as echarts from 'echarts';
+import useStore from '../store'
 
 export default defineComponent({
-    setup() {
+    props: {
+        exp_id: String
+    },
+    setup(props) {
         var data = [];
         var dataCount = 10;
         var startTime = +new Date();
@@ -25,6 +38,8 @@ export default defineComponent({
             { name: 'GPU', color: '#72b362' }
         ];
         // Generate mock data
+        const { experiments } = useStore()
+
         categories.forEach(function (category, index) {
             var baseTime = startTime;
             for (var i = 0; i < dataCount; i++) {
@@ -123,8 +138,9 @@ export default defineComponent({
                 data: categories
             },
         });
+        const current_exp = experiments.get_from_id(props.exp_id)
 
-        return { option };
+        return { option,current_exp };
     },
 });
 </script>
