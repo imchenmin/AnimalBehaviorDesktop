@@ -87,7 +87,7 @@
                             <router-link :to="{ path: '/arena-settings/' + scope.row._id }">查看</router-link>
                         </div>
                         <router-link :to="{ path: '/detection-result/' + scope.row._id }"
-                                v-if="scope.row.analysis_method == 'detection'">处理</router-link>
+                            v-if="scope.row.analysis_method == 'detection'">处理</router-link>
                         <div v-if="scope.row.detection_state">
                             <router-link :to="{ path: '/detection-result/' + scope.row._id }">查看</router-link>
                         </div>
@@ -105,27 +105,15 @@ import type { FormInstance, FormRules } from 'element-plus'
 import useStore from '../store'
 import path from 'path'
 import ExperiemntObj from '../objects/experiment'
-import { lte } from 'lodash'
 
 
 const { settings, experiments, } = useStore()
-const tabledata = experiments.opened_project
+const tabledata = reactive<Array<ExperiemntObj>>(experiments.opened_project)
 let fs = require("fs")
 let util = require('util')
 const ruleFormRef = ref<FormInstance>()
 const createNewProjectVisible = ref(false)
 experiments.loadProject()
-const isVideoExist = async (row) => {
-    let current_project = experiments.get_from_id(row._id)
-    if (!current_project) return false
-    const exists = await util.promisify(fs.exists)(path.join(current_project.folder_path, 'video.mp4'))
-    console.log(exists)
-    return exists
-
-}
-const isResultExist = (_id: string) => {
-    return false
-}
 const form = reactive({
     name: '',
     date1: new Date(),
@@ -214,8 +202,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                                 tracking_state: false
 
                             } as ExperiemntObj
-                            let ret = experiments.addProject(record)
-                            tabledata.push(record)
+                            experiments.addProject(record).then((ret)=>tabledata.push(ret))
                             createNewProjectVisible.value = false
                             formEl.resetFields()
                         }
