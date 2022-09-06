@@ -5,6 +5,7 @@
             <el-button type="primary" @click="handleStart">开始录制</el-button>
             <el-button type="primary" @click="handleStop">结束录制</el-button>
             <el-button type="primary" @click="handleClose">关闭相机</el-button>
+            <el-button type="primary" @click="handleExecute">开始实验</el-button>
             <el-button>Cancel</el-button>
         </el-form-item>
     </el-form>
@@ -60,6 +61,17 @@ export default {
             fetch('http://127.0.0.1:5001/api/close_camera', {
                 method: 'post',
                 body: JSON.stringify({a:1}),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(function(data) {
+            })
+        },
+        // 测试用
+        handleExecute(){
+            fetch('http://127.0.0.1:5001/api/wash_recognition', {
+                method: 'post',
+                body: JSON.stringify({data:'D:/workspace/exp1/'}),
                 headers: {
                     'Content-Type': 'application/json'
                 }

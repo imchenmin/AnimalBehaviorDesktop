@@ -1,5 +1,8 @@
 from distutils.command.config import config
+import sys
+sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend')
 from camera_device import Camera
+from wash_recognition import start_wash_recognition
 from flask import Flask
 app = Flask(__name__)
 from flask import request
@@ -52,6 +55,14 @@ def close_camera():
 @app.route('/api/stop_record',methods=['POST','GET'])
 def stop_record():
     cam.stop()
+
+@app.route('/api/wash_recognition', methods=['POST', 'GET'])
+def wash_recognition():
+    filename = json.loads(request.data)
+    print('nmsl')
+    print(filename['data'])
+    start_wash_recognition(filename['data'])
+
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1',port=5001)
