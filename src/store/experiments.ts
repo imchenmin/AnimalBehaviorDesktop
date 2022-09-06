@@ -34,6 +34,7 @@ export const useExperimentsStore = defineStore('experiments', {
                 }
                 count++
             }
+            console.log("load finish")
 
         },
         async addProject(payload: ExperiemntObj) {

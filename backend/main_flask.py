@@ -1,15 +1,19 @@
 import sys,os
-#track part
-sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
-from track_process import *
-from draw_result import draw_raw_img
-from ouput_video import output_video
-from convert_dlc_to_simple_csv import convert_dlc_to_simple_csv
-import gazeheatplot
-from deeplabcut import analyze_videos
+# import deeplabcut
+# #track part
+# sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
+# from track_process import *
+# from draw_result import draw_raw_img
+# from ouput_video import output_video
+# from convert_dlc_to_simple_csv import convert_dlc_to_simple_csv
+# import gazeheatplot
+# from deeplabcut import analyze_videos
 ###
 from distutils.command.config import config
+import sys
+sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend')
 from camera_device import Camera
+from wash_recognition import start_wash_recognition
 from flask import Flask
 app = Flask(__name__)
 from flask import request
@@ -53,7 +57,10 @@ def open_camera():
 
 @app.route('/api/start_record',methods=['POST','GET'])
 def start_record():
-    cam.start('D://test')
+    filename = json.loads(request.data)
+    filename = filename['video_filename']
+    print(filename)
+    cam.start(filename)
 
 @app.route('/api/close_camera',methods=['POST','GET'])
 def close_camera():
@@ -95,18 +102,31 @@ def execute():
         polylist.append(poly)
     print(namelist)
     print(polylist)
-    csv_path = "result/"+video_name+".csv"
+    resultpath = video_path+"/result/"
+    csv_path = resultpath+video_name+".csv"
+    #videopath = video.mp4's path
+    #videoname = video
     #video_path = "C:\\Users\\Sun\\Desktop\\maze\\eight_maze_short_demo.mp4"
+    if not os.path.exists(resultpath):
+        os.mkdir(resultpath)
     if not os.path.exists(csv_path):
-        #deeplabcut.analyze_videos(config="C:/Users/Sun/Desktop/MOT_NEW-sbx-2022-07-27/config.yaml",videos=["C:/Users/Sun/Desktop/testfor1crop.mp4"],destfolder="result/",save_as_csv=True)
-        originalcsv = "result/"+video_name+"DLC_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv"
+        originalvideopath = video_path+"/"+video_name+".mp4"
+        #deeplabcut.analyze_videos(config="C:/Users/81062/Desktop/MOT_NEW-sbx-2022-07-27/config.yaml",videos=[originalvideopath],destfolder=videopath+"/result/",save_as_csv=True,n_tracks=1)
+        #deeplabcut.analyze_videos_converth5_to_csv(videopath+"/result/",'.mp4')  
+        originalcsv = resultpath+video_name+"DLC_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv"
         convert_dlc_to_simple_csv(originalcsv,csv_path)
-    draw_raw_img(namelist,polylist,video_width,video_height,video_name)
-    gazeheatplot.draw_heat_main(csv_path,video_height,video_width,video_name)
-    isPoiWithinPoly(csv_path,polylist,namelist,video_name,video_path)
-    output_video(video_path,video_name,polylist,namelist)
+    draw_raw_img(namelist,polylist,video_width,video_height,video_name,resultpath)
+    gazeheatplot.draw_heat_main(csv_path,video_height,video_width,video_name,resultpath)
+    isPoiWithinPoly(csv_path,polylist,namelist,video_name,video_path,resultpath)
+    output_video(video_path,video_name,polylist,namelist,resultpath)
     return ('done')
-
+	
+@app.route('/api/wash_recognition', methods=['POST', 'GET'])
+def wash_recognition():
+    filename = json.loads(request.data)
+    print('nmsl')
+    print(filename['data'])
+    start_wash_recognition(filename['data'])
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1',port=5001)

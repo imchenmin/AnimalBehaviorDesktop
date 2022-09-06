@@ -39,11 +39,12 @@
     <input type="file"  id="uploadbutton" style="display: none;" accept=".txt" ref="markInput" />
     <input type="button" value="添加矩形" id="addrectangle" style="display: none; margin-left:140"/> 
     <input type="button" value="添加多边形" id="addcanvas" style="display: none; margin-left:140"/>
-    <input type="button" value="选择视频" @click="onSelectVideo" />
+    <input type="button" value="选择视频" style="display: none" @click="onSelectVideo" />
     <input type="file" id="file-uploader" style="margin-left:140; display: none;" accept="video/*" @change="selectvideo" ref="videoInput" />
     
 </template>
 <script >
+    let fs = window.require('fs');
     import {smalltalk} from "../assets/js/smalltalk.min.js"
     import "../assets/css/smalltalk.min.css"
     import "../assets/css/control_bar.css"
@@ -55,24 +56,24 @@
     export default {
         data(){
             return{
-                videoname : "video.mp4",
+                videoname : "video",
                 videopath : "",
                 _id: "",
                 current_exp: null
             };
         },
-        beforeMount() {
-            const { settings, experiments, } = useStore()
-            this._id = this.$route.params._id
-            this.current_exp = experiments.get_from_id(this._id)
-        },
         mounted() {
             //draw rectangle
-            this.videopath = this.current_exp.folder_path
-            console.log(this.current_exp)
-            let videourl = this.videopath+"/"+this.videoname
-            console.log(videourl)
-            this.$refs.videosource.src = videourl
+            const { settings, experiments, } = useStore();
+            this._id = this.$route.params._id;
+            this.current_exp = experiments.get_from_id(this._id);
+            this.videopath = this.current_exp.folder_path;
+            let videourl = this.videopath+"/"+this.videoname+".mp4";
+            console.log(videourl);
+            const buf = fs.readFileSync(videourl);
+            const uint8Buffer = Uint8Array.from(buf);
+            const bolb = new Blob([uint8Buffer]);
+            this.$refs.videosource.src = window.URL.createObjectURL(bolb);
             var isMove = false;
             function getDragAngle(event){
                 var element = event.target;
@@ -497,6 +498,7 @@
                     // canvas.style.height = vv.videoHeight+"px";
                     // canvas.width = vv.videoWidth;
                     // canvas.height = vv.videoHeight;
+                    
                     vv.width = 800;
                     vv.height = 450;
                     mb.style.width = "800px";
@@ -511,6 +513,7 @@
                     cb.children[1].style.width = vv.width-210+"px";
                     totalT = vv.duration;
                     durationTimer.innerHTML = formatTime(totalT);
+                    console.log("videoloaded");
                     // document.getElementById('t').style.marginLeft =vv.videoWidth/2-260;
                     // document.getElementById('a').style.marginLeft =vv.videoWidth/2-260;
                     // document.getElementById('addcanvas').style.marginLeft = vv.videoWidth/2-260;
@@ -793,7 +796,7 @@
             },
             selectvideo(){
                 const files = event.target.files;
-                //console.log('files', files);
+                console.log('files', files);
                 let name = files[0].name;
                 let dot_index = name.lastIndexOf('.');
                 this.videoname = name.substring(0,dot_index);

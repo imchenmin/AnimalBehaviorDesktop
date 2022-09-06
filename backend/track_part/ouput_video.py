@@ -2,13 +2,13 @@ import cv2
 import csv
 from collections import deque
 import numpy as np
-def output_video(videopath,videoname,polylist,namelist):
+def output_video(videopath,videoname,polylist,namelist,resultpath):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     result_data = []
     position_data=[]
     posititon_to_draw=deque()
-    csv_path = "result/"+videoname+".csv"
-    result_path = "result/"+videoname+"_result.csv"
+    csv_path = resultpath+videoname+".csv"
+    result_path = resultpath+videoname+"_result.csv"
     with open(result_path) as f:
         reader = csv.reader(f)
         raw = list(reader)
@@ -20,11 +20,11 @@ def output_video(videopath,videoname,polylist,namelist):
         position_data = list(map(lambda q: (int(q[0]), int(q[1])), raw))
     f.close()
     result_iter = iter(result_data)
-    cap = cv2.VideoCapture(videopath)
+    cap = cv2.VideoCapture(videopath+"/"+videoname+".mp4")
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     FPS = int(cap.get(cv2.CAP_PROP_FPS))
-    out = cv2.VideoWriter("result/"+videoname+'_result.mp4',fourcc, FPS, (frame_width,frame_height),True)
+    out = cv2.VideoWriter(resultpath+videoname+'_result.mp4',fourcc, FPS, (frame_width,frame_height),True)
     frameid=0
     lb = 0
     ub = 0

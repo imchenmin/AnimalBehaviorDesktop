@@ -108,8 +108,8 @@ def isRayIntersectsSegment(poi,s_poi,e_poi): #[x,y] [lng,lat]
     return True  #排除上述情况之后
 
 #poly,namelist可作为全局变量在detect方法中存在，仅需将每一帧的坐标poi传入即可,嵌入了csv结果的输出
-def isPoiWithinPoly(csv_path,poly,namelist,videoname,videopath):
-    cap = cv2.VideoCapture(videopath)
+def isPoiWithinPoly(csv_path,poly,namelist,videoname,videopath,resultpath):
+    cap = cv2.VideoCapture(videopath+"/"+videoname+".mp4")
     #print("!!!!!!!!!!!!!!!!!!!!")
     print(videopath)
     FPS = int(cap.get(cv2.CAP_PROP_FPS))
@@ -122,7 +122,7 @@ def isPoiWithinPoly(csv_path,poly,namelist,videoname,videopath):
     now = ""
     beginframe = 0
     flag = 0
-    with open("result/"+videoname+"_result.csv","w",newline='') as csvfile:
+    with open(resultpath+videoname+"_result.csv","w",newline='') as csvfile:
         writer = csv.writer(csvfile)
         for frame_id in range(0, len(point_data)):
             #输入：点，多边形三维数组
@@ -162,15 +162,15 @@ def isPoiWithinPoly(csv_path,poly,namelist,videoname,videopath):
         #When loop end, check for last condition
         if(pre!=""):
             writer.writerow([beginframe,len(point_data),pre])
-    cvt_time_result("result/"+videoname+"_result.csv",videoname,FPS)
+    cvt_time_result(resultpath+videoname+"_result.csv",videoname,FPS,resultpath)
     csvfile.close()
-def cvt_time_result(csvpath,videoname,FPS):
+def cvt_time_result(csvpath,videoname,FPS,resultpath):
     with open(csvpath) as f:
         reader = csv.reader(f)
         raw = list(reader)
         data= list(map(lambda q: (int(q[0]), int(q[1]),q[2]), raw))
     f.close()
-    with open("result/"+videoname+"_timeresult.csv","w",newline='') as csvfile:
+    with open(resultpath+videoname+"_timeresult.csv","w",newline='') as csvfile:
         writer = csv.writer(csvfile)
         for begin,end,name in data:
             writer.writerow([datetime.timedelta(seconds=(begin/FPS)),datetime.timedelta(seconds=(end/FPS)),name])

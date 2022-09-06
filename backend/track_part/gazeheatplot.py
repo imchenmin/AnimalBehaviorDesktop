@@ -184,12 +184,12 @@ def draw_heatmap(gazepoints, dispsize, imagefile=None, alpha=0.5, savefilename=N
     return fig
 
 
-def draw_heat_main(csv_path,video_height,video_width,video_name):
+def draw_heat_main(csv_path,video_height,video_width,video_name,resultpath):
 
     with open(csv_path) as f:
         reader = csv.reader(f)
         raw = list(reader)
         gaze_data = list(map(lambda q: (int(q[0]), int(q[1]), 1), raw))
-        draw_heatmap(gaze_data, (video_width, video_height), alpha=0.6, savefilename="result/"+video_name+"_result", imagefile="result/"+video_name+"_raw.png", gaussianwh=200, gaussiansd=20)
+        draw_heatmap(gaze_data, (video_width, video_height), alpha=0.6, savefilename=resultpath+video_name+"_result", imagefile=resultpath+video_name+"_raw.png", gaussianwh=200, gaussiansd=20)
 
    
