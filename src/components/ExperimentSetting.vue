@@ -60,21 +60,29 @@
                 </el-form-item>
             </el-form>
         </el-dialog>
+        <el-header>
+            <el-breadcrumb separator="/">
+            <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
+        </el-breadcrumb>
+        </el-header>
         <el-button @click="createNewProjectVisible = true">添加新项目</el-button>
         <el-table :data="tabledata">
             <el-table-column prop="name" label="项目名" />
             <el-table-column prop="analysis_method" label="项目类型" />
             <el-table-column label="拍摄状态">
                 <template #default="scope">
-                    {{ scope.row.folder_path}}
+                    <div v-if="!scope.row.record_state">文件未录制，请
+                        <router-link :to="{ path: '/camera/' + scope.row._id }">录制</router-link>
+                    </div>
+                    <div v-if="scope.row.record_state">已录制</div>
                 </template>
             </el-table-column>
             <el-table-column label="检测状态">
-                <template #default="scope">
+                <!-- <template #default="scope">
                     <div v-if="!isVideoExist(scope.row._id) && isResultExist(scope.row._id)">文件未处理，请
                         <router-link to="/camera/{{scope.row.folder_path}}">处理</router-link>
                     </div>
-                </template>
+                </template> -->
             </el-table-column>
 
         </el-table>
@@ -83,11 +91,12 @@
 </template>
 <script setup lang="ts">
 import { reactive } from 'vue'
-import { computed, ref, onBeforeMount,nextTick } from 'vue'
+import { computed, ref, onBeforeMount, nextTick } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import useStore from '../store'
 import path from 'path'
 import ExperiemntObj from '../objects/experiment'
+import { lte } from 'lodash'
 
 
 const { settings, experiments, } = useStore()
@@ -100,7 +109,7 @@ experiments.loadProject()
 const isVideoExist = async (row) => {
     let current_project = experiments.get_from_id(row._id)
     if (!current_project) return false
-    const exists =  await util.promisify(fs.exists)(path.join(current_project.folder_path, 'video.mp4'))
+    const exists = await util.promisify(fs.exists)(path.join(current_project.folder_path, 'video.mp4'))
     console.log(exists)
     return exists
 
@@ -179,7 +188,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                     fs.mkdir(folder_path.value, function (error) {
                         console.log(error)
                         if (!error) {
-                            const record = {
+                            let record = {
                                 folder_path: folder_path.value,
                                 name: form.name,
                                 description: form.desc,
@@ -190,9 +199,14 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                                 mouse_genetype: form.mouse_genetype,
                                 mouse_dob: form.mouse_dob,
                                 tracking_mouse_number: form.tracking_mouse_number,
-                                detection_behavior_kinds: ['a']
-                            }
+                                detection_behavior_kinds: ['a'],
+                                record_state: false,
+                                detection_state: false,
+                                tracking_state: false
+
+                            } as ExperiemntObj
                             let ret = experiments.addProject(record)
+                            tabledata.push(record)
                             createNewProjectVisible.value = false
                             formEl.resetFields()
                         }

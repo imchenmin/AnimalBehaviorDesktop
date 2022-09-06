@@ -22,9 +22,10 @@ let routes = [
     component: ArenaSetting
   },
   {
-    path: "/camera/:folder",
+    path: "/camera/:exp_id",
     name: "Camera",
-    component: Camera
+    component: Camera,
+    props: true
   },
   {
     path: "/detection-result",

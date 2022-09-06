@@ -1,6 +1,6 @@
 <template>
   <el-container class="common-layout">
-    <el-header>
+    <!-- <el-header>
       <el-popover placement="bottom" title="Title" :width="200" trigger="hover">
         <template #reference>
           <el-button>
@@ -13,22 +13,10 @@
           <el-progress :percentage="10" />
         </div>
       </el-popover>
-
-      <!-- <el-button>
-        <router-link to="/">home</router-link>
-      </el-button> -->
       <el-button>
-        <router-link to="/exp-settings">实验设置</router-link>
+        <router-link to="/">实验设置</router-link>
       </el-button>
-      <el-button>
-        <router-link to="/camera">拍摄录制</router-link> 
-      </el-button>
-
-      <el-button>
-        <router-link to="/arena-settings">结果分析</router-link>
-      </el-button>
-
-    </el-header>
+    </el-header> -->
     <el-container>
       <el-aside>
       </el-aside>

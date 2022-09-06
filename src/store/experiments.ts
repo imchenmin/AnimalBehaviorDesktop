@@ -12,27 +12,27 @@ export const useExperimentsStore = defineStore('experiments', {
     },
     persist: true,
     actions: {
-        loadProject() {
+        async loadProject() {
             this.opened_project = new Array<ExperiemntObj>()
             let fs = require("fs")
+            let util = require('util')
             let count = 0
             for (let i of this.project_config_list) {
-                fs.exists(i, (exists) => {
-                    if (!exists) {
-                        console.log("project not found", i)
-                    } else {
-                        const db = new Datastore({ filename: i, autoload: true })
-                        db.find({}, (err, docs) => {
-                            if (!err) {
-                                this.opened_project.push(docs[0])
-                            } else {
-                                console.log("project database load error", i)
-                            }
-                        })
-                    }
-                })
+                let exists =  await util.promisify(fs.exists)(i)
+                if (exists) {
+                    const db = new Datastore({ filename: i, autoload: true })
+                    db.find({}, async (err, docs) => {
+                        if (!err) {
+                            let current_exp = docs[0] as ExperiemntObj
+                            let capture =  await util.promisify(fs.exists)(path.join(i,'..', 'video.mp4'))
+                            current_exp.record_state=capture
+                            this.opened_project.push(docs[0])
+                        } else {
+                            console.log("project database load error", i)
+                        }
+                    })
+                }
                 count++
-
             }
 
         },
@@ -47,6 +47,7 @@ export const useExperimentsStore = defineStore('experiments', {
             this.opened_project = null
         },
         get_from_id(idx: string) {
+            console.log(idx)
             return this.opened_project.find(element => element._id == idx)
         }
 
