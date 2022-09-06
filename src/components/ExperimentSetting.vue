@@ -66,7 +66,7 @@
             </el-breadcrumb>
         </el-header>
         <el-button @click="createNewProjectVisible = true">添加新项目</el-button>
-        <el-table :data="tabledata">
+        <el-table :data="tabledata.arr">
             <el-table-column prop="name" label="项目名" />
             <el-table-column prop="analysis_method" label="项目类型" />
             <el-table-column prop="date" label="创建日期" />
@@ -108,7 +108,7 @@ import ExperiemntObj from '../objects/experiment'
 
 
 const { settings, experiments, } = useStore()
-const tabledata = reactive<Array<ExperiemntObj>>(experiments.opened_project)
+const tabledata = reactive({arr: experiments.opened_project})
 let fs = require("fs")
 let util = require('util')
 const ruleFormRef = ref<FormInstance>()
@@ -202,7 +202,9 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                                 tracking_state: false
 
                             } as ExperiemntObj
-                            experiments.addProject(record).then((ret)=>tabledata.push(ret))
+                            experiments.addProject(record).then(()=>{
+                                tabledata.arr = experiments.opened_project
+                            })
                             createNewProjectVisible.value = false
                             formEl.resetFields()
                         }

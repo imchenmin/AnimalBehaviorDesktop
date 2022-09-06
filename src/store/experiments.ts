@@ -40,13 +40,9 @@ export const useExperimentsStore = defineStore('experiments', {
         async addProject(payload: ExperiemntObj) {
             this.project_config_list.push(path.join(payload.folder_path, 'project.json'))
             const db = new Datastore({ filename: path.join(payload.folder_path, 'project.json'), autoload: true })
-            let ret = new ExperiemntObj()
             await db.insert(payload, (err,newDoc)=> {
                 this.opened_project.push(newDoc)
-                console.log(newDoc)
-                ret = newDoc
             })
-            return ret
         },
         closeProject() {
             this.opened_project = null
