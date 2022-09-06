@@ -62,8 +62,8 @@
         </el-dialog>
         <el-header>
             <el-breadcrumb separator="/">
-            <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
-        </el-breadcrumb>
+                <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
+            </el-breadcrumb>
         </el-header>
         <el-button @click="createNewProjectVisible = true">添加新项目</el-button>
         <el-table :data="tabledata">
@@ -77,9 +77,20 @@
                     <div v-if="scope.row.record_state">已录制</div>
                 </template>
             </el-table-column>
-            <el-table-column label="检测状态">
+
+            <el-table-column label="查看结果">
                 <template #default="scope">
-                    <router-link :to="{path:  '/arena-settings/' +scope.row._id}">处理</router-link>
+                    <div v-if="!scope.row.record_state">-</div>
+                    <div v-if="scope.row.record_state">
+                        <div v-if="scope.row.analysis_method == 'tracking'">
+                            <router-link :to="{ path: '/arena-settings/' + scope.row._id }">查看</router-link>
+                        </div>
+                        <router-link :to="{ path: '/detection-result/' + scope.row._id }"
+                                v-if="scope.row.analysis_method == 'detection'">处理</router-link>
+                        <div v-if="scope.row.detection_state">
+                            <router-link :to="{ path: '/detection-result/' + scope.row._id }">查看</router-link>
+                        </div>
+                    </div>
                 </template>
             </el-table-column>
         </el-table>
