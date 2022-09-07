@@ -67,7 +67,10 @@ def close_camera():
 
 @app.route('/api/stop_record',methods=['POST','GET'])
 def stop_record():
-    cam.stop()
+    try:
+        cam.stop()
+    except:
+        print('error')
     filename = json.loads(request.data)
     filename = filename['video_filename']
     start_wash_recognition(filename)

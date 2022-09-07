@@ -46,15 +46,15 @@ let array: any = [];
 try {
     let csv_path = path.join(current_exp.folder_path, 'detection_result.csv')
     let csvstr: string = fs.readFileSync(csv_path, "utf8", 'r+');
-    let arr: string[] = csvstr.split('\n');
+    let arr: string[] = csvstr.split('\r\n');
     arr.forEach(line => {
-        array.push(line.split(','));
+        if (line !='')         array.push(line.split(','));
     })
 } catch {
     console.log("didn't display chart")
     displayChart.value = false
 }
-
+console.log(array)
 array.forEach(function (item, index) {
     var typeItem = types[item[0]];
     chartData.push({

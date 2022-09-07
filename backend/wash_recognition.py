@@ -128,8 +128,9 @@ def detect(source, yolo_weights, imgsz, csv_path):
         cv2.imshow('res', frame)
         cv2.waitKey(1)
     df = pd.DataFrame(bcounter.res)
-    df['class'] = 0
-    df[['class','st','end']].to_csv(csv_path, header=None,index=None)
+    if df.shape[0] != 0:
+        df['class'] = 0
+        df[['class','st','end']].to_csv(csv_path, header=None,index=None)
 
 def init(source,output_path):
     with torch.no_grad():
