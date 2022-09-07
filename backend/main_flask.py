@@ -2,11 +2,12 @@ import sys,os
 import deeplabcut
 #track part
 #sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
-sys.path.insert(0, 'E:\\workspace\\AnimalBehaviorDesktop\\backend')
-sys.path.insert(0, 'E:\\workspace\\AnimalBehaviorDesktop\\backend\\yolov5')
+# sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend')
+sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend\\yolov5')
 from track_part.track_process import *
 from track_part.draw_result import draw_raw_img
 from track_part.ouput_video import output_video
+from track_part.output_video_part import output_video_part
 from track_part.convert_dlc_to_simple_csv import convert_dlc_to_simple_csv
 from track_part.gazeheatplot import draw_heat_main
 #from deeplabcut import analyze_videos
@@ -84,8 +85,9 @@ def execute():
     polylist = []
     video_width = argvs[0]
     video_height = argvs[1]
-    video_path = argvs[-2]
-    video_name = argvs[-1]
+    video_path = argvs[-3]
+    video_name = argvs[-2]
+    check_out_list = argvs[-1]
     rect_num = int(argvs[2])
     resize = 2.4 #尺寸映射
     for i in range (3,3+rect_num):
@@ -123,7 +125,8 @@ def execute():
     draw_raw_img(namelist,polylist,video_width,video_height,video_name,resultpath)
     draw_heat_main(csv_path,video_height,video_width,video_name,resultpath)
     isPoiWithinPoly(csv_path,polylist,namelist,video_name,video_path,resultpath)
-    output_video(video_path,video_name,polylist,namelist,resultpath)
+    output_video_part(video_path,video_name,polylist,namelist,resultpath,check_out_list)
+    #output_video(video_path,video_name,polylist,namelist,resultpath)
     return ('done')
 	
 @app.route('/api/wash_recognition', methods=['POST', 'GET'])

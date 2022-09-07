@@ -39,7 +39,7 @@ class Camera:
             cv2.waitKey(1)
 
             if self.top_record_flag.qsize() == 1:
-                cam_record = cv2.VideoWriter(self.filename.get() + '/video1.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+                cam_record = cv2.VideoWriter(self.filename.get() + '/video.mp4', cv2.VideoWriter_fourcc(*'avc1'), fps, (w, h))
                 cam_record.write(frame)
                 self.top_record_flag.put(1)
             elif self.top_record_flag.qsize() == 2:
@@ -58,7 +58,7 @@ class Camera:
         cam.set(cv2.CAP_PROP_FPS, fps)
         cam_record = None
         cv2.namedWindow("side", 0)
-        cv2.resizeWindow("side", 1280, 720)
+        cv2.resizeWindow("side", 1280, 360)
         while True:
             ret, frame = cam.read()
             if not ret or self.open_flag.qsize() == 0:
@@ -68,7 +68,7 @@ class Camera:
             cv2.waitKey(1)
 
             if self.side_record_flag.qsize() == 1:
-                cam_record = cv2.VideoWriter(self.filename.get() + '/video.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
+                cam_record = cv2.VideoWriter(self.filename.get() + '/video1.mp4', cv2.VideoWriter_fourcc(*'avc1'), fps, (w, h))
                 cam_record.write(frame)
                 self.side_record_flag.put(1)
             elif self.side_record_flag.qsize() == 2:

@@ -115,6 +115,7 @@ def isPoiWithinPoly(csv_path,poly,namelist,videoname,videopath,resultpath):
     cap.release()
     tocheckbodypart = [0,1,2,3]
     tocheckbodypartname = ["Body","Tail","Head","Nose"]
+    csvforoutputvideodata = [[],[],[],[]]
     with open(resultpath+videoname+"_result.csv","w",newline='') as csvfile:
         writer = csv.writer(csvfile)
         for partindex in tocheckbodypart:
@@ -149,6 +150,10 @@ def isPoiWithinPoly(csv_path,poly,namelist,videoname,videopath,resultpath):
                         now = namelist[t]
                         flag = 1
                         break
+                if (flag==1):
+                    csvforoutputvideodata[partindex].append(now)
+                else:
+                    csvforoutputvideodata[partindex].append("_notinanyarea_")
                 if (pre!="" and flag==0):
                     writer.writerow([beginframe,frame_id,pre])
                     pre = ""
@@ -170,6 +175,13 @@ def isPoiWithinPoly(csv_path,poly,namelist,videoname,videopath,resultpath):
                 writer.writerow([beginframe,len(point_data),pre])
     cvt_time_result(resultpath+videoname+"_result.csv",videoname,FPS,resultpath)
     csvfile.close()
+    with open(resultpath+videoname+"_dataforoutputvideo.csv","w",newline='') as csvfile2:
+        writer2 = csv.writer(csvfile2)
+        for i in range (len(csvforoutputvideodata[0])):
+            towritelist = []
+            for j in range(len(csvforoutputvideodata)):
+                towritelist.append(csvforoutputvideodata[j][i])
+            writer2.writerow(towritelist)
 def cvt_time_result(csvpath,videoname,FPS,resultpath):
     with open(resultpath+videoname+"_timeresult.csv","w",newline='') as csvfile:
         writer = csv.writer(csvfile)
