@@ -19,7 +19,7 @@ from flask import request
 from flask import json
 from flask_cors import CORS
 CORS(app, resources=r'/*')	# 注册CORS, "/*" 允许访问所有api
-from wash_recognition import start_wash_recognition
+from behavior_recognition import start_recognition
 config_json = None
 cam = Camera()
 @app.route('/')
@@ -73,7 +73,7 @@ def stop_record():
         print('error')
     filename = json.loads(request.data)
     filename = filename['video_filename']
-    start_wash_recognition(filename)
+    start_recognition(filename)
 
 @app.route('/api/runtrack', methods=['GET', 'POST'])
 def execute():
@@ -131,7 +131,7 @@ def wash_recognition():
     filename = json.loads(request.data)
     filename = filename['video_filename']
     print(filename)
-    start_wash_recognition(filename)
+    start_recognition(filename)
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1',port=5001)
