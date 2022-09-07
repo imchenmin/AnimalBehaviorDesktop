@@ -1,5 +1,5 @@
 import sys,os
-# import deeplabcut
+import deeplabcut
 #track part
 #sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
 sys.path.insert(0, 'E:\\workspace\\AnimalBehaviorDesktop\\backend')

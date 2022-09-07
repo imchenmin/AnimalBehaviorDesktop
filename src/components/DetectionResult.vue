@@ -12,6 +12,7 @@
         </template>
     </el-page-header>
     <v-chart v-if="displayChart" class="chart" :option="option" />
+    <input v-if="displayChart" type="button" value="查看结果" id="showresult" @click="embyPot"/> 
     <p v-if="!displayChart">没有结果文件，请确认</p>
     测试
 </template>
@@ -97,6 +98,16 @@ function renderItem(params, api) {
         }
     );
 };
+function embyPot() {
+    let resultvideopath = current_exp.folder_path+"/detection_result.mp4";
+    console.log(resultvideopath);
+    let poturl = `potplayer://${resultvideopath}`;
+    poturl = poturl.replace("\\","");
+    console.log(poturl);
+    window.open(poturl, "_parent");
+};
+            
+
 const option = ref({
     tooltip: {
         formatter: function (params) {

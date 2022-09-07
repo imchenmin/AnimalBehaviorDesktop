@@ -88,6 +88,7 @@ def output_video(videopath,videoname,polylist,namelist,resultpath):
         #         ub = -1
         #         name =""
         #change bound info
+        infotoshow =""
         for i in range(len(allpartresult)):
             if (frameid>ublist[i]):
                 try:
@@ -96,9 +97,9 @@ def output_video(videopath,videoname,polylist,namelist,resultpath):
                     newlb = -1
                     newub = -1
                     newname =""
-                    lblist[i] = newlb
-                    ublist[i] = newub
-                    names[i] = newname
+                lblist[i] = newlb
+                ublist[i] = newub
+                names[i] = newname
         for i in range(0,len(namelist)):
             font = cv2.FONT_HERSHEY_SIMPLEX
             temp = np.array(polylist[i],np.int32)
@@ -115,12 +116,20 @@ def output_video(videopath,videoname,polylist,namelist,resultpath):
             #draw text
             flag = -1
             for partnum in range(len(allpartresult)):
-                if (frameid>=lblist[partnum]) and (frameid<=ublist[partnum]) and (namelist[i]==names[partnum]):
-                    flag = partnum
+                if (namelist[i]=="drink"):
+                    if (partnum==3 and frameid>=lblist[partnum] and (frameid<=ublist[partnum]) and (namelist[i]==names[partnum])):
+                        infotoshow = infotoshow+tocheckbodypartname[partnum]+" in "+namelist[i]+";"
+                        flag = partnum
+                else:
+                    if (frameid>=lblist[partnum]) and (frameid<=ublist[partnum]) and (namelist[i]==names[partnum]):
+                        infotoshow = infotoshow+tocheckbodypartname[partnum]+" in "+namelist[i]+";"
+                        flag = partnum
             if flag==-1:
                 cv2.putText(frame,namelist[i],(int(midx),int(midy)), font, 2,(0,0,0),4,cv2.LINE_AA)
             else:
-                cv2.putText(frame,namelist[i],(int(midx),int(midy)), font, 2,COLORLIST[flag],4,cv2.LINE_AA)
+                cv2.putText(frame,namelist[i],(int(midx),int(midy)), font, 2,(0,0,255),4,cv2.LINE_AA)
+                #cv2.putText(frame,namelist[i],(int(midx),int(midy)), font, 2,COLORLIST[flag],4,cv2.LINE_AA)
+            cv2.putText(frame,infotoshow,(50,50),font, 2,(255,255,255),2,cv2.LINE_AA)
         
         (x,y) = position_data[frameid]
         if len(posititon_to_draw)>=5*FPS:
