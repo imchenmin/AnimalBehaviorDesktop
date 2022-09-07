@@ -5,7 +5,7 @@ import os
 from yolov5.models.experimental import attempt_load
 from yolov5.utils.general import check_img_size, non_max_suppression, scale_coords
 from yolov5.utils.torch_utils import select_device
-
+import pandas as pd
 import time
 import cv2
 import torch
@@ -40,6 +40,8 @@ def detect(source, yolo_weights, imgsz, csv_path):
  
     half=False  # use FP16 half-precision inference
     init = 0
+    from BehaviorCounter import BehaviorCounter
+    bcounter = BehaviorCounter(fps=60, threshold=10, filter_frame=10)
 
     device = select_device('0')
     half &= device.type != 'cpu'  # half precision only supported on CUDA
@@ -63,17 +65,18 @@ def detect(source, yolo_weights, imgsz, csv_path):
         model(torch.zeros(1, 3, imgsz, imgsz).to(device).type_as(next(model.parameters())))  # run once
     frame_idx = 0
 
-    vid_writer = cv2.VideoWriter(csv_path[:-4]+'.mp4', cv2.VideoWriter_fourcc(*'mp4v'), frameps, (2560, 720))
+    vid_writer = cv2.VideoWriter(csv_path[:-4]+'.mp4', cv2.VideoWriter_fourcc(*'mp4v'), frameps, (840, 720))
     label_wash =[]
 
     while True:
         frame_idx+=1
-        
+      
         t1 = time.time()
         ret, frame = cap.read()
         if not ret:
             break
         # frame = frame[375:375+375, 135:135 + 1700]
+        frame = frame[:, 1280+160:1280+1000]
         img = letterbox(frame)[0]
 
         # Convert
@@ -93,42 +96,44 @@ def detect(source, yolo_weights, imgsz, csv_path):
         conf_norm = [0]
         conf_wash = [0]
         flag = 0
+        first = True
         for i, det in enumerate(pred):  # detections per image
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img.shape[2:], det[:, :4], frame.shape).round()
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
+                    if first:
+                        bcounter.read(int(cls.item()))
+                        first = False
                     # to deep sort format
                     x_c, y_c, bbox_w, bbox_h = xyxy_to_xywh(*xyxy)
                     #### change here ####
                     if int(cls.item()) == 0:
-                        cv2.rectangle(frame, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 0), 2)
-                        cv2.putText(frame, 'Wash: '+str(conf), (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
-                        conf_wash.append(conf)
-                        flag += 1
+                        if conf > 0.5:
+                            cv2.rectangle(frame, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
+                            cv2.putText(frame, 'Wash', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+                            flag += 1
 
                     if int(cls.item()) == 1:
-                        cv2.rectangle(frame, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (255, 255, 255), 2)
-                        cv2.putText(frame, 'Norm: '+str(conf), (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 10)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
                         conf_norm.append(conf)
+            else:
+                bcounter.read()
         if flag == 1:
+            label_wash.append(1)
+        else:
             label_wash.append(0)
 
         vid_writer.write(frame)
         cv2.imshow('res', frame)
         cv2.waitKey(1)
-    # for i 
-    with open(csv_path, 'w', newline='') as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(['id','start','end'])
-        for item in label_wash:
-            writer.writerow([0, str()])
-            i+=1
+    df = pd.DataFrame(bcounter.res)
+    df['class'] = 0
+    df[['class','st','end']].to_csv(csv_path, header=None,index=None)
 
 def init(source,output_path):
     with torch.no_grad():
         detect(source, 'D:\\workspace\\AnimalBehaviorDesktop\\backend\\assets\\best.pt', 640, output_path)
 
 def start_wash_recognition(filepath):
-    init(filepath, "detection_result.csv")
+    init(filepath, filepath + "/detection_result.csv")
