@@ -1,6 +1,4 @@
 import sys
-sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend\\yolov5')
-sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend\\assets')
 import os
 from yolov5.models.experimental import attempt_load
 from yolov5.utils.general import check_img_size, non_max_suppression, scale_coords
@@ -139,9 +137,11 @@ def detect(source, yolo_weights, imgsz, csv_path,behavior='wash'):
         # cv2.imshow('res', frame)
         # cv2.waitKey(1)
     if behavior == "wash":
+        df = pd.DataFrame(bcounter.res)
         if df.shape[0] != 0:
             df['class'] = 0
-        df = pd.DataFrame(bcounter.res)
+        print(df)
+
     elif behavior == "stand":
         df1 = pd.DataFrame(bcounter1.res)
         df2 = pd.DataFrame(bcounter2.res)
@@ -153,11 +153,11 @@ def detect(source, yolo_weights, imgsz, csv_path,behavior='wash'):
     return df
 
 def init(source,output_path):
-    df_list = []
+    df_list = [pd.DataFrame.from_dict({"class": [0], "st":[1], 'end':[1]})]
     with torch.no_grad():
         df_list.append(detect(source, 'assets/wash.pt', 640, output_path,'wash'))
-    with torch.no_grad():
-        df_list.append(detect(source, 'assets/stand.pt', 640, output_path,'stand'))
+    # with torch.no_grad():
+        # df_list.append(detect(source, 'assets/stand.pt', 640, output_path,'stand'))
     df = pd.concat(df_list,axis=0)
     df[['class','st','end']].to_csv(output_path, header=None,index=None)
 
