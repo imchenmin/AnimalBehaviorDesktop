@@ -11,10 +11,7 @@ from track_part.gazeheatplot import draw_heat_main
 #from deeplabcut import analyze_videos
 ###
 from distutils.command.config import config
-import sys
-
 from camera_device import Camera
-# from wash_recognition import start_wash_recognition
 from flask import Flask
 app = Flask(__name__)
 from flask import request
