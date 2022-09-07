@@ -1,0 +1,14 @@
+# Multi Tracking Task
+# Train command: python train.py --batch 36 --epochs 1000 --data data/multi_tracking.yaml --weights weights/yolov5s.pt --device 0,1,2 --name 20210625onlybody
+# Default dataset location is next to YOLOv5:
+# 
+#
+#
+# train and val data as 1) directory: path/images/, 2) file: path/images.txt, or 3) list: [path1/images/, path2/images/]
+train: /home/zjh/workspace/yolov5/data/0914/train/
+val: /home/zjh/workspace/yolov5/data/0914/train/
+test: /home/zjh/workspace/yolov5/data/0914/train/
+nc: 4
+
+# class names
+names: ['Nose','Paw','Tail','Mouse']

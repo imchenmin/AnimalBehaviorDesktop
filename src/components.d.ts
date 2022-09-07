@@ -10,7 +10,6 @@ declare module '@vue/runtime-core' {
     Camera: typeof import('./components/Camera.vue')['default']
     DataProfiles: typeof import('./components/DataProfiles.vue')['default']
     DetectionResult: typeof import('./components/DetectionResult.vue')['default']
-
     ElAside: typeof import('element-plus/es')['ElAside']
     ElBreadcrumb: typeof import('element-plus/es')['ElBreadcrumb']
     ElBreadcrumbItem: typeof import('element-plus/es')['ElBreadcrumbItem']
@@ -31,7 +30,6 @@ declare module '@vue/runtime-core' {
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
     ElTable: typeof import('element-plus/es')['ElTable']
     ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
-    
     ExperimentSetting: typeof import('./components/ExperimentSetting.vue')['default']
     Home: typeof import('./components/Home.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

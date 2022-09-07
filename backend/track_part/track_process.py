@@ -12,7 +12,6 @@ def calculatey(x,y,x_center,y_center,rotate):
     return int((x-x_center)*math.sin(rotate) + (y-y_center)*math.cos(rotate)+y_center)
 def rotateRec(rec_info):
     rec_info = rec_info.split(',') #left,top,height,width,rotate
-    bias = 9 #index bias because of the pad in the page
     x1 = int(rec_info[0][:-2])
     y1 = int(rec_info[1][:-2])
     x2 = int(rec_info[0][:-2])+int(rec_info[3][:-2])
@@ -33,7 +32,7 @@ def rotateRec(rec_info):
         new_y3 = calculatey(x3,y3,x_center,y_center,rotate)
         new_x4 = calculatex(x4,y4,x_center,y_center,rotate)
         new_y4 = calculatey(x4,y4,x_center,y_center,rotate)
-        points=np.array([new_x1,new_y1,new_x2,new_y2,new_x4,new_y4,new_x3,new_y3])-bias
+        points=np.array([new_x1,new_y1,new_x2,new_y2,new_x4,new_y4,new_x3,new_y3])
         points = points.reshape(4,2)
         return points
     '''
@@ -41,7 +40,7 @@ def rotateRec(rec_info):
     n3  n4
     return should be n1,n2,n4,n3
     '''
-    points=np.array([x1,y1,x2,y2,x4,y4,x3,y3])-bias
+    points=np.array([x1,y1,x2,y2,x4,y4,x3,y3])
     points = points.reshape(4,2)
     return points
 

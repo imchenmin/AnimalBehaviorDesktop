@@ -1,14 +1,14 @@
 <template>
     <el-page-header @back="$router.push('/')">
-        <template #breadcrumb>
+        <template #breadcrumb class="breadcrumb">
             <el-breadcrumb separator="/">
                 <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
-                <el-breadcrumb-item :to="{ path: '/' }">{{ current_exp.name }}</el-breadcrumb-item>
+                <el-breadcrumb-item :to="{ path: '/' }" id="expname"></el-breadcrumb-item>
                 <el-breadcrumb-item :to="{ path: '/' }">追踪识别</el-breadcrumb-item>
             </el-breadcrumb>
         </template>
         <template #content>
-            <span> {{ current_exp.name }} - Tracking </span>
+            <span id="expnamespan"></span>
         </template>
     </el-page-header>
     <div id="main" style="border: solid black 1px; height:600; width:800; curssor: default; " ref="mainboard">
@@ -32,10 +32,11 @@
     </div>   
     
     <input type="button" value="开始标记" id="startmark"/> 
-    <input type="button" value="保存" id="savebutton" @click="savemark"/> 
+    <input type="button" value="保存标记" id="savebutton" @click="savemark"/> 
     
     <input type="button" value="根据当前标记进行分析" id="rundetect"/> 
-    <input type="button" value="上传已保存的绘图" ref="markInputButton" @click="onUploadMark"/>
+    <input type="button" value="上传已保存的标记" ref="markInputButton" @click="onUploadMark"/>
+    <input type="button" value="查看结果" id="checkresult"/> 
     <input type="file"  id="uploadbutton" style="display: none;" accept=".txt" ref="markInput" />
     <input type="button" value="添加矩形" id="addrectangle" style="display: none; margin-left:140"/> 
     <input type="button" value="添加多边形" id="addcanvas" style="display: none; margin-left:140"/>
@@ -67,13 +68,15 @@
             const { settings, experiments, } = useStore();
             this._id = this.$route.params._id;
             this.current_exp = experiments.get_from_id(this._id);
+            document.getElementById("expname").innerHTML = this.current_exp.name;
+            document.getElementById("expnamespan").innerHTML = this.current_exp.name+" - Tracking";
             this.videopath = this.current_exp.folder_path;
             let videourl = this.videopath+"/"+this.videoname+".mp4";
             console.log(videourl);
             const buf = fs.readFileSync(videourl);
             const uint8Buffer = Uint8Array.from(buf);
             const bolb = new Blob([uint8Buffer]);
-            this.$refs.videosource.src = window.URL.createObjectURL(bolb);
+            this.$refs.videoObj.src = window.URL.createObjectURL(bolb);
             var isMove = false;
             function getDragAngle(event){
                 var element = event.target;
@@ -726,11 +729,15 @@
                 data.push(vv.videoWidth);
                 data.push(vv.videoHeight);
                 data.push(all_rectangles.length);
+                let topappend = parseInt(father_board.offsetTop);
+                let leftappend = parseInt(father_board.offsetLeft);
                 let i=0;
                 for (i=0; i<all_rectangles.length; i++){
                         var child = all_rectangles[i];
                         let temp = "";
-                        temp = temp + child.getAttribute('name') + "," + child.style.left+ "," +child.style.top+"," +child.style.height+"," +child.style.width+","+child.style.transform;
+                        let leftindex = parseInt(child.style.left)-leftappend;
+                        let topindex = parseInt(child.style.top)-topappend;
+                        temp = temp + child.getAttribute('name') + "," + (leftindex+"px")+ "," +(topindex+"px")+"," +child.style.height+"," +child.style.width+","+child.style.transform;
                         //temp.push(child.getAttribute('name'),child.style.left,child.style.top,child.style.height,child.style.width,child.style.transform);
                         //console.log(temp);
                         data.push(temp);
@@ -784,7 +791,16 @@
             }
             document.getElementById('rundetect').onclick = runit;
 
+            function embyPot() {
+                let resultvideopath = __this.videopath+"/result/"+__this.videoname+"_result.mp4";
+                console.log(resultvideopath);
+                let poturl = `potplayer://${resultvideopath}`;
+                poturl = poturl.replace("\\","");
+                console.log(poturl);
+                window.open(poturl, "_parent");
+            }
             
+            document.getElementById('checkresult').onclick = embyPot;
         },
         methods: {
             onUploadMark(){
@@ -861,5 +877,7 @@
         cursor: crosshair;
         display: none;
     }
-
+  .breadcrumb{
+    padding-left: 60px;
+  }
 </style>

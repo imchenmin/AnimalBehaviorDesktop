@@ -3,7 +3,7 @@ import csv
 def convert_dlc_to_simple_csv(originalcsvpath,simplecsvpath):
     #csvpath = str(videoname)+"_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv"
     raw_data = pd.read_csv(originalcsvpath,skiprows=3)
-    output = []
+    output = [(0,0)]
     for idx,row in raw_data.iterrows():
         if pd.isnull(row[1]):
             output.append(output[-1])
@@ -15,7 +15,7 @@ def convert_dlc_to_simple_csv(originalcsvpath,simplecsvpath):
                 output.append((int(row[1]),int(row[2])))
     with open(simplecsvpath,"w",newline='') as csvfile:
         writer = csv.writer(csvfile)
-        for index in output:
+        for index in output[1:]:
             writer.writerow([index[0],index[1]])
 #convert_dlc_to_simple_csv("testfor1DLC_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv","testfor1_result.csv")
             

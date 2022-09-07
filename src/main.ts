@@ -22,9 +22,6 @@ const pinia = createPinia()
 // import pinia persistedstate
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
-// import vxetable
-import VXETable from 'vxe-table'
-import 'vxe-table/lib/style.css'
 
 // import echarts
 import ECharts from 'vue-echarts'
@@ -38,6 +35,5 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 app.use(router)
 pinia.use(piniaPluginPersistedstate)
 app.use(pinia)
-app.use(VXETable)
 app.component('v-chart', ECharts)
-app.mount("#app");
+app.mount("#app")
