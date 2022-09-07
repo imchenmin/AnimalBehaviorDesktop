@@ -11,10 +11,10 @@
             <span> {{ current_exp.name }} </span>
         </template>
     </el-page-header>
+    <el-button v-if="displayChart" type="button" value="查看结果" id="showresult" @click="embyPot">查看结果</el-button>
+    <el-button type="button" value="查看结果" id="showresult" @click="run_analysis">分析</el-button>
+
     <v-chart v-if="displayChart" class="chart" :option="option" />
-    <input v-if="displayChart" type="button" value="查看结果" id="showresult" @click="embyPot"/> 
-    <p v-if="!displayChart">没有结果文件，请确认</p>
-    测试
 </template>
 <script lang="ts" setup>
 import { ref, defineComponent, defineProps } from 'vue';
@@ -68,6 +68,17 @@ array.forEach(function (item, index) {
         }
     });
 })
+const run_analysis = () => {
+    fetch('http://127.0.0.1:5001/api/wash_recognition', {
+                method: 'post',
+                body: JSON.stringify({ video_filename: current_exp.folder_path }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(function (data) {
+                
+            })
+} 
 console.log(chartData)
 function renderItem(params, api) {
     console.log(api.value,params)
