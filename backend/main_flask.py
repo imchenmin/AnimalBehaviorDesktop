@@ -1,8 +1,9 @@
 import sys,os
-import deeplabcut
+# import deeplabcut
 #track part
 #sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
-#sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend')
+sys.path.insert(0, 'E:\\workspace\\AnimalBehaviorDesktop\\backend')
+sys.path.insert(0, 'E:\\workspace\\AnimalBehaviorDesktop\\backend\\yolov5')
 from track_part.track_process import *
 from track_part.draw_result import draw_raw_img
 from track_part.ouput_video import output_video
@@ -18,7 +19,7 @@ from flask import request
 from flask import json
 from flask_cors import CORS
 CORS(app, resources=r'/*')	# 注册CORS, "/*" 允许访问所有api
-
+from wash_recognition import start_wash_recognition
 config_json = None
 cam = Camera()
 @app.route('/')
@@ -67,6 +68,9 @@ def close_camera():
 @app.route('/api/stop_record',methods=['POST','GET'])
 def stop_record():
     cam.stop()
+    filename = json.loads(request.data)
+    filename = filename['video_filename']
+    start_wash_recognition(filename)
 
 @app.route('/api/runtrack', methods=['GET', 'POST'])
 def execute():
@@ -122,9 +126,9 @@ def execute():
 @app.route('/api/wash_recognition', methods=['POST', 'GET'])
 def wash_recognition():
     filename = json.loads(request.data)
-    print('nmsl')
-    print(filename['data'])
-    # start_wash_recognition(filename['data'])
+    filename = filename['video_filename']
+    print(filename)
+    start_wash_recognition(filename)
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1',port=5001)
