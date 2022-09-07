@@ -113,64 +113,82 @@ def isPoiWithinPoly(csv_path,poly,namelist,videoname,videopath,resultpath):
     print(videopath)
     FPS = int(cap.get(cv2.CAP_PROP_FPS))
     cap.release()
-    with open(csv_path) as f:
-        reader = csv.reader(f)
-        raw = list(reader)
-        point_data = list(map(lambda q: (int(q[0]), int(q[1])), raw))
-    pre = ""
-    now = ""
-    beginframe = 0
-    flag = 0
+    tocheckbodypart = [0,1,2,3]
+    tocheckbodypartname = ["Body","Tail","Head","Nose"]
     with open(resultpath+videoname+"_result.csv","w",newline='') as csvfile:
         writer = csv.writer(csvfile)
-        for frame_id in range(0, len(point_data)):
-            #输入：点，多边形三维数组
-            #poly=[[[x1,y1],[x2,y2],……,[xn,yn],[x1,y1]],[[w1,t1],……[wk,tk]]] 三维数组
+        for partindex in tocheckbodypart:
+            #read index
+            with open(csv_path) as f:
+                reader = csv.reader(f)
+                raw = list(reader)
+                point_data = list(map(lambda q: (int(q[partindex*2]), int(q[partindex*2+1])), raw))
+            pre = ""
+            now = ""
+            beginframe = 0
             flag = 0
-            for t in range(len(poly)): #循环每条边的曲线->each polygon 是二维数组[[x1,y1],…[xn,yn]]
-                epoly = poly[t]
-                sinsc=0
-                for i in range(len(epoly)-1): #[0,len-1]
-                    s_poi=epoly[i]
-                    e_poi=epoly[i+1]
-                    if isRayIntersectsSegment(point_data[frame_id],s_poi,e_poi):
-                        sinsc+=1 #有交点就加1
-                #此处判断是否在多边形内
-                if isRayIntersectsSegment(point_data[frame_id],e_poi,epoly[0]):
-                        sinsc+=1
-                if sinsc%2==1:
-                    now = namelist[t]
-                    flag = 1
-                    break
-            if (pre!="" and flag==0):
-                writer.writerow([beginframe,frame_id,pre])
-                pre = ""
-                continue
-            if (pre=="" and flag==1):
-                beginframe = frame_id
-                pre = now
-                continue
-            if (pre!="" and flag==1):
-                if pre==now:
-                    continue
-                if pre!=now:
+            #calculate and write
+            
+            writer.writerow([str(tocheckbodypartname[partindex])])
+            for frame_id in range(0, len(point_data)):
+                #输入：点，多边形三维数组
+                #poly=[[[x1,y1],[x2,y2],……,[xn,yn],[x1,y1]],[[w1,t1],……[wk,tk]]] 三维数组
+                flag = 0
+                for t in range(len(poly)): #循环每条边的曲线->each polygon 是二维数组[[x1,y1],…[xn,yn]]
+                    epoly = poly[t]
+                    sinsc=0
+                    for i in range(len(epoly)-1): #[0,len-1]
+                        s_poi=epoly[i]
+                        e_poi=epoly[i+1]
+                        if isRayIntersectsSegment(point_data[frame_id],s_poi,e_poi):
+                            sinsc+=1 #有交点就加1
+                    #此处判断是否在多边形内
+                    if isRayIntersectsSegment(point_data[frame_id],e_poi,epoly[0]):
+                            sinsc+=1
+                    if sinsc%2==1:
+                        now = namelist[t]
+                        flag = 1
+                        break
+                if (pre!="" and flag==0):
                     writer.writerow([beginframe,frame_id,pre])
-                    pre = now
-                    beginframe = frame_id
+                    pre = ""
                     continue
-        #When loop end, check for last condition
-        if(pre!=""):
-            writer.writerow([beginframe,len(point_data),pre])
+                if (pre=="" and flag==1):
+                    beginframe = frame_id
+                    pre = now
+                    continue
+                if (pre!="" and flag==1):
+                    if pre==now:
+                        continue
+                    if pre!=now:
+                        writer.writerow([beginframe,frame_id,pre])
+                        pre = now
+                        beginframe = frame_id
+                        continue
+            #When loop end, check for last condition
+            if(pre!=""):
+                writer.writerow([beginframe,len(point_data),pre])
     cvt_time_result(resultpath+videoname+"_result.csv",videoname,FPS,resultpath)
     csvfile.close()
 def cvt_time_result(csvpath,videoname,FPS,resultpath):
-    with open(csvpath) as f:
-        reader = csv.reader(f)
-        raw = list(reader)
-        data= list(map(lambda q: (int(q[0]), int(q[1]),q[2]), raw))
-    f.close()
     with open(resultpath+videoname+"_timeresult.csv","w",newline='') as csvfile:
         writer = csv.writer(csvfile)
-        for begin,end,name in data:
-            writer.writerow([datetime.timedelta(seconds=(begin/FPS)),datetime.timedelta(seconds=(end/FPS)),name])
+        with open(csvpath) as f:
+            #reader = csv.reader(f)
+            
+            #raw = list(reader)
+            #data= list(map(lambda q: (int(q[0]), int(q[1]),q[2]), raw))
+            data_list = f.readlines()
+            for info in data_list:
+                info = info.strip('\n')
+                detailinfo = info.split(",")
+                if (len(detailinfo)==1):
+                    writer.writerow([str(detailinfo[0])])
+                else:
+                    begin,end,name = int(detailinfo[0]),int(detailinfo[1]),detailinfo[2]
+                    writer.writerow([datetime.timedelta(seconds=(begin/FPS)),datetime.timedelta(seconds=(end/FPS)),name])
+            #print(detailinfo)
+            # for begin,end,name in data:
+            #     writer.writerow([datetime.timedelta(seconds=(begin/FPS)),datetime.timedelta(seconds=(end/FPS)),name])
+    f.close()
     csvfile.close()

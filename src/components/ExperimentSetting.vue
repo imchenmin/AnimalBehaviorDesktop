@@ -60,11 +60,6 @@
                 </el-form-item>
             </el-form>
         </el-dialog>
-        <el-header>
-            <el-breadcrumb separator="/">
-                <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
-            </el-breadcrumb>
-        </el-header>
         <el-button @click="createNewProjectVisible = true">添加新项目</el-button>
         <el-table :data="tabledata.arr">
             <el-table-column prop="name" label="项目名" />

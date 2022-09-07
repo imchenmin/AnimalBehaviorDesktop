@@ -1,6 +1,6 @@
 <template>
     <el-page-header @back="$router.push('/')">
-        <template #breadcrumb class="breadcrumb">
+        <template #breadcrumb >
             <el-breadcrumb separator="/">
                 <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
                 <el-breadcrumb-item :to="{ path: '/' }" id="expname"></el-breadcrumb-item>
@@ -864,7 +864,7 @@
     }
     
 </script>
-<style>
+<style lang="scss" scoped>
     canvas {
         border: 1px solid #333;
         display: block;
@@ -877,7 +877,16 @@
         cursor: crosshair;
         display: none;
     }
-  .breadcrumb{
-    padding-left: 60px;
-  }
+    el-breadcrumb{
+      padding-left: 40px;
+      .el-breadcrumb__item{
+          font-size: 15px;
+          color: #606266 !important;
+          font-weight: 500;
+      }
+      .el-breadcrumb__inner a, .el-breadcrumb__inner.is-link{
+          color: #606266 !important;
+          font-weight: 500;
+      }
+    }
 </style>

@@ -20,7 +20,7 @@
     <el-container>
       <el-aside>
       </el-aside>
-      <el-main>
+      <el-main class="main">
         <router-view></router-view>
       </el-main>
       <el-footer>
@@ -78,5 +78,9 @@ a {
 body {
   margin: 0;
   padding: 0;
+}
+.main {
+  margin-left: 20px;
+  margin-right: 20px;
 }
 </style>
