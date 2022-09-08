@@ -34,7 +34,7 @@ def getEach(data, fps):
                 res.append(i + 2)
     return res
 
-def detect(source, yolo_weights, imgsz, csv_path,behavior='wash'):
+def detect(source, yolo_weights, imgsz, csv_path, behavior='wash'):
  
     half=False  # use FP16 half-precision inference
     init = 0
@@ -59,83 +59,162 @@ def detect(source, yolo_weights, imgsz, csv_path,behavior='wash'):
     # Set Dataloader
     cap = cv2.VideoCapture(source)
     frameps = int(cap.get(cv2.CAP_PROP_FPS))
-    ret, frame = cap.read()
-
     # Run inference
     if device.type != 'cpu':
         model(torch.zeros(1, 3, imgsz, imgsz).to(device).type_as(next(model.parameters())))  # run once
     frame_idx = 0
 
-    vid_writer = cv2.VideoWriter(csv_path[:-4]+'.mp4', cv2.VideoWriter_fourcc(*'mp4v'), frameps, (840, 720))
-    label_wash =[]
-
+    vid_writer = cv2.VideoWriter(csv_path[:-4]+'.mp4', cv2.VideoWriter_fourcc(*'mp4v'), frameps, (2560, 720))
+    cv2.namedWindow('res',0)
+    cv2.resizeWindow('res',width=1280,height=360)
     while True:
         frame_idx+=1
-      
+        flag_left = -1
+        flag_right = -1
+        
         t1 = time.time()
         ret, frame = cap.read()
         if not ret:
             break
-        # frame = frame[375:375+375, 135:135 + 1700]
-        frame = frame[:, 1280+160:1280+1000]
-        img = letterbox(frame)[0]
+        frame_right = frame[:, 1280:]
+        frame_left = frame[:, :1280]
 
+        img_right = letterbox(frame_right)[0]
         # Convert
-        img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
-        img = np.ascontiguousarray(img)
-        img = torch.from_numpy(img).to(device)
+        img_right = img_right[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
+        img_right = np.ascontiguousarray(img_right)
+        img_right = torch.from_numpy(img_right).to(device)
         if half:
-            img = img.half()  # uint8 to fp16/32
+            img_right = img_right.half()  # uint8 to fp16/32
         else:
-            img = img.float()
-        img /= 255.0  # 0 - 255 to 0.0 - 1.0
-        if img.ndimension() == 3:
-            img = img.unsqueeze(0)
+            img_right = img_right.float()
+        img_right /= 255.0  # 0 - 255 to 0.0 - 1.0
+        if img_right.ndimension() == 3:
+            img_right = img_right.unsqueeze(0)
 
-        pred = model(img, augment=False)[0]
-        pred = non_max_suppression(pred, 0.2, 0.5, None, False)
-        conf_norm = [0]
-        conf_wash = [0]
-        flag = 0
+        pred_right = model(img_right, augment=False)[0]
+        pred_right = non_max_suppression(pred_right, 0.2, 0.5, None, False)
+
+        # flag = 0
         first = True
-        for i, det in enumerate(pred):  # detections per image
+
+        for i, det in enumerate(pred_right):  # detections per image
             if len(det):
                 # Rescale boxes from img_size to im0 size
-                det[:, :4] = scale_coords(img.shape[2:], det[:, :4], frame.shape).round()
+                det[:, :4] = scale_coords(img_right.shape[2:], det[:, :4], frame_right.shape).round()
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
                     if first:
                         if behavior == "wash":
-                            bcounter.read(int(int(cls.item()) != 0))
+                            # bcounter.read(int(int(cls.item()) != 0))
+                            flag_right = [int(int(cls.item()) != 0)]
                         elif behavior == "stand":
-                            bcounter1.read(int(int(cls.item()) != 0))
-                            bcounter2.read(int(int(cls.item()) != 1))
+                            # bcounter1.read(int(int(cls.item()) != 0))
+                            # bcounter2.read(int(int(cls.item()) != 1))
+                            flag_right = [int(int(cls.item()) != 0), int(int(cls.item()) != 1)]
+
                         first = False
                     # to deep sort format
                     x_c, y_c, bbox_w, bbox_h = xyxy_to_xywh(*xyxy)
                     #### change here ####
-                    if int(cls.item()) == 0:
-                        if conf > 0.5:
-                            cv2.rectangle(frame, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
-                            cv2.putText(frame, 'Wash', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
-                            flag += 1
+                    if behavior == "wash":
+                        if int(cls.item()) == 0:
+                            if conf > 0.5:
+                                cv2.rectangle(frame_right, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
+                                cv2.putText(frame_right, 'Wash', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+                    else:
+                        if int(cls.item()) == 0:
+                            cv2.rectangle(frame_right, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
+                            cv2.putText(frame_right, 'Wall', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+                        if int(cls.item()) == 1:
+                            cv2.rectangle(frame_right, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
+                            cv2.putText(frame_right, 'Stand', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+                        if int(cls.item()) == 2:
+                            cv2.rectangle(frame_right, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
+                            cv2.putText(frame_right, 'Norm', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
 
-                    if int(cls.item()) == 1:
-                        conf_norm.append(conf)
-            else:
-                if behavior == "wash":
-                    bcounter.read()
-                elif behavior == "stand":
-                    bcounter1.read()
-                    bcounter2.read()
-        if flag == 1:
-            label_wash.append(1)
+        img_left = letterbox(frame_left)[0]
+        # Convert
+        img_left = img_left[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
+        img_left = np.ascontiguousarray(img_left)
+        img_left = torch.from_numpy(img_left).to(device)
+        if half:
+            img_left = img_left.half()  # uint8 to fp16/32
         else:
-            label_wash.append(0)
+            img_left = img_left.float()
+        img_left /= 255.0  # 0 - 255 to 0.0 - 1.0
+        if img_left.ndimension() == 3:
+            img_left = img_left.unsqueeze(0)
 
-        vid_writer.write(frame)
-        # cv2.imshow('res', frame)
-        # cv2.waitKey(1)
+        pred_right = model(img_left, augment=False)[0]
+        pred_right = non_max_suppression(pred_right, 0.2, 0.5, None, False)
+ 
+        # flag = 0
+        first = True
+        for i, det in enumerate(pred_right):  # detections per image
+            if len(det):
+                # Rescale boxes from img_size to im0 size
+                det[:, :4] = scale_coords(img_left.shape[2:], det[:, :4], frame_left.shape).round()
+                # Write results
+                for *xyxy, conf, cls in reversed(det):
+                    if first:
+                        if behavior == "wash":
+                            flag_left = [int(int(cls.item()) != 0)]
+                        elif behavior == "stand":
+                            flag_left = [int(int(cls.item()) != 0), int(int(cls.item()) != 1)]
+                        first = False
+                    # to deep sort format
+                    x_c, y_c, bbox_w, bbox_h = xyxy_to_xywh(*xyxy)
+                    #### change here ####
+                    if behavior == "wash":
+                        if int(cls.item()) == 0:
+                            if conf > 0.5:
+                                cv2.rectangle(frame_left, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
+                                cv2.putText(frame_left, 'Wash', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+                    else:
+                        if int(cls.item()) == 0:
+                            cv2.rectangle(frame_left, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
+                            cv2.putText(frame_left, 'Wall', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+                        if int(cls.item()) == 1:
+                            cv2.rectangle(frame_left, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
+                            cv2.putText(frame_left, 'Stand', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+                        if int(cls.item()) == 2:
+                            cv2.rectangle(frame_left, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
+                            cv2.putText(frame_left, 'Normal', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+        
+        
+        if behavior == "wash":
+            if flag_left != -1 and flag_right != -1:
+                bcounter.read(flag_left[0] or flag_right[0])
+            elif flag_left != -1:
+                bcounter.read(flag_left[0])
+            elif flag_right != -1:
+                bcounter.read(flag_right[0])
+            else:
+                bcounter.read()
+
+        elif behavior == "stand":
+            if flag_left != -1 and flag_right != -1:
+                bcounter1.read(flag_left[0] or flag_right[0])
+                bcounter2.read(flag_left[1] or flag_right[1])
+
+            elif flag_left != -1:
+                bcounter1.read(flag_left[0])
+                bcounter2.read(flag_left[1])
+            elif flag_right != -1:
+                bcounter1.read(flag_right[0])
+                bcounter2.read(flag_right[1])
+            else:
+                bcounter1.read()
+                bcounter2.read()
+       
+        whole_frame = cv2.hconcat([frame_left, frame_right])#垂直拼接
+
+        vid_writer.write(whole_frame)
+        cv2.imshow('res', whole_frame)
+        cv2.waitKey(1)
+    cv2.destroyAllWindows()
+    vid_writer.release()
     if behavior == "wash":
         df = pd.DataFrame(bcounter.res)
         if df.shape[0] != 0:
@@ -155,11 +234,12 @@ def detect(source, yolo_weights, imgsz, csv_path,behavior='wash'):
 def init(source,output_path):
     df_list = [pd.DataFrame.from_dict({"class": [0], "st":[1], 'end':[1]})]
     with torch.no_grad():
-        df_list.append(detect(source, 'assets/wash.pt', 640, output_path,'wash'))
-    # with torch.no_grad():
-        # df_list.append(detect(source, 'assets/stand.pt', 640, output_path,'stand'))
+        df_list.append(detect(source, 'D:\\assets\\wash.pt', 640, output_path,'wash'))
+    with torch.no_grad():
+        df_list.append(detect(source, 'D:\\assets\\stand.pt', 640, output_path,'stand'))
     df = pd.concat(df_list,axis=0)
     df[['class','st','end']].to_csv(output_path, header=None,index=None)
 
 def start_recognition(filepath):
-    init(filepath, filepath + "/detection_result.csv")
+    print('Recognition Start')
+    init(filepath + '/video1.mp4', filepath + "/detection_result.csv")

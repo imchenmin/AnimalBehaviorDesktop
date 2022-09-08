@@ -50,7 +50,7 @@ export default {
         handleOpen() {
                 fetch('http://127.0.0.1:5001/api/open_camera', {
                 method: 'post',
-                body: JSON.stringify({ a: 1 }),
+                body: JSON.stringify({ analyzer: this.current_exp.analysis_method }),
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -62,7 +62,7 @@ export default {
         handleStart() {
             fetch('http://127.0.0.1:5001/api/start_record', {
                 method: 'post',
-                body: JSON.stringify({ video_filename: this.current_exp.folder_path }),
+                body: JSON.stringify({ video_filename: this.current_exp.folder_path, analyzer: this.current_exp.analysis_method}),
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -74,7 +74,7 @@ export default {
         handleStop() {
             fetch('http://127.0.0.1:5001/api/stop_record', {
                 method: 'post',
-                body: JSON.stringify({ video_filename: this.current_exp.folder_path }),
+                body: JSON.stringify({ video_filename: this.current_exp.folder_path , analyzer: this.current_exp.analysis_method}),
                 headers: {
                     'Content-Type': 'application/json'
                 }

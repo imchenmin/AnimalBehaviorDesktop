@@ -4,6 +4,8 @@ import deeplabcut
 #sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
 # sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend')
 sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend\\yolov5')
+sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend')
+
 from track_part.track_process import *
 from track_part.draw_result import draw_raw_img
 from track_part.ouput_video import output_video
@@ -53,28 +55,45 @@ def load_config():
 
 @app.route('/api/open_camera',methods=['POST','GET'])
 def open_camera():
-    cam.open()
+    data = json.loads(request.data)
+    analyzer = data['analyzer']
+    if analyzer != "tracking":
+        cam.open(oneCam=False)
+    else:
+        cam.open(oneCam=True)
+    return ('done')
 
 @app.route('/api/start_record',methods=['POST','GET'])
 def start_record():
-    filename = json.loads(request.data)
-    filename = filename['video_filename']
+    data = json.loads(request.data)
+    filename = data['video_filename']
     print(filename)
-    cam.start(filename)
+    analyzer = data['analyzer']
+    if analyzer != "tracking":
+        cam.start(filename, oneCam=False)
+    else:
+        cam.start(filename, oneCam=True)
+    return ('done')
 
 @app.route('/api/close_camera',methods=['POST','GET'])
 def close_camera():
     cam.close()
-
+    return ('done')
+    
 @app.route('/api/stop_record',methods=['POST','GET'])
 def stop_record():
     try:
         cam.stop()
     except:
         print('error')
-    filename = json.loads(request.data)
-    filename = filename['video_filename']
-    start_recognition(filename)
+    
+    data = json.loads(request.data)
+    filename = data['video_filename']
+
+    analyzer = data['analyzer']
+    if analyzer != "tracking":
+        start_recognition(filename)
+    return ('done')
 
 @app.route('/api/runtrack', methods=['GET', 'POST'])
 def execute():
@@ -135,6 +154,8 @@ def wash_recognition():
     filename = filename['video_filename']
     print(filename)
     start_recognition(filename)
+    return ('done')
+
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1',port=5001)
