@@ -222,7 +222,11 @@ onMounted(() => {
         // player.textTrackSettings.setDefaults();
         // player.textTrackSettings.setValues(newSettings);
         // player.textTrackSettings.updateDisplay();
-
+        player.on("progress",(event)=>{
+            console.log('buffer',player.currentTime())
+            option.value.dataZoom[0].startValue = player.currentTime() - 5
+            option.value.dataZoom[0].endValue = player.currentTime() + 5
+        })
 
     });
     ipcRenderer.send("ipcRendererReady", "true");
