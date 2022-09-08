@@ -2,6 +2,69 @@ import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
 
+import { videoSupport } from './ffmpeg-helper';
+import VideoServer from './VideoServer';
+
+//--- add native video part
+let httpServer;
+let isRendererReady = false;
+let win: BrowserWindow | null = null
+// Here, you can also use other preload
+
+function onVideoFileSeleted(videoFilePath) {
+  videoSupport(videoFilePath).then((checkResult) => {
+      if (checkResult.videoCodecSupport && checkResult.audioCodecSupport) {
+          if (httpServer) {
+              httpServer.killFfmpegCommand();
+          }
+          let playParams = {type:'', videoSource:''};
+          playParams.type = "native";
+          playParams.videoSource = videoFilePath;
+          if (isRendererReady) {
+              console.log("fileSelected=", playParams)
+
+              win.webContents.send('fileSelected', playParams);
+          } else {
+              ipcMain.once("ipcRendererReady", (event, args) => {
+                  console.log("fileSelected", playParams)
+                  win.webContents.send('fileSelected', playParams);
+                  isRendererReady = true;
+              })
+          }
+      }
+      if (!checkResult.videoCodecSupport || !checkResult.audioCodecSupport) {
+          if (!httpServer) {
+              httpServer = new VideoServer();
+          }
+          httpServer.videoSourceInfo = { videoSourcePath: videoFilePath, checkResult: checkResult };
+          httpServer.createServer();
+          console.log("createVideoServer success");
+          let playParams = {type:'', videoSource:'',duration: 0};
+          playParams.type = "stream";
+          playParams.videoSource = "http://127.0.0.1:8888?startTime=0";
+          playParams.duration = checkResult.duration
+          if (isRendererReady) {
+              console.log("fileSelected=", playParams)
+
+              win.webContents.send('fileSelected', playParams);
+          } else {
+              ipcMain.once("ipcRendererReady", (event, args) => {
+                  console.log("fileSelected", playParams)
+                  win.webContents.send('fileSelected', playParams);
+                  isRendererReady = true;
+              })
+          }
+      }
+  }).catch((err) => {
+      console.log("video format error", err);
+      const options = {
+          type: 'info',
+          title: 'Error',
+          message: "It is not a video file!",
+          buttons: ['OK']
+      }
+  })
+}
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
 
@@ -25,8 +88,7 @@ export const ROOT_PATH = {
   public: join(__dirname, app.isPackaged ? '../..' : '../../../public'),
 }
 
-let win: BrowserWindow | null = null
-// Here, you can also use other preload
+
 const preload = join(__dirname, '../preload/index.js')
 const url = "http://127.0.0.1:3000"
 const indexHtml = join(ROOT_PATH.dist, 'index.html')
@@ -66,6 +128,10 @@ async function createWindow() {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
   })
+  ipcMain.on('fileDrop', function (event, arg) {
+    console.log("fileDrop:", arg);
+    onVideoFileSeleted(arg);
+  });
 }
 
 app.whenReady().then(createWindow)
@@ -106,3 +172,5 @@ ipcMain.handle('open-win', (event, arg) => {
     childWindow.loadURL(`${url}/#${arg}`)
   }
 })
+
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');

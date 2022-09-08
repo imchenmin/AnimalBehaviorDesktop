@@ -11,19 +11,23 @@
             <span> {{ current_exp.name }} </span>
         </template>
     </el-page-header>
-    <el-button v-if="displayChart" type="button" value="查看结果" id="showresult" @click="embyPot">查看结果</el-button>
-    <el-button type="button" value="查看结果" id="showresult" @click="run_analysis">分析</el-button>
-
+    <el-button v-if="displayChart"  value="查看结果" id="showresult" @click="embyPot">查看结果</el-button>
+    <el-button  value="查看结果" id="showresult" @click="run_analysis">分析</el-button>
+    <div id="video-container"></div>
     <v-chart v-if="displayChart" class="chart" :option="option" />
 </template>
 <script lang="ts" setup>
-import { ref, defineComponent, defineProps } from 'vue';
+import { ref, defineComponent, defineProps, onMounted } from 'vue';
 import VChart, { THEME_KEY } from 'vue-echarts';
 import * as echarts from 'echarts';
 import useStore from '../store'
 import path from 'path'
-
+import videojs from 'video.js';
+import 'video.js/dist/video-js.css';
+import '../StreamPlayTech';
 const props = defineProps(['exp_id'])
+let ipcRenderer = require('electron').ipcRenderer;
+
 var chartData = [];
 var dataCount = 10;
 var startTime = 0
@@ -36,20 +40,43 @@ var types = [
     // { name: 'GPU Memory', color: '#dc77dc' },
     // { name: 'GPU', color: '#72b362' }
 ];
-// Generate mock data
+
 const { experiments } = useStore()
 const current_exp = experiments.get_from_id(props.exp_id)
 let categories = current_exp.detection_behavior_kinds;
 let fs = require("fs")
 const displayChart = ref(true)
 let array: any = [];
+let videoContainer = document.getElementById("video-container")
+console.log(videoContainer)
+function getWindowSize() {
+    const { offsetWidth, offsetHeight } = document.documentElement
+    const { innerHeight } = window // innerHeight will be blank in Windows system
+    return [
+        offsetWidth,
+        innerHeight > offsetHeight ? offsetHeight : innerHeight
+    ]
+}
+function createVideoHtml(source) {
+    const [width, height] = [800,400]
+    const videoHtml =
+        `<video id="my-video" class="video-js vjs-big-play-centered" controls preload="auto" width="${width}"
+    height="${height}" data-setup="{}">
+    <source src="${source}" type="video/mp4">
+    <p class="vjs-no-js">
+    To view this video please enable JavaScript, and consider upgrading to a web browser that
+    <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+    </p>
+    </video>`
+    return videoHtml;
+}
 
 try {
     let csv_path = path.join(current_exp.folder_path, 'detection_result.csv')
     let csvstr: string = fs.readFileSync(csv_path, "utf8", 'r+');
     let arr: string[] = csvstr.split('\r\n');
     arr.forEach(line => {
-        if (line !='')         array.push(line.split(','));
+        if (line != '') array.push(line.split(','));
     })
 } catch {
     console.log("didn't display chart")
@@ -60,7 +87,7 @@ array.forEach(function (item, index) {
     var typeItem = types[item[0]];
     chartData.push({
         name: typeItem.name,
-        value: [Number(item[0]), Number(item[1]), Number(item[2]), Number(item[2]-item[1])],
+        value: [Number(item[0]), Number(item[1]), Number(item[2]), Number(item[2] - item[1])],
         itemStyle: {
             normal: {
                 color: typeItem.color
@@ -70,18 +97,16 @@ array.forEach(function (item, index) {
 })
 const run_analysis = () => {
     fetch('http://127.0.0.1:5001/api/wash_recognition', {
-                method: 'post',
-                body: JSON.stringify({ video_filename: current_exp.folder_path }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then(function (data) {
-                
-            })
-} 
-console.log(chartData)
+        method: 'post',
+        body: JSON.stringify({ video_filename: current_exp.folder_path }),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(function (data) {
+
+    })
+}
 function renderItem(params, api) {
-    console.log(api.value,params)
     var categoryIndex = api.value(0);
     var start = api.coord([api.value(1), categoryIndex]);
     var end = api.coord([api.value(2), categoryIndex]);
@@ -110,14 +135,14 @@ function renderItem(params, api) {
     );
 };
 function embyPot() {
-    let resultvideopath = current_exp.folder_path+"/detection_result.mp4";
+    let resultvideopath = current_exp.folder_path + "/detection_result.mp4";
     console.log(resultvideopath);
     let poturl = `potplayer://${resultvideopath}`;
-    poturl = poturl.replace("\\","");
+    poturl = poturl.replace("\\", "");
     console.log(poturl);
     window.open(poturl, "_parent");
 };
-            
+
 
 const option = ref({
     tooltip: {
@@ -135,7 +160,9 @@ const option = ref({
             filterMode: 'weakFilter',
             showDataShadow: false,
             top: 400,
-            labelFormatter: ''
+            labelFormatter: '',
+            startValue: 0,
+            endValue: 100
         },
         {
             type: 'inside',
@@ -171,6 +198,36 @@ const option = ref({
     yAxis: {
         data: categories
     },
+})
+onMounted(() => {
+    let player: videojs.Player | null = null
+    ipcRenderer.on('fileSelected', function (event, message) {
+        console.log('fileSelected:', message)
+        let videoContainer = document.getElementById("video-container")
+        videoContainer.innerHTML = createVideoHtml(message.videoSource);
+        let vid = document.getElementById("my-video");
+        if (message.type === 'native') {
+            player = videojs(vid);
+            player.play();
+            console.log(player)
+
+        } else if (message.type === 'stream') {
+            player = videojs(vid, {
+                techOrder: ['StreamPlay'],
+                StreamPlay: { duration: message.duration }
+            }, () => {
+                player.play()
+            });
+        }
+        // player.textTrackSettings.setDefaults();
+        // player.textTrackSettings.setValues(newSettings);
+        // player.textTrackSettings.updateDisplay();
+
+
+    });
+    ipcRenderer.send("ipcRendererReady", "true");
+    ipcRenderer.send('fileDrop', path.join(current_exp.folder_path, 'video.mp4'));
+
 })
 </script>
 <style>
