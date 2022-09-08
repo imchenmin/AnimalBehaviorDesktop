@@ -2,11 +2,14 @@ import sys,os
 import deeplabcut
 #track part
 #sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
-sys.path.insert(0, 'E:\\workspace\\AnimalBehaviorDesktop\\backend')
-sys.path.insert(0, 'E:\\workspace\\AnimalBehaviorDesktop\\backend\\yolov5')
+# sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend')
+sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend\\yolov5')
+sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend')
+
 from track_part.track_process import *
 from track_part.draw_result import draw_raw_img
 from track_part.ouput_video import output_video
+from track_part.output_video_part import output_video_part
 from track_part.convert_dlc_to_simple_csv import convert_dlc_to_simple_csv
 from track_part.gazeheatplot import draw_heat_main
 #from deeplabcut import analyze_videos
@@ -52,28 +55,45 @@ def load_config():
 
 @app.route('/api/open_camera',methods=['POST','GET'])
 def open_camera():
-    cam.open()
+    data = json.loads(request.data)
+    analyzer = data['analyzer']
+    if analyzer != "tracking":
+        cam.open(oneCam=False)
+    else:
+        cam.open(oneCam=True)
+    return ('done')
 
 @app.route('/api/start_record',methods=['POST','GET'])
 def start_record():
-    filename = json.loads(request.data)
-    filename = filename['video_filename']
+    data = json.loads(request.data)
+    filename = data['video_filename']
     print(filename)
-    cam.start(filename)
+    analyzer = data['analyzer']
+    if analyzer != "tracking":
+        cam.start(filename, oneCam=False)
+    else:
+        cam.start(filename, oneCam=True)
+    return ('done')
 
 @app.route('/api/close_camera',methods=['POST','GET'])
 def close_camera():
     cam.close()
-
+    return ('done')
+    
 @app.route('/api/stop_record',methods=['POST','GET'])
 def stop_record():
     try:
         cam.stop()
     except:
         print('error')
-    filename = json.loads(request.data)
-    filename = filename['video_filename']
-    start_recognition(filename)
+    
+    data = json.loads(request.data)
+    filename = data['video_filename']
+
+    analyzer = data['analyzer']
+    if analyzer != "tracking":
+        start_recognition(filename)
+    return ('done')
 
 @app.route('/api/runtrack', methods=['GET', 'POST'])
 def execute():
@@ -84,8 +104,9 @@ def execute():
     polylist = []
     video_width = argvs[0]
     video_height = argvs[1]
-    video_path = argvs[-2]
-    video_name = argvs[-1]
+    video_path = argvs[-3]
+    video_name = argvs[-2]
+    check_out_list = argvs[-1]
     rect_num = int(argvs[2])
     resize = 2.4 #尺寸映射
     for i in range (3,3+rect_num):
@@ -123,7 +144,8 @@ def execute():
     draw_raw_img(namelist,polylist,video_width,video_height,video_name,resultpath)
     draw_heat_main(csv_path,video_height,video_width,video_name,resultpath)
     isPoiWithinPoly(csv_path,polylist,namelist,video_name,video_path,resultpath)
-    output_video(video_path,video_name,polylist,namelist,resultpath)
+    output_video_part(video_path,video_name,polylist,namelist,resultpath,check_out_list)
+    #output_video(video_path,video_name,polylist,namelist,resultpath)
     return ('done')
 	
 @app.route('/api/wash_recognition', methods=['POST', 'GET'])
@@ -132,6 +154,8 @@ def wash_recognition():
     filename = filename['video_filename']
     print(filename)
     start_recognition(filename)
+    return ('done')
+
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1',port=5001)

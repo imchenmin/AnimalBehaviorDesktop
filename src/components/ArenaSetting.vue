@@ -42,7 +42,14 @@
     <input type="button" value="添加多边形" id="addcanvas" style="display: none; margin-left:140"/>
     <input type="button" value="选择视频" style="display: none" @click="onSelectVideo" />
     <input type="file" id="file-uploader" style="margin-left:140; display: none;" accept="video/*" @change="selectvideo" ref="videoInput" />
-    
+    <el-form-item label="感兴趣的身体部位">
+        <el-checkbox :indeterminate="isIndeterminate" v-model="checkAll"                 
+                    @change="handleCheckAllChange">全选</el-checkbox>
+        <el-checkbox-group v-model="checkedParts" @change="handleCheckedPartsChange">
+            <el-checkbox v-for="part in partsArr" :label="part" :key="part">{{part}}</el-checkbox>
+        </el-checkbox-group>
+    </el-form-item>
+        
 </template>
 <script >
     let fs = window.require('fs');
@@ -53,14 +60,18 @@
     import ExperiemntObj from '../objects/experiment'
     import useStore from '../store'
 
-
+    const bodypartOptions = ['Body', 'Head', 'Tail', 'Nose'];
     export default {
         data(){
             return{
                 videoname : "video",
                 videopath : "",
                 _id: "",
-                current_exp: null
+                current_exp: null,
+                partsArr: bodypartOptions, //一共有多少个选项
+                checkAll: true,
+                checkedParts: bodypartOptions, //默认选中的值,这里是默认全选
+                isIndeterminate: false,
             };
         },
         mounted() {
@@ -718,6 +729,14 @@
             var __this = this;
             function runit(){
                 // fileImport()
+                console.log(__this.checkedParts)
+                if (__this.checkedParts.length==0){
+                    smalltalk.alert('Error', '请至少选择一个感兴趣的部位').then(() => {
+                        console.log('ok');
+                    });
+                    //console.log("no select!!!!")
+                    return;
+                }
                 console.log(__this.videopath)
                 if (__this.videopath==""){
                     return;}
@@ -757,6 +776,7 @@
                 //console.log(that.videopath)
                 data.push(__this.videopath)
                 data.push(__this.videoname)
+                data.push(__this.checkedParts)
                 console.log(data)
                 // var argvs= {
                 //     data: JSON.stringify({
@@ -785,8 +805,12 @@
                     headers: {
                         'Content-Type': 'application/json'
                     }
-                })
-                .then(console.log("success"))
+                }).then(response => {
+                let result = response.text()
+                result.then(res => {
+                    console.log(res);
+                    smalltalk.alert('通知', '处理完毕').then(() => {});
+                })})
 
             }
             document.getElementById('rundetect').onclick = runit;
@@ -857,7 +881,17 @@
                 link.style.display = 'none';
                 link.href = URL.createObjectURL(blob); 
                 link.click();
-            }
+            },
+            handleCheckAllChange(val) {
+                this.checkedParts= val ? bodypartOptions: [];
+                this.isIndeterminate = false; 
+            },
+            handleCheckedPartsChange(value) {
+                let checkedCount = value.length;
+                this.checkAll = checkedCount === this.partsArr.length;
+                this.isIndeterminate = checkedCount > 0 && checkedCount < this.partsArr.length;
+            },
+
 
         }
 
