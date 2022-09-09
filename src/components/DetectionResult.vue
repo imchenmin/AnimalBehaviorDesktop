@@ -11,10 +11,13 @@
             <span> {{ current_exp.name }} </span>
         </template>
     </el-page-header>
-    <el-button v-if="displayChart"  value="查看结果" id="showresult" @click="embyPot">查看结果</el-button>
+    <!-- <el-button v-if="displayChart"  value="查看结果" id="showresult" @click="embyPot">查看结果</el-button> -->
     <el-button  value="查看结果" id="showresult" @click="run_analysis">分析</el-button>
-    <div id="video-container"></div>
-    <v-chart v-if="displayChart" class="chart" :option="option" />
+    <el-button  value="查看结果" id="showresult" @click="run_record" ref="previewBtn">打开相机</el-button>
+    <div id="video-containerTop" ref="videoContainerTop"></div>
+    <div id="video-containerSide" ref="videoContainerSide"></div>
+
+    <!-- <v-chart v-if="displayChart" class="chart" :option="option" /> -->
 </template>
 <script lang="ts" setup>
 import { ref, defineComponent, defineProps, onMounted } from 'vue';
@@ -25,6 +28,7 @@ import path from 'path'
 import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import '../StreamPlayTech';
+import { send } from 'process';
 const props = defineProps(['exp_id'])
 let ipcRenderer = require('electron').ipcRenderer;
 
@@ -47,8 +51,12 @@ let categories = current_exp.detection_behavior_kinds;
 let fs = require("fs")
 const displayChart = ref(true)
 let array: any = [];
-let videoContainer = document.getElementById("video-container")
-console.log(videoContainer)
+const videoContainerTop = ref()
+let videoContainerSide = ref()
+let playerTop: videojs.Player | null = null
+let playerSide: videojs.Player | null = null
+
+
 function getWindowSize() {
     const { offsetWidth, offsetHeight } = document.documentElement
     const { innerHeight } = window // innerHeight will be blank in Windows system
@@ -57,10 +65,10 @@ function getWindowSize() {
         innerHeight > offsetHeight ? offsetHeight : innerHeight
     ]
 }
-function createVideoHtml(source) {
+function createVideoHtml(source,camclass) {
     const [width, height] = [800,400]
     const videoHtml =
-        `<video id="my-video" class="video-js vjs-big-play-centered" controls preload="auto" width="${width}"
+        `<video id="${camclass}" class="video-js vjs-big-play-centered" controls preload="auto" width="${width}"
     height="${height}" data-setup="{}">
     <source src="${source}" type="video/mp4">
     <p class="vjs-no-js">
@@ -105,6 +113,21 @@ const run_analysis = () => {
     }).then(function (data) {
 
     })
+}
+let is_preview = false
+const previewBtn = ref()
+const run_record = () => {
+    if (!is_preview) {
+        ipcRenderer.send("ipcRendererReady", "true");
+        ipcRenderer.send('cameraRecording', path.join(current_exp.folder_path, 'video.mp4'));
+        previewBtn.value.text= "关闭相机"
+        is_preview = true
+    } else {
+        ipcRenderer.send('stopRecord')
+        is_preview = false
+
+    }
+
 }
 function renderItem(params, api) {
     var categoryIndex = api.value(0);
@@ -199,39 +222,34 @@ const option = ref({
         data: categories
     },
 })
-onMounted(() => {
-    let player: videojs.Player | null = null
-    ipcRenderer.on('fileSelected', function (event, message) {
-        console.log('fileSelected:', message)
-        let videoContainer = document.getElementById("video-container")
-        videoContainer.innerHTML = createVideoHtml(message.videoSource);
-        let vid = document.getElementById("my-video");
-        if (message.type === 'native') {
-            player = videojs(vid);
-            player.play();
-            console.log(player)
 
-        } else if (message.type === 'stream') {
-            player = videojs(vid, {
-                techOrder: ['StreamPlay'],
-                StreamPlay: { duration: message.duration }
-            }, () => {
-                player.play()
-            });
-        }
+onMounted(() => {
+    ipcRenderer.on('cameraRecoridng', function (event, message) {
+        console.log('cameraRecoridng-render:', message)
+        videoContainerTop.value.innerHTML = createVideoHtml(message.videoSourceTop, 'topCamera');
+        videoContainerSide.value.innerHTML = createVideoHtml(message.videoSourceSide, 'sideCamera');
+        let vidTop = document.getElementById("topCamera");
+        let vidSide = document.getElementById("sideCamera");
+        playerTop = videojs(vidTop, {
+            techOrder: ['StreamPlay']
+        }, () => {
+            playerTop.play()
+        });
+        playerSide = videojs(vidSide, {
+            techOrder: ['StreamPlay']
+        }, () => {
+            playerSide.play()
+        });
         // player.textTrackSettings.setDefaults();
         // player.textTrackSettings.setValues(newSettings);
         // player.textTrackSettings.updateDisplay();
-        player.on("progress",(event)=>{
-            console.log('buffer',player.currentTime())
-            option.value.dataZoom[0].startValue = player.currentTime() - 5
-            option.value.dataZoom[0].endValue = player.currentTime() + 5
-        })
+        // playerTop.on("progress",(event)=>{
+        //     console.log('buffer',playerTop.currentTime())
+        //     option.value.dataZoom[0].startValue = player.currentTime() - 5
+        //     option.value.dataZoom[0].endValue = player.currentTime() + 5
+        // })
 
     });
-    ipcRenderer.send("ipcRendererReady", "true");
-    ipcRenderer.send('fileDrop', path.join(current_exp.folder_path, 'video.mp4'));
-
 })
 </script>
 <style>

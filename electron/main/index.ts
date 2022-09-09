@@ -4,66 +4,27 @@ import { join } from 'path'
 
 import { videoSupport } from './ffmpeg-helper';
 import VideoServer from './VideoServer';
+import CameraServer from './CameraServer'
 
 //--- add native video part
 let httpServer;
 let isRendererReady = false;
 let win: BrowserWindow | null = null
 // Here, you can also use other preload
+function onTopCameraStarted() {
 
-function onVideoFileSeleted(videoFilePath) {
-  videoSupport(videoFilePath).then((checkResult) => {
-      if (checkResult.videoCodecSupport && checkResult.audioCodecSupport) {
-          if (httpServer) {
-              httpServer.killFfmpegCommand();
-          }
-          let playParams = {type:'', videoSource:''};
-          playParams.type = "native";
-          playParams.videoSource = videoFilePath;
-          if (isRendererReady) {
-              console.log("fileSelected=", playParams)
+}
+function onCameraRecording(saveVideoPathTop='', saveVideoPathSide='') {
+      if (!httpServer) {
+          httpServer = new CameraServer({_side:true,_top:true});
+      }
+      httpServer.saveVideoPath = { saveVideoPathTop: saveVideoPathTop, saveVideoPathSide: saveVideoPathSide };
+      httpServer.createCameraServer();
+      console.log("createVideoServer success",httpServer);
+      let playParams = {type:'stream', videoSourceTop:"http://127.0.0.1:8889",videoSourceSide:"http://127.0.0.1:8890"}
+      console.log("cameraRecoridng=", playParams)
 
-              win.webContents.send('fileSelected', playParams);
-          } else {
-              ipcMain.once("ipcRendererReady", (event, args) => {
-                  console.log("fileSelected", playParams)
-                  win.webContents.send('fileSelected', playParams);
-                  isRendererReady = true;
-              })
-          }
-      }
-      if (!checkResult.videoCodecSupport || !checkResult.audioCodecSupport) {
-          if (!httpServer) {
-              httpServer = new VideoServer();
-          }
-          httpServer.videoSourceInfo = { videoSourcePath: videoFilePath, checkResult: checkResult };
-          httpServer.createServer();
-          console.log("createVideoServer success");
-          let playParams = {type:'', videoSource:'',duration: 0};
-          playParams.type = "stream";
-          playParams.videoSource = "http://127.0.0.1:8888?startTime=0";
-          playParams.duration = checkResult.duration
-          if (isRendererReady) {
-              console.log("fileSelected=", playParams)
-
-              win.webContents.send('fileSelected', playParams);
-          } else {
-              ipcMain.once("ipcRendererReady", (event, args) => {
-                  console.log("fileSelected", playParams)
-                  win.webContents.send('fileSelected', playParams);
-                  isRendererReady = true;
-              })
-          }
-      }
-  }).catch((err) => {
-      console.log("video format error", err);
-      const options = {
-          type: 'info',
-          title: 'Error',
-          message: "It is not a video file!",
-          buttons: ['OK']
-      }
-  })
+      win.webContents.send('cameraRecoridng', playParams)
 }
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -128,10 +89,18 @@ async function createWindow() {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
   })
-  ipcMain.on('fileDrop', function (event, arg) {
-    console.log("fileDrop:", arg);
-    onVideoFileSeleted(arg);
+  ipcMain.on('cameraRecording', function (event, arg) {
+    console.log("cameraRecording:", arg);
+    onCameraRecording(arg);
   });
+  ipcMain.on('stopRecord', function(event,arg) {
+    console.log('stopRecord', arg)
+    if (!httpServer) {
+      console.log("HTTPServer didn't exist, so ignore stop command")
+      return
+    }
+    httpServer.stopFFmpegCommand()
+  })
 }
 
 app.whenReady().then(createWindow)
