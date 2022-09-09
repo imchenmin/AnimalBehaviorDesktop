@@ -38,12 +38,12 @@ export default class CameraServer {
         let enableDestroy = require('server-destroy');
 
         if (this._ffmpegCommandTop && this._top) {
-            // this._ffmpegCommandTop.ffmpegProc.stdin.write('q');
-            this._ffmpegCommandTop.kill()
+            // this._ffmpegCommandTop.ffmpegProc.stdin.write("q\n");
+            // this._ffmpegCommandTop.kill()
         }
 
         if (this._ffmpegCommandSide  && this._side) {
-            // this._ffmpegCommandSide.ffmpegProc.stdin.write('q');
+            // this._ffmpegCommandSide.ffmpegProc.stdin.write('q\n');
             this._ffmpegCommandSide.kill()
         }
 
@@ -80,7 +80,7 @@ export default class CameraServer {
             this._ffmpegCommandTop = ffmpeg()
                 .input('video=USB webcam')
                 .inputOption('-f','dshow')
-                .output('video.mp4')
+                .output('video.mkv')
                 .videoCodec('copy')
                 .output(bufferStream)
                 .videoCodec(videoCodec)
@@ -110,15 +110,15 @@ export default class CameraServer {
             let videoCodec = 'libx264'
             console.log("side camera start")
             this._videoServerSide = http.createServer((request, response) => {
-            let bufferStream = new stream.PassThrough();
+            let bufferStream2 = new stream.PassThrough();
             this._ffmpegCommandSide = ffmpeg()
                 .input('video=KS2A293-D')
                 .inputOption('-f','dshow')
-                .output('video2.mp4')
+                .output('video2.mkv')
                 .outputOptions([
                     '-vcodec copy'
                 ])
-                .output(bufferStream)
+                .output(bufferStream2)
                 .videoCodec(videoCodec)
                 .format('mp4')
                 .outputOptions(
@@ -134,7 +134,7 @@ export default class CameraServer {
                     console.log('Processing finished 2 !');
                 })
                 .run()
-                bufferStream.pipe(response);
+                bufferStream2.pipe(response);
             })
             this._videoServerSide = require('http-shutdown')(this._videoServerSide);
 
