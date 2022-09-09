@@ -14,13 +14,33 @@
     <!-- <el-button v-if="displayChart"  value="查看结果" id="showresult" @click="embyPot">查看结果</el-button> -->
     <el-button  value="查看结果" id="showresult" @click="run_analysis">分析</el-button>
     <el-button  value="查看结果" id="showresult" @click="run_record" ref="previewBtn">打开相机</el-button>
-    <div id="video-containerTop" ref="videoContainerTop"></div>
-    <div id="video-containerSide" ref="videoContainerSide"></div>
+    <!-- <div id="video-containerTop">
+        <video class="video-js vjs-big-play-centered" controls preload="auto" width="800"
+    height="400" data-setup="{}" ref="videoContainerTop">
+    <source src="http://127.0.0.1:8889" type="video/mp4">
+    <p class="vjs-no-js">
+    To view this video please enable JavaScript, and consider upgrading to a web browser that
+    <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+    </p>
+    </video>
+    </div>
+    <div id="video-containerTop" >
+        <video class="video-js vjs-big-play-centered" controls preload="auto" width="800"
+    height="400" data-setup="{}" ref="videoContainterSide">
+    <source src="http://127.0.0.1:8890" type="video/mp4">
+    <p class="vjs-no-js">
+    To view this video please enable JavaScript, and consider upgrading to a web browser that
+    <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
+    </p>
+    </video>
+    </div> -->
+
+
 
     <!-- <v-chart v-if="displayChart" class="chart" :option="option" /> -->
 </template>
 <script lang="ts" setup>
-import { ref, defineComponent, defineProps, onMounted } from 'vue';
+import { ref, defineComponent, defineProps, onMounted, reactive } from 'vue';
 import VChart, { THEME_KEY } from 'vue-echarts';
 import * as echarts from 'echarts';
 import useStore from '../store'
@@ -55,8 +75,17 @@ const videoContainerTop = ref()
 let videoContainerSide = ref()
 let playerTop: videojs.Player | null = null
 let playerSide: videojs.Player | null = null
-
-
+const videoOptions = reactive({
+    autoplay: true,
+    controls: true,
+    sources: [
+        {
+            src: 'http://127.0.0.1:8889',
+            type: 'video/mp4'
+        }
+    ],
+    techOrder: ['StreamPlay']
+})
 function getWindowSize() {
     const { offsetWidth, offsetHeight } = document.documentElement
     const { innerHeight } = window // innerHeight will be blank in Windows system
@@ -64,19 +93,6 @@ function getWindowSize() {
         offsetWidth,
         innerHeight > offsetHeight ? offsetHeight : innerHeight
     ]
-}
-function createVideoHtml(source,camclass) {
-    const [width, height] = [800,400]
-    const videoHtml =
-        `<video id="${camclass}" class="video-js vjs-big-play-centered" controls preload="auto" width="${width}"
-    height="${height}" data-setup="{}">
-    <source src="${source}" type="video/mp4">
-    <p class="vjs-no-js">
-    To view this video please enable JavaScript, and consider upgrading to a web browser that
-    <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
-    </p>
-    </video>`
-    return videoHtml;
 }
 
 try {
@@ -114,21 +130,7 @@ const run_analysis = () => {
 
     })
 }
-let is_preview = false
-const previewBtn = ref()
-const run_record = () => {
-    if (!is_preview) {
-        ipcRenderer.send("ipcRendererReady", "true");
-        ipcRenderer.send('cameraRecording', path.join(current_exp.folder_path, 'video.mp4'));
-        previewBtn.value.text= "关闭相机"
-        is_preview = true
-    } else {
-        ipcRenderer.send('stopRecord')
-        is_preview = false
 
-    }
-
-}
 function renderItem(params, api) {
     var categoryIndex = api.value(0);
     var start = api.coord([api.value(1), categoryIndex]);
@@ -224,22 +226,20 @@ const option = ref({
 })
 
 onMounted(() => {
-    ipcRenderer.on('cameraRecoridng', function (event, message) {
-        console.log('cameraRecoridng-render:', message)
-        videoContainerTop.value.innerHTML = createVideoHtml(message.videoSourceTop, 'topCamera');
-        videoContainerSide.value.innerHTML = createVideoHtml(message.videoSourceSide, 'sideCamera');
-        let vidTop = document.getElementById("topCamera");
-        let vidSide = document.getElementById("sideCamera");
-        playerTop = videojs(vidTop, {
-            techOrder: ['StreamPlay']
-        }, () => {
-            playerTop.play()
-        });
-        playerSide = videojs(vidSide, {
-            techOrder: ['StreamPlay']
-        }, () => {
-            playerSide.play()
-        });
+
+
+        // let vidTop = videoContainerTop
+        // let vidSide = videoContainerSide
+        // playerTop = videojs(vidTop, {
+        //     techOrder: ['StreamPlay']
+        // }, () => {
+        //     playerTop.play()
+        // });
+        // playerSide = videojs(vidSide, {
+        //     techOrder: ['StreamPlay']
+        // }, () => {
+        //     playerSide.play()
+        // });
         // player.textTrackSettings.setDefaults();
         // player.textTrackSettings.setValues(newSettings);
         // player.textTrackSettings.updateDisplay();
@@ -249,7 +249,6 @@ onMounted(() => {
         //     option.value.dataZoom[0].endValue = player.currentTime() + 5
         // })
 
-    });
 })
 </script>
 <style>

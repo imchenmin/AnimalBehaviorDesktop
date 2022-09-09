@@ -1,5 +1,5 @@
 <template lang="">
-
+  <div class="Home">Home</div>
 </template>
 <script lang="ts">
 import useStore from '../store'
@@ -24,5 +24,8 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.Home {
+  
 }
 </style>

@@ -10,6 +10,7 @@ declare module '@vue/runtime-core' {
     Camera: typeof import('./components/Camera.vue')['default']
     DataProfiles: typeof import('./components/DataProfiles.vue')['default']
     DetectionResult: typeof import('./components/DetectionResult.vue')['default']
+    ElAside: typeof import('element-plus/es')['ElAside']
     ElBreadcrumb: typeof import('element-plus/es')['ElBreadcrumb']
     ElBreadcrumbItem: typeof import('element-plus/es')['ElBreadcrumbItem']
     ElButton: typeof import('element-plus/es')['ElButton']

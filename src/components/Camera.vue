@@ -1,32 +1,37 @@
 <template >
     <el-header>
         <el-page-header @back="$router.push('/')">
-        <template #breadcrumb>
-            <el-breadcrumb separator="/">
-                <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
-                <el-breadcrumb-item :to="{ path: '/' }">{{ current_exp.name }}</el-breadcrumb-item>
-                <el-breadcrumb-item :to="{ path: '/' }">Camera</el-breadcrumb-item>
-            </el-breadcrumb>
-        </template>
-        <template #content>
-            <span> {{ current_exp.name }} </span>
-        </template>
-    </el-page-header>
+            <template #breadcrumb>
+                <el-breadcrumb separator="/">
+                    <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
+                    <el-breadcrumb-item :to="{ path: '/' }">{{ current_exp.name }}</el-breadcrumb-item>
+                    <el-breadcrumb-item :to="{ path: '/' }">Camera</el-breadcrumb-item>
+                </el-breadcrumb>
+            </template>
+            <template #content>
+                <span> {{ current_exp.name }} </span>
+            </template>
+        </el-page-header>
     </el-header>
 
 
     <el-form :model="record">
         <el-form-item>
-            <el-button type="primary" @click="handleOpen" v-if="cameraflag">打开相机</el-button>
-            <el-button type="primary" @click="handleClose" v-else>关闭相机</el-button>
+            <el-button type="primary" @click="run_preview" v-if="cameraflag">打开相机</el-button>
+            <el-button type="primary" @click="run_preview" v-else>关闭相机</el-button>
             <el-button type="primary" @click="handleStart" v-if="!cameraflag && recordflag">开始录制</el-button>
             <el-button type="primary" @click="handleStop" v-if="!cameraflag && ! recordflag">关闭录制</el-button>
         </el-form-item>
     </el-form>
-
+    <video ref="videoPlayerTop" class="video-js"></video>
+    <video ref="videoPlayerSide" class="video-js"></video>
 </template>
 <script lang="ts">
 import useStore from '../store'
+let ipcRenderer = require('electron').ipcRenderer;
+import videojs from 'video.js';
+
+import path from 'path'
 export default {
     props: ['exp_id'],
     data: () => ({
@@ -37,7 +42,38 @@ export default {
         datetime: '',
         current_exp_id: '',
         cameraflag: true,
-        recordflag: true
+        recordflag: true,
+        playerTop: null,
+        playerSide: null,
+        videoOptionsTop: {
+            autoplay: false,
+            controls: false,
+            width: 800,
+            height: 400,
+            preload: 'metadata',
+            sources: [
+                {
+                    src: 'http://127.0.0.1:8889',
+                    type: 'video/mp4'
+                }
+            ],
+            techOrder: ['StreamPlay']
+        },
+        videoOptionsSide: {
+            autoplay: false,
+            controls: false,
+            width: 800,
+            height: 400,
+            preload: 'metadata',
+            sources: [
+                {
+                    src: 'http://127.0.0.1:8890',
+                    type: 'video/mp4'
+                }
+            ],
+            techOrder: ['StreamPlay']
+        }
+
     }),
     computed: {
         current_exp() {
@@ -46,16 +82,54 @@ export default {
             return experiments.get_from_id(this.exp_id)
         }
     },
+    mounted() {
+        this.playerTop = videojs(this.$refs.videoPlayerTop, this.videoOptionsTop, () => {
+            this.playerTop.log('onPlayerReady', this);
+        });
+        this.playerSide = videojs(this.$refs.videoPlayerSide, this.videoOptionsSide, () => {
+            this.playerSide.log('onPlayerReady', this);
+        });
+    },
+    beforeUnmount() {
+        // if (this.playerTop) {
+        //     this.playerTop.dispose();
+        // }
+        // if (this.playerSide) {
+        //     this.playerSide.dispose();
+        // }
+    },
+    beforeRouteLeave(to, from) {
+        console.log("router leave")
+        if (this.playerTop) {
+            this.playerTop.dispose();
+        }
+        if (this.playerSide) {
+            this.playerSide.dispose();
+        }
+        ipcRenderer.send("stopRecord")
+
+    },
     methods: {
+        run_preview() {
+            ipcRenderer.send("ipcRendererReady", "true");
+            ipcRenderer.send('cameraRecording', path.join(this.current_exp.folder_path, 'video.mp4'));
+            ipcRenderer.on('cameraRecoridngReady',  (event, message)=> {
+                console.log('cameraRecoridng-render:', message)
+                this.playerTop.load()
+                this.playerTop.play()
+                this.playerSide.load()
+                this.playerSide.play()
+            });
+        },
         handleOpen() {
-                fetch('http://127.0.0.1:5001/api/open_camera', {
+            fetch('http://127.0.0.1:5001/api/open_camera', {
                 method: 'post',
                 body: JSON.stringify({ a: 1 }),
                 headers: {
                     'Content-Type': 'application/json'
                 }
             }).then(function (data) {
-                
+
             })
             this.cameraflag = false
         },
@@ -67,7 +141,7 @@ export default {
                     'Content-Type': 'application/json'
                 }
             }).then(function (data) {
-                
+
             })
             this.recordflag = false
         },
@@ -79,7 +153,7 @@ export default {
                     'Content-Type': 'application/json'
                 }
             }).then(function (data) {
-                
+
             })
             this.recordflag = true
         },

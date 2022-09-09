@@ -61,10 +61,11 @@
             </el-form>
         </el-dialog>
         <el-button @click="createNewProjectVisible = true">添加新项目</el-button>
+        <el-button @click="$router.push('/')">Home</el-button>
+
         <el-table :data="tabledata.arr">
             <el-table-column prop="name" label="项目名" />
             <el-table-column prop="analysis_method" label="项目类型" />
-            <el-table-column prop="date" label="创建日期" />
             <el-table-column label="拍摄状态">
                 <template #default="scope">
                     <div v-if="!scope.row.record_state">文件未录制，请

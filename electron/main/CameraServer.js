@@ -25,7 +25,6 @@ function getParam(url, key) {
 export default class CameraServer {
 
     constructor(props) {
-        this._videoSourceInfo;
         this._ffmpegCommandTop;
         this._ffmpegCommandSide;
         this._videoServerTop;
@@ -35,33 +34,55 @@ export default class CameraServer {
         this._saveVideoPath;
     }
 
-    set videoSourceInfo(info) {
-        this._videoSourceInfo = info;
-    }
-
-    get videoSourceInfo() {
-        return this._videoSourceInfo;
-    }
-
     stopFFmpegCommand() {
+        let enableDestroy = require('server-destroy');
+
         if (this._ffmpegCommandTop && this._top) {
-            this._ffmpegCommandTop.ffmpegProc.stdin.write('q');
+            // this._ffmpegCommandTop.ffmpegProc.stdin.write('q');
+            this._ffmpegCommandTop.kill()
         }
-        if (this._ffmpegCommandSide && this._side) {
-            this._ffmpegCommandSide.ffmpegProc.stdin.write('q');
+
+        if (this._ffmpegCommandSide  && this._side) {
+            // this._ffmpegCommandSide.ffmpegProc.stdin.write('q');
+            this._ffmpegCommandSide.kill()
         }
+
+        this._videoServerTop.shutdown(function(err) {
+            if (err) {
+                return console.log('shutdown failed', err.message);
+            }
+            console.log('Everything is cleanly shutdown.');
+        });
+        this._videoServerSide.shutdown(function(err) {
+            if (err) {
+                return console.log('shutdown failed', err.message);
+            }
+            console.log('Everything is cleanly shutdown.');
+        });
+        console.log("stopFFMPEG")
+
+
+
+
     }
     createCameraServer() {
         // top camera misc
+        let enableDestroy = require('server-destroy');
+        let fs = require('fs')
+        let stream = require('stream')
         console.log("top camera start",this._top)
         if (!this._videoServerTop && this._top) {
-            this.stopFFmpegCommand();
+            // this.stopFFmpegCommand();
             let videoCodec = 'libx264'
             console.log("top camera start")
             this._videoServerTop = http.createServer((request, response) => {
+            let bufferStream = new stream.PassThrough();
             this._ffmpegCommandTop = ffmpeg()
                 .input('video=USB webcam')
                 .inputOption('-f','dshow')
+                .output('video.mp4')
+                .videoCodec('copy')
+                .output(bufferStream)
                 .videoCodec(videoCodec)
                 .format('mp4')
                 .outputOptions(
@@ -76,18 +97,28 @@ export default class CameraServer {
                 .on('end', function () {
                     console.log('Processing finished !');
                 })
-                let videoStreamTop = this._ffmpegCommandTop.pipe();
-                videoStreamTop.pipe(response);
-            }).listen(8889);
+                .run()
+                bufferStream.pipe(response);
+            })
+            this._videoServerTop = require('http-shutdown')(this._videoServerTop);
+
+            this._videoServerTop.listen(8889);
+
         }
         if (!this._videoServerSide && this._side) {
-            this.stopFFmpegCommand();
+            // this.stopFFmpegCommand();
             let videoCodec = 'libx264'
             console.log("side camera start")
             this._videoServerSide = http.createServer((request, response) => {
+            let bufferStream = new stream.PassThrough();
             this._ffmpegCommandSide = ffmpeg()
                 .input('video=KS2A293-D')
                 .inputOption('-f','dshow')
+                .output('video2.mp4')
+                .outputOptions([
+                    '-vcodec copy'
+                ])
+                .output(bufferStream)
                 .videoCodec(videoCodec)
                 .format('mp4')
                 .outputOptions(
@@ -97,14 +128,17 @@ export default class CameraServer {
                     console.log('time-side: ' + progress.timemark);
                 })
                 .on('error', function (err) {
-                    console.log('An error occurred: ' + err.message);
+                    console.log('An error occurred:  2' + err.message);
                 })
                 .on('end', function () {
-                    console.log('Processing finished !');
+                    console.log('Processing finished 2 !');
                 })
-                let videoStreamSide = this._ffmpegCommandSide.pipe();
-                videoStreamSide.pipe(response);
-            }).listen(8890);
+                .run()
+                bufferStream.pipe(response);
+            })
+            this._videoServerSide = require('http-shutdown')(this._videoServerSide);
+
+            this._videoServerSide.listen(8890);
         }
     }
 }

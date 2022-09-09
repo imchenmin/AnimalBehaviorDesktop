@@ -11,20 +11,16 @@ let httpServer;
 let isRendererReady = false;
 let win: BrowserWindow | null = null
 // Here, you can also use other preload
-function onTopCameraStarted() {
+function onCameraRecording(saveVideoPathTop = '', saveVideoPathSide = '') {
 
-}
-function onCameraRecording(saveVideoPathTop='', saveVideoPathSide='') {
-      if (!httpServer) {
-          httpServer = new CameraServer({_side:true,_top:true});
-      }
-      httpServer.saveVideoPath = { saveVideoPathTop: saveVideoPathTop, saveVideoPathSide: saveVideoPathSide };
-      httpServer.createCameraServer();
-      console.log("createVideoServer success",httpServer);
-      let playParams = {type:'stream', videoSourceTop:"http://127.0.0.1:8889",videoSourceSide:"http://127.0.0.1:8890"}
-      console.log("cameraRecoridng=", playParams)
+  httpServer = new CameraServer({ _side: true, _top: true });
+  httpServer.saveVideoPath = { saveVideoPathTop: saveVideoPathTop, saveVideoPathSide: saveVideoPathSide };
+  httpServer.createCameraServer();
+  console.log("createVideoServer success");
+  let playParams = { type: 'stream', videoSourceTop: "http://127.0.0.1:8889", videoSourceSide: "http://127.0.0.1:8890" }
+  console.log("cameraRecoridng=", playParams)
 
-      win.webContents.send('cameraRecoridng', playParams)
+  win.webContents.send('cameraRecoridngReady', playParams)
 }
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -56,6 +52,8 @@ const indexHtml = join(ROOT_PATH.dist, 'index.html')
 
 async function createWindow() {
   const remote = require('@electron/remote/main')
+  const { session } = require("electron");
+  const path = require("path");
   win = new BrowserWindow({
     title: 'Main window',
     icon: join(ROOT_PATH.public, 'favicon.ico'),
@@ -77,6 +75,13 @@ async function createWindow() {
     win.loadURL(url)
     // Open devTool if the app is not packaged
     // win.webContents.openDevTools()
+    let uri = path.resolve("C:\\Users\\Gianttek\\AppData\\Local\\Microsoft\\Edge\\User\ Data\\Default\\Extensions\\olofadcdnkkjdfgjcmjaadnlehnnihnl\\6.2.1_0");
+    try {
+      await session.defaultSession.loadExtension(uri, { allowFileAccess: true });
+    }
+    catch (e) {
+      console.log("error",e)
+    }
   }
 
   // Test actively push message to the Electron-Renderer
@@ -93,7 +98,7 @@ async function createWindow() {
     console.log("cameraRecording:", arg);
     onCameraRecording(arg);
   });
-  ipcMain.on('stopRecord', function(event,arg) {
+  ipcMain.on('stopRecord', function (event, arg) {
     console.log('stopRecord', arg)
     if (!httpServer) {
       console.log("HTTPServer didn't exist, so ignore stop command")
