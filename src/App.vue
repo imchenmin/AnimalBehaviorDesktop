@@ -1,30 +1,12 @@
 <template>
   <el-container class="common-layout">
-    <!-- <el-header>
-      <el-popover placement="bottom" title="Title" :width="200" trigger="hover">
-        <template #reference>
-          <el-button>
-            <el-icon>
-              <BellFilled />
-            </el-icon>
-          </el-button>
-        </template>
-        <div class="progress-area">
-          <el-progress :percentage="10" />
-        </div>
-      </el-popover>
-      <el-button>
-        <router-link to="/">实验设置</router-link>
-      </el-button>
-    </el-header> -->
+    <el-aside>
+      <experiment-setting></experiment-setting>
+    </el-aside>
     <el-container>
-      <el-aside>
-      </el-aside>
       <el-main class="main">
-        <router-view></router-view>
+        <router-view :key="$route.fullPath"></router-view>
       </el-main>
-      <el-footer>
-      </el-footer>
     </el-container>
   </el-container>
 </template>
