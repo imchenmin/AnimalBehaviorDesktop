@@ -3,6 +3,8 @@
     <!-- <el-button v-if="displayChart"  value="查看结果" id="showresult" @click="embyPot">查看结果</el-button> -->
     <el-button  value="查看结果" id="showresult" @click="run_analysis" status="finish">分析</el-button>
     <el-button  value="查看结果" id="showresult" @click="run_record" ref="previewBtn">打开相机</el-button>
+    <video ref="videoPlayerTop" class="video-js"></video>
+    <video ref="videoPlayerSide" class="video-js"></video>
     <!-- <div id="video-containerTop">
         <video class="video-js vjs-big-play-centered" controls preload="auto" width="800"
     height="400" data-setup="{}" ref="videoContainerTop">
@@ -38,6 +40,7 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import '../StreamPlayTech';
 import { send } from 'process';
+import { onBeforeRouteLeave } from 'vue-router';
 const props = defineProps(['exp_id'])
 let ipcRenderer = require('electron').ipcRenderer;
 
@@ -213,32 +216,64 @@ const option = ref({
         data: categories
     },
 })
-
+const videoPlayerTop = ref()
+const videoPlayerSide = ref()
+const videoOptionsTop = reactive({
+    autoplay: false,
+    controls: false,
+    width: 800,
+    height: 400,
+    preload: 'metadata',
+    sources: [
+        {
+            src: 'http://127.0.0.1:8888',
+            type: 'video/mp4'
+        }
+    ],
+    techOrder: ['StreamPlay']
+})
+const videoOptionsSide = reactive({
+    autoplay: false,
+    controls: false,
+    width: 800,
+    height: 400,
+    preload: 'metadata',
+    sources: [
+        {
+            src: 'http://127.0.0.1:8890',
+            type: 'video/mp4'
+        }
+    ],
+    techOrder: ['StreamPlay']
+})
 onMounted(() => {
-
-
-        // let vidTop = videoContainerTop
-        // let vidSide = videoContainerSide
-        // playerTop = videojs(vidTop, {
-        //     techOrder: ['StreamPlay']
-        // }, () => {
-        //     playerTop.play()
-        // });
-        // playerSide = videojs(vidSide, {
-        //     techOrder: ['StreamPlay']
-        // }, () => {
-        //     playerSide.play()
-        // });
-        // player.textTrackSettings.setDefaults();
-        // player.textTrackSettings.setValues(newSettings);
-        // player.textTrackSettings.updateDisplay();
-        // playerTop.on("progress",(event)=>{
-        //     console.log('buffer',playerTop.currentTime())
-        //     option.value.dataZoom[0].startValue = player.currentTime() - 5
-        //     option.value.dataZoom[0].endValue = player.currentTime() + 5
-        // })
+    playerTop = videojs(videoPlayerTop, videoOptionsTop, () => {
+        playerTop.log('onPlayerReady', this);
+    });
+    playerSide = videojs(videoPlayerSide, videoOptionsSide, () => {
+        playerSide.log('onPlayerReady', this);
+    });
 
 })
+onBeforeRouteLeave(() => {
+    if (playerTop) {
+        playerTop.dispose();
+    }
+    if (playerSide) {
+        playerSide.dispose();
+    }
+    ipcRenderer.send("stopVideoDisplay")
+})
+const playVideo = () => {
+    ipcRenderer.send('playVideoFromFile', path.join(current_exp.folder_path, 'video.mkv'), path.join(current_exp.folder_path, 'video1.mkv'));
+    ipcRenderer.on('videoServerReady', (event, message) => {
+        console.log('videoServerReady-render:', message)
+        playerTop.load()
+        playerTop.play()
+        // playerSide.load()
+        // playerSide.play()
+    });
+}
 </script>
 <style>
 

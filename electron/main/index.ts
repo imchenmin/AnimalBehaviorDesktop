@@ -7,7 +7,7 @@ import VideoServer from './VideoServer';
 import CameraServer from './CameraServer'
 
 //--- add native video part
-let httpServer;
+let httpServer, videoServer;
 let isRendererReady = false;
 let win: BrowserWindow | null = null
 // Here, you can also use other preload
@@ -24,8 +24,8 @@ function onCameraRecording(saveVideoPathTop = '', saveVideoPathSide = '') {
 function onVideoFileSeleted(videoFilePath) {
   videoSupport(videoFilePath).then((checkResult) => {
       if (checkResult.videoCodecSupport && checkResult.audioCodecSupport) {
-          if (httpServer) {
-              httpServer.killFfmpegCommand();
+          if (videoServer) {
+            videoServer.killFfmpegCommand();
           }
           let playParams = {type:'', videoSource:''};
           playParams.type = "native";
@@ -43,27 +43,18 @@ function onVideoFileSeleted(videoFilePath) {
           }
       }
       if (!checkResult.videoCodecSupport || !checkResult.audioCodecSupport) {
-          if (!httpServer) {
-              httpServer = new VideoServer();
+          if (!videoServer) {
+            videoServer = new VideoServer();
           }
-          httpServer.videoSourceInfo = { videoSourcePath: videoFilePath, checkResult: checkResult };
-          httpServer.createServer();
+          videoServer.videoSourceInfo = { videoSourcePath: videoFilePath, checkResult: checkResult };
+          videoServer.createServer();
           console.log("createVideoServer success");
           let playParams = {type:'', videoSource:'',duration:0};
           playParams.type = "stream";
           playParams.videoSource = "http://127.0.0.1:8888?startTime=0";
           playParams.duration = checkResult.duration
-          if (isRendererReady) {
-              console.log("fileSelected=", playParams)
-
-              win.webContents.send('fileSelected', playParams);
-          } else {
-              ipcMain.once("ipcRendererReady", (event, args) => {
-                  console.log("fileSelected", playParams)
-                  win.webContents.send('fileSelected', playParams);
-                  isRendererReady = true;
-              })
-          }
+          console.log("fileSelected=", playParams)
+          win.webContents.send('videoServerReady', playParams);
       }
   }).catch((err) => {
       console.log("video format error", err);
@@ -163,6 +154,14 @@ async function createWindow() {
     }
     httpServer.stopFFmpegCommand()
   })
+  ipcMain.on('playVideoFromFile', function (event, arg1,arg2) {
+    console.log('playVideoFromFile', arg1,arg2)
+    if (videoServer) {
+      console.log("A http server exist, fatal error")
+      return
+    }
+    onVideoFileSeleted(arg1) //目前只处理一个视频。
+  })
 }
 
 app.whenReady().then(createWindow)
@@ -203,5 +202,6 @@ ipcMain.handle('open-win', (event, arg) => {
     childWindow.loadURL(`${url}/#${arg}`)
   }
 })
+
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
