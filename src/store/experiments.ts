@@ -24,7 +24,7 @@ export const useExperimentsStore = defineStore('experiments', {
                     db.find({}, async (err, docs) => {
                         if (!err) {
                             let current_exp = docs[0] as ExperiemntObj
-                            let capture =  await util.promisify(fs.exists)(path.join(i,'..', 'video.mp4'))
+                            let capture =  await util.promisify(fs.exists)(path.join(i,'..', 'video.mkv'))
                             current_exp.record_state=capture
                             this.opened_project.push(docs[0])
                         } else {
