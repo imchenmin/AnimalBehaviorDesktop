@@ -176,12 +176,12 @@ let sortDateFn = (a,b)=>{
         return 0
     }
 const detection_list = computed(() => {
-    let filterArr = tabledata.arr.filter(p => p.analysis_method == "tracking")
+    let filterArr = tabledata.arr.filter(p => p.analysis_method == "detection")
     filterArr.sort(sortDateFn)
     return filterArr
 })
 const tracking_list = computed(() => {
-    let filterArr  = tabledata.arr.filter(p => p.analysis_method == "detection")
+    let filterArr  = tabledata.arr.filter(p => p.analysis_method == "tracking")
     filterArr.sort(sortDateFn)
     return filterArr
 
