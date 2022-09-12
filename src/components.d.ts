@@ -33,6 +33,7 @@ declare module '@vue/runtime-core' {
     ElSteps: typeof import('element-plus/es')['ElSteps']
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
+    ExperimentSetting: typeof import('./components/ExperimentSetting.vue')['default']
     Home: typeof import('./components/Home.vue')['default']
     ProjectSideBar: typeof import('./components/ProjectSideBar.vue')['default']
     ProjectView: typeof import('./components/ProjectView.vue')['default']
