@@ -1,16 +1,5 @@
 <template>
-    <el-page-header @back="$router.push('/')">
-        <template #breadcrumb >
-            <el-breadcrumb separator="/">
-                <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
-                <el-breadcrumb-item :to="{ path: '/project/' + _id }" id="expname"></el-breadcrumb-item>
-                <el-breadcrumb-item :to="{ path: '/' }">追踪识别</el-breadcrumb-item>
-            </el-breadcrumb>
-        </template>
-        <template #content>
-            <span id="expnamespan"></span>
-        </template>
-    </el-page-header>
+    <StepControl :_id="current_exp._id" :activate="2"></StepControl>
     <div id="main" style="border: solid black 1px; height:600; width:800; curssor: default; " ref="mainboard">
         <video id="video_id" class="video-js" preload  style="position: absolute;" data-setup="{}" ref="videoObj">
             <source src="" type='video/mp4' ref="videosource"/>
@@ -66,21 +55,21 @@
             return{
                 videoname : "video",
                 videopath : "",
-                _id: "",
-                current_exp: null,
+                _id: this.$route.params._id,
                 partsArr: bodypartOptions, //一共有多少个选项
                 checkAll: true,
                 checkedParts: bodypartOptions, //默认选中的值,这里是默认全选
                 isIndeterminate: false,
             };
         },
+        computed: {
+            current_exp() {
+                const { settings, experiments } = useStore();
+                return experiments.get_from_id(this._id);
+            }
+
+        },
         mounted() {
-            //draw rectangle
-            const { settings, experiments, } = useStore();
-            this._id = this.$route.params._id;
-            this.current_exp = experiments.get_from_id(this._id);
-            document.getElementById("expname").innerHTML = this.current_exp.name;
-            document.getElementById("expnamespan").innerHTML = this.current_exp.name+" - Tracking";
             this.videopath = this.current_exp.folder_path;
             let videourl = this.videopath+"/"+this.videoname+".mkv";
             console.log(videourl);
