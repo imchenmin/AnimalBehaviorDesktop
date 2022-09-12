@@ -3,7 +3,7 @@
         <template #breadcrumb >
             <el-breadcrumb separator="/">
                 <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
-                <el-breadcrumb-item :to="{ path: '/' }" id="expname"></el-breadcrumb-item>
+                <el-breadcrumb-item :to="{ path: '/project/' + _id }" id="expname"></el-breadcrumb-item>
                 <el-breadcrumb-item :to="{ path: '/' }">追踪识别</el-breadcrumb-item>
             </el-breadcrumb>
         </template>
@@ -82,7 +82,7 @@
             document.getElementById("expname").innerHTML = this.current_exp.name;
             document.getElementById("expnamespan").innerHTML = this.current_exp.name+" - Tracking";
             this.videopath = this.current_exp.folder_path;
-            let videourl = this.videopath+"/"+this.videoname+".mp4";
+            let videourl = this.videopath+"/"+this.videoname+".mkv";
             console.log(videourl);
             const buf = fs.readFileSync(videourl);
             const uint8Buffer = Uint8Array.from(buf);
