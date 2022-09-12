@@ -13,8 +13,7 @@ let win: BrowserWindow | null = null
 // Here, you can also use other preload
 function onCameraRecording(saveVideoPathTop = '', saveVideoPathSide = '') {
 
-  httpServer = new CameraServer({ _side: true, _top: true });
-  httpServer._saveVideoPath = { saveVideoPathTop: saveVideoPathTop, saveVideoPathSide: saveVideoPathSide };
+  httpServer = new CameraServer({ _side: true, _top: true, _saveVideoPath: { saveVideoPathTop: saveVideoPathTop, saveVideoPathSide: saveVideoPathSide } });
   httpServer.createCameraServer();
   console.log("createVideoServer success");
   let playParams = { type: 'stream', videoSourceTop: "http://127.0.0.1:8889", videoSourceSide: "http://127.0.0.1:8890" }
@@ -121,6 +120,7 @@ async function createWindow() {
       // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
       nodeIntegration: true,
       contextIsolation: false,
+      webSecurity: false
     },
   },
   )
@@ -134,7 +134,7 @@ async function createWindow() {
     // win.webContents.openDevTools()
     let uri = path.resolve("./electron/6.2.1_0");
     try {
-      await session.defaultSession.loadExtension(uri, { allowFileAccess: true });
+      // await session.defaultSession.loadExtension(uri, { allowFileAccess: true });
     }
     catch (e) {
       console.log("error",e)
@@ -151,9 +151,9 @@ async function createWindow() {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
   })
-  ipcMain.on('cameraRecording', function (event, arg) {
-    console.log("cameraRecording:", arg);
-    onCameraRecording(arg[0],arg[1]);
+  ipcMain.on('cameraRecording', function (event, arg1,arg2) {
+    console.log("cameraRecording:", arg1,arg2);
+    onCameraRecording(arg1,arg2);
   });
   ipcMain.on('stopRecord', function (event, arg) {
     console.log('stopRecord', arg)

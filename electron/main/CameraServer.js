@@ -31,7 +31,7 @@ export default class CameraServer {
         this._videoServerSide;
         this._top = props._top;
         this._side = props._side;
-        this._saveVideoPath;
+        this._saveVideoPath = props._saveVideoPath;
     }
 
     stopFFmpegCommand() {
@@ -70,7 +70,7 @@ export default class CameraServer {
         let enableDestroy = require('server-destroy');
         let fs = require('fs')
         let stream = require('stream')
-        console.log("top camera start", this._top)
+        console.log("top camera start", this._top, this._saveVideoPath)
         if (!this._videoServerTop && this._top) {
             // this.stopFFmpegCommand();
             let videoCodec = 'libx264'

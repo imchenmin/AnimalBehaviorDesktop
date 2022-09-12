@@ -3,12 +3,12 @@
     <el-form :model="record">
         <el-form-item>
             <el-button type="primary" @click="run_preview" v-if="cameraflag">打开相机</el-button>
-            <el-button type="primary" @click="run_preview" v-else>关闭相机</el-button>
+            <el-button type="primary" @click="stop_preview" v-else>关闭相机</el-button>
             <el-button type="primary" @click="handleStart" v-if="!cameraflag && recordflag">开始录制</el-button>
             <el-button type="primary" @click="handleStop" v-if="!cameraflag && ! recordflag">关闭录制</el-button>
         </el-form-item>
     </el-form>
-    <div v-if="!cameraflag" >
+    <div v-show="!cameraflag" >
         <video ref="videoPlayerTop" class="video-js"></video>
         <video ref="videoPlayerSide" class="video-js"></video>
     </div>
