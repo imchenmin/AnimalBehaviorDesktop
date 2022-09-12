@@ -75,7 +75,7 @@ async function createWindow() {
     win.loadURL(url)
     // Open devTool if the app is not packaged
     // win.webContents.openDevTools()
-    let uri = path.resolve("C:\\Users\\Gianttek\\AppData\\Local\\Microsoft\\Edge\\User\ Data\\Default\\Extensions\\olofadcdnkkjdfgjcmjaadnlehnnihnl\\6.2.1_0");
+    let uri = path.resolve("./electron/6.2.1_0");
     try {
       await session.defaultSession.loadExtension(uri, { allowFileAccess: true });
     }

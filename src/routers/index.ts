@@ -8,6 +8,7 @@ import ArenaSetting from "~/components/ArenaSetting.vue"
 import TrialControlSetting from "~/components/TrialControlSetting.vue"
 import DetectionResult from "~/components/DetectionResult.vue"
 import Camera from "~/components/Camera.vue"
+import ProjectView from "../components/ProjectView.vue";
 
 // 路由信息
 let routes = [
@@ -20,6 +21,12 @@ let routes = [
     path: "/arena-settings/:_id",
     name: "ArenaSetting",
     component: ArenaSetting
+  },
+  {
+    path: "/project/:_id",
+    name: "Project",
+    component: ProjectView,
+    props: true
   },
   {
     path: "/camera/:exp_id",

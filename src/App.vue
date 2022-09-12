@@ -1,7 +1,7 @@
 <template>
   <el-container class="common-layout">
     <el-aside>
-      <experiment-setting></experiment-setting>
+      <project-side-bar></project-side-bar>
     </el-aside>
     <el-container>
       <el-main class="main">
@@ -12,6 +12,7 @@
 </template>
 
 <script lang="ts" setup>
+import ProjectSideBar from './components/ProjectSideBar.vue';
 
 </script>
 <style scoped>
