@@ -18,3 +18,4 @@ records.pkg
 
 **/__pycache__
 *.pyc
+*.mkv
