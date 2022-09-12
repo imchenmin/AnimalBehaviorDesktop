@@ -37,7 +37,7 @@
             <el-date-picker v-model="current_exp.date" type="date" placeholder="Pick a date" />
         </el-form-item>
         <el-form-item label="项目路径">
-            <p class="form-custom-item"> {{ folder_path }}</p>
+            <p class="form-custom-item"> {{ current_exp.folder_path  }}</p>
         </el-form-item>
 
         <h2>小鼠信息</h2>
@@ -83,9 +83,6 @@ const props = defineProps({
 const { experiments } = useStore()
 console.log(props)
 const current_exp = computed(() => experiments.get_from_id(props._id))
-const folder_path = computed(() => {
-    return current_exp.value.folder_path + '/' + current_exp.value.name
-})
 const state_msg = computed(() => {
     let arr = new Array()
     arr[0] = "已完成"
