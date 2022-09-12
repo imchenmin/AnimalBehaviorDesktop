@@ -5,10 +5,8 @@ import '@vue/runtime-core'
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
-    AnalysisProfiles: typeof import('./components/AnalysisProfiles.vue')['default']
     ArenaSetting: typeof import('./components/ArenaSetting.vue')['default']
     Camera: typeof import('./components/Camera.vue')['default']
-    DataProfiles: typeof import('./components/DataProfiles.vue')['default']
     DetectionResult: typeof import('./components/DetectionResult.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElBreadcrumb: typeof import('element-plus/es')['ElBreadcrumb']
@@ -31,15 +29,16 @@ declare module '@vue/runtime-core' {
     ElPageHeader: typeof import('element-plus/es')['ElPageHeader']
     ElScrollbar: typeof import('element-plus/es')['ElScrollbar']
     ElSelect: typeof import('element-plus/es')['ElSelect']
+    ElStep: typeof import('element-plus/es')['ElStep']
+    ElSteps: typeof import('element-plus/es')['ElSteps']
     ElSubMenu: typeof import('element-plus/es')['ElSubMenu']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
-    ExperimentSetting: typeof import('./components/ExperimentSetting.vue')['default']
     Home: typeof import('./components/Home.vue')['default']
     ProjectSideBar: typeof import('./components/ProjectSideBar.vue')['default']
     ProjectView: typeof import('./components/ProjectView.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
-    TrialControlSetting: typeof import('./components/TrialControlSetting.vue')['default']
+    StepControl: typeof import('./components/StepControl.vue')['default']
     VideoView: typeof import('./components/VideoView.vue')['default']
   }
 }
