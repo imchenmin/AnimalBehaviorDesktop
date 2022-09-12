@@ -29,8 +29,8 @@ export default class CameraServer {
         this._ffmpegCommandSide;
         this._videoServerTop;
         this._videoServerSide;
-        this._top=props._top;
-        this._side=props._side;
+        this._top = props._top;
+        this._side = props._side;
         this._saveVideoPath;
     }
 
@@ -42,7 +42,7 @@ export default class CameraServer {
             // this._ffmpegCommandTop.kill()
         }
 
-        if (this._ffmpegCommandSide  && this._side) {
+        if (this._ffmpegCommandSide && this._side) {
             // this._ffmpegCommandSide.ffmpegProc.stdin.write('q\n');
             this._ffmpegCommandSide.kill()
         }
@@ -70,34 +70,34 @@ export default class CameraServer {
         let enableDestroy = require('server-destroy');
         let fs = require('fs')
         let stream = require('stream')
-        console.log("top camera start",this._top)
+        console.log("top camera start", this._top)
         if (!this._videoServerTop && this._top) {
             // this.stopFFmpegCommand();
             let videoCodec = 'libx264'
             console.log("top camera start")
             this._videoServerTop = http.createServer((request, response) => {
-            let bufferStream = new stream.PassThrough();
-            this._ffmpegCommandTop = ffmpeg()
-                .input('video=USB webcam')
-                .inputOption('-f','dshow')
-                .output('video.mkv')
-                .videoCodec('copy')
-                .output(bufferStream)
-                .videoCodec(videoCodec)
-                .format('mp4')
-                .outputOptions(
-                    '-movflags', 'frag_keyframe+empty_moov+faststart',
-                    '-g', '18')
-                .on('progress', function (progress) {
-                    console.log('time: ' + progress.timemark);
-                })
-                .on('error', function (err) {
-                    console.log('An error occurred: ' + err.message);
-                })
-                .on('end', function () {
-                    console.log('Processing finished !');
-                })
-                .run()
+                let bufferStream = new stream.PassThrough();
+                this._ffmpegCommandTop = ffmpeg()
+                    .input('video=USB webcam')
+                    .inputOption('-f', 'dshow')
+                    .output(this._saveVideoPath.saveVideoPathTop)
+                    .videoCodec('copy')
+                    .output(bufferStream)
+                    .videoCodec(videoCodec)
+                    .format('mp4')
+                    .outputOptions(
+                        '-movflags', 'frag_keyframe+empty_moov+faststart',
+                        '-g', '18')
+                    .on('progress', function(progress) {
+                        console.log('time: ' + progress.timemark);
+                    })
+                    .on('error', function(err) {
+                        console.log('An error occurred: ' + err.message);
+                    })
+                    .on('end', function() {
+                        console.log('Processing finished !');
+                    })
+                    .run()
                 bufferStream.pipe(response);
             })
             this._videoServerTop = require('http-shutdown')(this._videoServerTop);
@@ -110,30 +110,30 @@ export default class CameraServer {
             let videoCodec = 'libx264'
             console.log("side camera start")
             this._videoServerSide = http.createServer((request, response) => {
-            let bufferStream2 = new stream.PassThrough();
-            this._ffmpegCommandSide = ffmpeg()
-                .input('video=KS2A293-D')
-                .inputOption('-f','dshow')
-                .output('video2.mkv')
-                .outputOptions([
-                    '-vcodec copy'
-                ])
-                .output(bufferStream2)
-                .videoCodec(videoCodec)
-                .format('mp4')
-                .outputOptions(
-                    '-movflags', 'frag_keyframe+empty_moov+faststart',
-                    '-g', '18')
-                .on('progress', function (progress) {
-                    console.log('time-side: ' + progress.timemark);
-                })
-                .on('error', function (err) {
-                    console.log('An error occurred:  2' + err.message);
-                })
-                .on('end', function () {
-                    console.log('Processing finished 2 !');
-                })
-                .run()
+                let bufferStream2 = new stream.PassThrough();
+                this._ffmpegCommandSide = ffmpeg()
+                    .input('video=KS2A293-D')
+                    .inputOption('-f', 'dshow')
+                    .output(this._saveVideoPath.saveVideoPathSide)
+                    .outputOptions([
+                        '-vcodec copy'
+                    ])
+                    .output(bufferStream2)
+                    .videoCodec(videoCodec)
+                    .format('mp4')
+                    .outputOptions(
+                        '-movflags', 'frag_keyframe+empty_moov+faststart',
+                        '-g', '18')
+                    .on('progress', function(progress) {
+                        console.log('time-side: ' + progress.timemark);
+                    })
+                    .on('error', function(err) {
+                        console.log('An error occurred:  2' + err.message);
+                    })
+                    .on('end', function() {
+                        console.log('Processing finished 2 !');
+                    })
+                    .run()
                 bufferStream2.pipe(response);
             })
             this._videoServerSide = require('http-shutdown')(this._videoServerSide);

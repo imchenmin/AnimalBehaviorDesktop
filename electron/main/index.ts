@@ -14,13 +14,70 @@ let win: BrowserWindow | null = null
 function onCameraRecording(saveVideoPathTop = '', saveVideoPathSide = '') {
 
   httpServer = new CameraServer({ _side: true, _top: true });
-  httpServer.saveVideoPath = { saveVideoPathTop: saveVideoPathTop, saveVideoPathSide: saveVideoPathSide };
+  httpServer._saveVideoPath = { saveVideoPathTop: saveVideoPathTop, saveVideoPathSide: saveVideoPathSide };
   httpServer.createCameraServer();
   console.log("createVideoServer success");
   let playParams = { type: 'stream', videoSourceTop: "http://127.0.0.1:8889", videoSourceSide: "http://127.0.0.1:8890" }
   console.log("cameraRecoridng=", playParams)
 
   win.webContents.send('cameraRecoridngReady', playParams)
+}
+function onVideoFileSeleted(videoFilePath) {
+  videoSupport(videoFilePath).then((checkResult) => {
+      if (checkResult.videoCodecSupport && checkResult.audioCodecSupport) {
+          if (httpServer) {
+              httpServer.killFfmpegCommand();
+          }
+          let playParams = {type:'', videoSource:''};
+          playParams.type = "native";
+          playParams.videoSource = videoFilePath;
+          if (isRendererReady) {
+              console.log("fileSelected=", playParams)
+
+              win.webContents.send('fileSelected', playParams);
+          } else {
+              ipcMain.once("ipcRendererReady", (event, args) => {
+                  console.log("fileSelected", playParams)
+                  win.webContents.send('fileSelected', playParams);
+                  isRendererReady = true;
+              })
+          }
+      }
+      if (!checkResult.videoCodecSupport || !checkResult.audioCodecSupport) {
+          if (!httpServer) {
+              httpServer = new VideoServer();
+          }
+          httpServer.videoSourceInfo = { videoSourcePath: videoFilePath, checkResult: checkResult };
+          httpServer.createServer();
+          console.log("createVideoServer success");
+          let playParams = {type:'', videoSource:'',duration:0};
+          playParams.type = "stream";
+          playParams.videoSource = "http://127.0.0.1:8888?startTime=0";
+          playParams.duration = checkResult.duration
+          if (isRendererReady) {
+              console.log("fileSelected=", playParams)
+
+              win.webContents.send('fileSelected', playParams);
+          } else {
+              ipcMain.once("ipcRendererReady", (event, args) => {
+                  console.log("fileSelected", playParams)
+                  win.webContents.send('fileSelected', playParams);
+                  isRendererReady = true;
+              })
+          }
+      }
+  }).catch((err) => {
+      console.log("video format error", err);
+      const options = {
+          type: 'info',
+          title: 'Error',
+          message: "It is not a video file!",
+          buttons: ['OK']
+      }
+      dialog.showMessageBox(options, function (index) {
+          console.log("showMessageBox", index);
+      })
+  })
 }
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -96,7 +153,7 @@ async function createWindow() {
   })
   ipcMain.on('cameraRecording', function (event, arg) {
     console.log("cameraRecording:", arg);
-    onCameraRecording(arg);
+    onCameraRecording(arg[0],arg[1]);
   });
   ipcMain.on('stopRecord', function (event, arg) {
     console.log('stopRecord', arg)
