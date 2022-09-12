@@ -19,3 +19,4 @@ records.pkg
 **/__pycache__
 *.pyc
 *.mkv
+src/components.d.ts
