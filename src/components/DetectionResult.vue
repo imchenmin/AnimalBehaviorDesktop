@@ -1,18 +1,7 @@
 <template lang="">
-    <el-page-header @back="$router.push('/')">
-        <template #breadcrumb>
-            <el-breadcrumb separator="/">
-                <el-breadcrumb-item :to="{ path: '/' }">Projects</el-breadcrumb-item>
-                <el-breadcrumb-item :to="{ path: '/' }">{{ current_exp.name }}</el-breadcrumb-item>
-                <el-breadcrumb-item :to="{ path: '/' }">Camera</el-breadcrumb-item>
-            </el-breadcrumb>
-        </template>
-        <template #content>
-            <span> {{ current_exp.name }} </span>
-        </template>
-    </el-page-header>
+    <StepControl :_id="exp_id" active="2"></StepControl>
     <!-- <el-button v-if="displayChart"  value="查看结果" id="showresult" @click="embyPot">查看结果</el-button> -->
-    <el-button  value="查看结果" id="showresult" @click="run_analysis">分析</el-button>
+    <el-button  value="查看结果" id="showresult" @click="run_analysis" status="finish">分析</el-button>
     <el-button  value="查看结果" id="showresult" @click="run_record" ref="previewBtn">打开相机</el-button>
     <!-- <div id="video-containerTop">
         <video class="video-js vjs-big-play-centered" controls preload="auto" width="800"
