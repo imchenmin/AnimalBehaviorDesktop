@@ -11,7 +11,7 @@
         "typecheck": "vue-tsc --noEmit",
         "devtools": "./node_modules/.bin/vue-devtools",
         "pack": "electron-builder",
-        "release": " electron-builder build  --win -p always"
+        "release": " electron-builder  --win -p always"
     },
     "dependencies": {
         "@electron/remote": "^2.0.8",
