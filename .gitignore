@@ -20,3 +20,5 @@ records.pkg
 *.pyc
 *.mkv
 src/components.d.ts
+release
+.gitignore

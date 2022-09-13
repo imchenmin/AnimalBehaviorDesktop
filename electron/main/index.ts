@@ -73,6 +73,56 @@ export const ROOT_PATH = {
   public: join(__dirname, app.isPackaged ? '../..' : '../../../public'),
 }
 
+const { autoUpdater } = require('electron-updater')
+function checkUpdate(){
+  //检测更新
+  autoUpdater.checkForUpdates()
+  autoUpdater.on("check-for-update",(err) => {
+    console.log(err);
+    
+  })
+  console.log("checkupdate")
+  //监听'error'事件
+  autoUpdater.on('error', (err) => {
+    console.log(err)
+  })
+  
+  //监听'update-available'事件，发现有新版本时触发
+  autoUpdater.on('update-available', () => {
+    console.log('found new version')
+  })
+  
+  //默认会自动下载新版本，如果不想自动下载，设置autoUpdater.autoDownload = false
+  
+  //监听'update-downloaded'事件，新版本下载完成时触发
+  autoUpdater.on('update-downloaded', () => {
+    dialog.showMessageBox({
+      type: 'info',
+      title: '应用更新',
+      message: '发现新版本，是否更新？',
+      buttons: ['是', '否']
+    }).then((buttonIndex) => {
+      if(buttonIndex.response == 0) {  //选择是，则退出程序，安装新版本
+        autoUpdater.quitAndInstall() 
+        app.quit()
+      }
+    })
+  })
+}
+// new window example arg: new windows url
+ipcMain.handle('open-win', (event, arg) => {
+  const childWindow = new BrowserWindow({
+    webPreferences: {
+      preload,
+    },
+  })
+
+  if (app.isPackaged) {
+    childWindow.loadFile(indexHtml, { hash: arg })
+  } else {
+    childWindow.loadURL(`${url}/#${arg}`)
+  }
+})
 
 const preload = join(__dirname, '../preload/index.js')
 const url = "http://127.0.0.1:3000"
@@ -104,13 +154,13 @@ async function createWindow() {
     win.loadURL(url)
     // Open devTool if the app is not packaged
     // win.webContents.openDevTools()
-    let uri = path.resolve("./electron/6.2.1_0");
-    try {
+    // let uri = path.resolve("./electron/6.2.1_0");
+    // try {
       // await session.defaultSession.loadExtension(uri, { allowFileAccess: true });
-    }
-    catch (e) {
-      console.log("error",e)
-    }
+    // }
+    // catch (e) {
+    //   console.log("error",e)
+    // }
   }
 
   // Test actively push message to the Electron-Renderer
@@ -143,6 +193,7 @@ async function createWindow() {
     }
     onVideoFileSeleted(arg1) //目前只处理一个视频。
   })
+  checkUpdate()
 }
 
 app.whenReady().then(createWindow)
@@ -169,20 +220,6 @@ app.on('activate', () => {
   }
 })
 
-// new window example arg: new windows url
-ipcMain.handle('open-win', (event, arg) => {
-  const childWindow = new BrowserWindow({
-    webPreferences: {
-      preload,
-    },
-  })
-
-  if (app.isPackaged) {
-    childWindow.loadFile(indexHtml, { hash: arg })
-  } else {
-    childWindow.loadURL(`${url}/#${arg}`)
-  }
-})
 
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
