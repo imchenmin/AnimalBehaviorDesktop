@@ -2,31 +2,13 @@
     <StepControl :_id="exp_id" active="2"></StepControl>
     <!-- <el-button v-if="displayChart"  value="查看结果" id="showresult" @click="embyPot">查看结果</el-button> -->
     <el-button  value="查看结果" id="showresult" @click="run_analysis" status="finish">分析</el-button>
-    <el-button  value="查看结果" id="showresult" @click="run_record" ref="previewBtn">打开相机</el-button>
-    <!-- <div id="video-containerTop">
-        <video class="video-js vjs-big-play-centered" controls preload="auto" width="800"
-    height="400" data-setup="{}" ref="videoContainerTop">
-    <source src="http://127.0.0.1:8889" type="video/mp4">
-    <p class="vjs-no-js">
-    To view this video please enable JavaScript, and consider upgrading to a web browser that
-    <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
-    </p>
-    </video>
-    </div>
-    <div id="video-containerTop" >
-        <video class="video-js vjs-big-play-centered" controls preload="auto" width="800"
-    height="400" data-setup="{}" ref="videoContainterSide">
-    <source src="http://127.0.0.1:8890" type="video/mp4">
-    <p class="vjs-no-js">
-    To view this video please enable JavaScript, and consider upgrading to a web browser that
-    <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
-    </p>
-    </video>
-    </div> -->
+    <el-button  value="查看结果" id="showresult" @click="playVideo" ref="previewBtn">打开相机</el-button>
+    <video ref="videoPlayerTop" class="video-js"></video>
+    <video ref="videoPlayerSide" class="video-js"></video>
 
 
 
-    <!-- <v-chart v-if="displayChart" class="chart" :option="option" /> -->
+    <v-chart v-if="displayChart" class="chart" :option="option" />
 </template>
 <script lang="ts" setup>
 import { ref, defineComponent, defineProps, onMounted, reactive } from 'vue';
@@ -38,6 +20,7 @@ import videojs from 'video.js';
 import 'video.js/dist/video-js.css';
 import '../StreamPlayTech';
 import { send } from 'process';
+import { onBeforeRouteLeave } from 'vue-router';
 const props = defineProps(['exp_id'])
 let ipcRenderer = require('electron').ipcRenderer;
 
@@ -60,21 +43,8 @@ let categories = current_exp.detection_behavior_kinds;
 let fs = require("fs")
 const displayChart = ref(true)
 let array: any = [];
-const videoContainerTop = ref()
-let videoContainerSide = ref()
 let playerTop: videojs.Player | null = null
 let playerSide: videojs.Player | null = null
-const videoOptions = reactive({
-    autoplay: true,
-    controls: true,
-    sources: [
-        {
-            src: 'http://127.0.0.1:8889',
-            type: 'video/mp4'
-        }
-    ],
-    techOrder: ['StreamPlay']
-})
 function getWindowSize() {
     const { offsetWidth, offsetHeight } = document.documentElement
     const { innerHeight } = window // innerHeight will be blank in Windows system
@@ -213,32 +183,72 @@ const option = ref({
         data: categories
     },
 })
+const videoPlayerTop = ref()
+const videoPlayerSide = ref()
+const videoOptionsTop = reactive({
+    autoplay: false,
+    controls: false,
+    width: 800,
+    height: 400,
+    preload: 'metadata',
+    sources: [
+        {
+            src: 'http://127.0.0.1:8888',
+            type: 'video/mp4'
+        }
+    ],
+    techOrder: ['StreamPlay'],
+    StreamPlay: { duration: 0 }
+})
 
 onMounted(() => {
+    ipcRenderer.send('playVideoFromFile', path.join(current_exp.folder_path, 'video.mkv'), path.join(current_exp.folder_path, 'video1.mkv'));
+    ipcRenderer.on('videoServerReady', (event, message) => {
+        console.log(message, "message")
+        let videoOptionsTop = {
+            width: 800,
+            height: 400,
+            autoplay: true,
+            controls: true,
+            preload: 'metadata',
+            sources: [
+                {
+                    src: 'http://127.0.0.1:8888?startTime=0',
+                    type: 'video/mp4'
+                }
+            ],
+            techOrder: ['StreamPlay'],
+            StreamPlay: { duration: message.duration }
+        }
+        console.log(videoPlayerTop)
+        playerTop = videojs(videoPlayerTop.value, videoOptionsTop, () => {
+            playerTop.log('onPlayerReady', this);
+        });
+        console.log('videoServerReady-render:', message)
+        playerTop.load()
+        playerTop.play()
+        // playerSide.load()
+        // playerSide.play()
+    });
 
-
-        // let vidTop = videoContainerTop
-        // let vidSide = videoContainerSide
-        // playerTop = videojs(vidTop, {
-        //     techOrder: ['StreamPlay']
-        // }, () => {
-        //     playerTop.play()
-        // });
-        // playerSide = videojs(vidSide, {
-        //     techOrder: ['StreamPlay']
-        // }, () => {
-        //     playerSide.play()
-        // });
-        // player.textTrackSettings.setDefaults();
-        // player.textTrackSettings.setValues(newSettings);
-        // player.textTrackSettings.updateDisplay();
-        // playerTop.on("progress",(event)=>{
-        //     console.log('buffer',playerTop.currentTime())
-        //     option.value.dataZoom[0].startValue = player.currentTime() - 5
-        //     option.value.dataZoom[0].endValue = player.currentTime() + 5
-        // })
+    // playerSide = videojs(videoPlayerSide, videoOptionsSide, () => {
+    //     playerSide.log('onPlayerReady', this);
+    // });
 
 })
+onBeforeRouteLeave(() => {
+    if (playerTop) {
+        playerTop.dispose();
+    }
+    if (playerSide) {
+        playerSide.dispose();
+    }
+    ipcRenderer.send("stopVideoDisplay")
+})
+const playVideo = () => {
+    playerTop.load()
+    playerTop.play()
+}
 </script>
 <style>
 

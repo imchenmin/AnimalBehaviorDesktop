@@ -49,26 +49,25 @@ export default class VideoServer {
             this._videoServer = http.createServer((request, response) => {
                 console.log("on request", request.url);
                 var startTime = parseInt(getParam(request.url, "startTime"));
+                console.log("starttime", startTime, request.url)
                 let videoCodec = this.videoSourceInfo.checkResult.videoCodecSupport ? 'copy' : 'libx264';
-                let audioCodec = this.videoSourceInfo.checkResult.audioCodecSupport ? 'copy' : 'aac';
                 this.killFfmpegCommand();
                 this._ffmpegCommand = ffmpeg()
                     .input(this.videoSourceInfo.videoSourcePath)
                     .nativeFramerate()
                     .videoCodec(videoCodec)
-                    .audioCodec(audioCodec)
                     .format('mp4')
                     .seekInput(startTime)
                     .outputOptions(
                         '-movflags', 'frag_keyframe+empty_moov+faststart',
                         '-g', '18')
-                    .on('progress', function (progress) {
+                    .on('progress', function(progress) {
                         console.log('time: ' + progress.timemark);
                     })
-                    .on('error', function (err) {
+                    .on('error', function(err) {
                         console.log('An error occurred: ' + err.message);
                     })
-                    .on('end', function () {
+                    .on('end', function() {
                         console.log('Processing finished !');
                     })
                 let videoStream = this._ffmpegCommand.pipe();

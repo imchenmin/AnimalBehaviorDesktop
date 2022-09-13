@@ -1,8 +1,7 @@
 <template>
     <StepControl :_id="current_exp._id" :activate="2"></StepControl>
     <div id="main" style="border: solid black 1px; height:600; width:800; curssor: default; " ref="mainboard">
-        <video id="video_id" class="video-js" preload  style="position: absolute;" data-setup="{}" ref="videoObj">
-            <source src="" type='video/mp4' ref="videosource"/>
+        <video id="video_id" preload  style="position: absolute;" data-setup="{}" ref="videoObj" type='video/mp4' :src="videoSrc">
         </video>
         <div id="canvaslist" style="position: absolute;" ref="canvaslist">
             <canvas id="canvas" ref="canvas"></canvas>
@@ -20,25 +19,28 @@
         <div class="fa fa-expand expand"></div>
     </div>   
     
-    <input type="button" value="开始标记" id="startmark"/> 
-    <input type="button" value="保存标记" id="savebutton" @click="savemark"/> 
-    
-    <input type="button" value="根据当前标记进行分析" id="rundetect"/> 
-    <input type="button" value="上传已保存的标记" ref="markInputButton" @click="onUploadMark"/>
-    <input type="button" value="查看结果" id="checkresult"/> 
-    <input type="file"  id="uploadbutton" style="display: none;" accept=".txt" ref="markInput" />
-    <input type="button" value="添加矩形" id="addrectangle" style="display: none; margin-left:140"/> 
-    <input type="button" value="添加多边形" id="addcanvas" style="display: none; margin-left:140"/>
+    <input type="button" class="el-button el-button--simple is-plain" value="开始标记" id="startmark" style="float:left; margin-top:10px;"/> 
+    <input type="button" class="el-button el-button--simple is-plain" value="添加矩形" id="addrectangle" style="display: none; float:left; margin-top:10px;"/> 
+    <input type="button" class="el-button el-button--simple is-plain" value="添加多边形" id="addcanvas" style="display: none; float:left; margin-top:10px;"/>
+    <el-button-group style="margin-top:10px; margin-left:10px;" >
+        <el-button type="simple" plain @click = "savemark" >保存标记</el-button>
+        <el-button type="simple" plain @click="onUploadMark">上传已保存的标记</el-button>
+    </el-button-group>
+    <input type="file"  id="uploadbutton" style="display: none;" accept=".txt" ref="markInput" />    
     <input type="button" value="选择视频" style="display: none" @click="onSelectVideo" />
     <input type="file" id="file-uploader" style="margin-left:140; display: none;" accept="video/*" @change="selectvideo" ref="videoInput" />
     <el-form-item label="感兴趣的身体部位">
         <el-checkbox :indeterminate="isIndeterminate" v-model="checkAll"                 
-                    @change="handleCheckAllChange">全选</el-checkbox>
+                    @change="handleCheckAllChange" style="margin-right:20px">全选</el-checkbox>                   
         <el-checkbox-group v-model="checkedParts" @change="handleCheckedPartsChange">
             <el-checkbox v-for="part in partsArr" :label="part" :key="part">{{part}}</el-checkbox>
         </el-checkbox-group>
     </el-form-item>
-        
+    <el-button-group>
+        <el-button type="simple" plain @click="onRunit">根据当前标记进行分析</el-button>
+        <input type="button" value="根据当前标记进行分析"  style="display: none" id="rundetect" ref="runItButton" />
+        <el-button type="simple" plain @click="embyPot">查看结果</el-button>
+    </el-button-group>
 </template>
 <script >
     let fs = window.require('fs');
@@ -65,18 +67,14 @@
         computed: {
             current_exp() {
                 const { settings, experiments } = useStore();
+                this.videopath = experiments.get_from_id(this._id).folder_path;
                 return experiments.get_from_id(this._id);
+            },
+            videoSrc() {
+                return  this.current_exp.folder_path + "/"+this.videoname+".mp4";
             }
-
         },
         mounted() {
-            this.videopath = this.current_exp.folder_path;
-            let videourl = this.videopath+"/"+this.videoname+".mkv";
-            console.log(videourl);
-            const buf = fs.readFileSync(videourl);
-            const uint8Buffer = Uint8Array.from(buf);
-            const bolb = new Blob([uint8Buffer]);
-            this.$refs.videoObj.src = window.URL.createObjectURL(bolb);
             var isMove = false;
             function getDragAngle(event){
                 var element = event.target;
@@ -720,7 +718,7 @@
                 // fileImport()
                 console.log(__this.checkedParts)
                 if (__this.checkedParts.length==0){
-                    smalltalk.alert('Error', '请至少选择一个感兴趣的部位').then(() => {
+                    smalltalk.alert('错误', '请至少选择一个感兴趣的部位').then(() => {
                         console.log('ok');
                     });
                     //console.log("no select!!!!")
@@ -803,19 +801,11 @@
 
             }
             document.getElementById('rundetect').onclick = runit;
-
-            function embyPot() {
-                let resultvideopath = __this.videopath+"/result/"+__this.videoname+"_result.mp4";
-                console.log(resultvideopath);
-                let poturl = `potplayer://${resultvideopath}`;
-                poturl = poturl.replace("\\","");
-                console.log(poturl);
-                window.open(poturl, "_parent");
-            }
-            
-            document.getElementById('checkresult').onclick = embyPot;
         },
         methods: {
+            onRunit(){
+                this.$refs.runItButton.click();
+            },
             onUploadMark(){
                 this.$refs.markInput.click();
             },
@@ -879,6 +869,14 @@
                 let checkedCount = value.length;
                 this.checkAll = checkedCount === this.partsArr.length;
                 this.isIndeterminate = checkedCount > 0 && checkedCount < this.partsArr.length;
+            },
+            embyPot() {
+                let resultvideopath = this.videopath+"/result/"+this.videoname+"_result.mp4";
+                console.log(resultvideopath);
+                let poturl = `potplayer://${resultvideopath}`;
+                poturl = poturl.replace("\\","");
+                console.log(poturl);
+                window.open(poturl, "_parent");
             },
 
 

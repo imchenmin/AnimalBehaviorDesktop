@@ -7,20 +7,48 @@ import VideoServer from './VideoServer';
 import CameraServer from './CameraServer'
 
 //--- add native video part
-let httpServer;
+let httpServer, videoServer;
 let isRendererReady = false;
 let win: BrowserWindow | null = null
 // Here, you can also use other preload
 function onCameraRecording(saveVideoPathTop = '', saveVideoPathSide = '') {
 
-  httpServer = new CameraServer({ _side: true, _top: true });
-  httpServer.saveVideoPath = { saveVideoPathTop: saveVideoPathTop, saveVideoPathSide: saveVideoPathSide };
+  httpServer = new CameraServer({ _side: true, _top: true, _saveVideoPath: { saveVideoPathTop: saveVideoPathTop, saveVideoPathSide: saveVideoPathSide } });
   httpServer.createCameraServer();
   console.log("createVideoServer success");
   let playParams = { type: 'stream', videoSourceTop: "http://127.0.0.1:8889", videoSourceSide: "http://127.0.0.1:8890" }
   console.log("cameraRecoridng=", playParams)
 
   win.webContents.send('cameraRecoridngReady', playParams)
+}
+function onVideoFileSeleted(videoFilePath) {
+  videoSupport(videoFilePath).then((checkResult) => {
+  if (!checkResult.videoCodecSupport) {
+          if (!videoServer) {
+            videoServer = new VideoServer();
+          }
+          videoServer.videoSourceInfo = { videoSourcePath: videoFilePath, checkResult: checkResult };
+          videoServer.createServer();
+          console.log("createVideoServer success");
+          let playParams = {type:'', videoSource:'',duration:0};
+          playParams.type = "stream";
+          playParams.videoSource = "http://127.0.0.1:8888?startTime=0";
+          playParams.duration = checkResult.duration
+          console.log("videoServerReady=", playParams)
+          win.webContents.send('videoServerReady', playParams);
+      }
+  }).catch((err) => {
+      console.log("video format error", err);
+      const options = {
+          type: 'info',
+          title: 'Error',
+          message: "It is not a video file!",
+          buttons: ['OK']
+      }
+      dialog.showMessageBox(options, function (index) {
+          console.log("showMessageBox", index);
+      })
+  })
 }
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -64,6 +92,7 @@ async function createWindow() {
       // Read more on https://www.electronjs.org/docs/latest/tutorial/context-isolation
       nodeIntegration: true,
       contextIsolation: false,
+      webSecurity: false
     },
   },
   )
@@ -77,7 +106,7 @@ async function createWindow() {
     // win.webContents.openDevTools()
     let uri = path.resolve("./electron/6.2.1_0");
     try {
-      await session.defaultSession.loadExtension(uri, { allowFileAccess: true });
+      // await session.defaultSession.loadExtension(uri, { allowFileAccess: true });
     }
     catch (e) {
       console.log("error",e)
@@ -94,9 +123,9 @@ async function createWindow() {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
   })
-  ipcMain.on('cameraRecording', function (event, arg) {
-    console.log("cameraRecording:", arg);
-    onCameraRecording(arg);
+  ipcMain.on('cameraRecording', function (event, arg1,arg2) {
+    console.log("cameraRecording:", arg1,arg2);
+    onCameraRecording(arg1,arg2);
   });
   ipcMain.on('stopRecord', function (event, arg) {
     console.log('stopRecord', arg)
@@ -105,6 +134,14 @@ async function createWindow() {
       return
     }
     httpServer.stopFFmpegCommand()
+  })
+  ipcMain.on('playVideoFromFile', function (event, arg1,arg2) {
+    console.log('playVideoFromFile', arg1,arg2)
+    if (videoServer) {
+      console.log("A http server exist, fatal error")
+      return
+    }
+    onVideoFileSeleted(arg1) //目前只处理一个视频。
   })
 }
 
@@ -146,5 +183,6 @@ ipcMain.handle('open-win', (event, arg) => {
     childWindow.loadURL(`${url}/#${arg}`)
   }
 })
+
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
