@@ -2,7 +2,7 @@
     <StepControl :_id="exp_id" active="2"></StepControl>
     <!-- <el-button v-if="displayChart"  value="查看结果" id="showresult" @click="embyPot">查看结果</el-button> -->
     <el-button  value="查看结果" id="showresult" @click="run_analysis" status="finish">分析</el-button>
-    <el-button  value="查看结果" id="showresult" @click="run_record" ref="previewBtn">打开相机</el-button>
+    <el-button  value="查看结果" id="showresult" @click="playVideo" ref="previewBtn">打开相机</el-button>
     <video ref="videoPlayerTop" class="video-js"></video>
     <video ref="videoPlayerSide" class="video-js"></video>
     <!-- <div id="video-containerTop">
@@ -63,21 +63,8 @@ let categories = current_exp.detection_behavior_kinds;
 let fs = require("fs")
 const displayChart = ref(true)
 let array: any = [];
-const videoContainerTop = ref()
-let videoContainerSide = ref()
 let playerTop: videojs.Player | null = null
 let playerSide: videojs.Player | null = null
-const videoOptions = reactive({
-    autoplay: true,
-    controls: true,
-    sources: [
-        {
-            src: 'http://127.0.0.1:8889',
-            type: 'video/mp4'
-        }
-    ],
-    techOrder: ['StreamPlay']
-})
 function getWindowSize() {
     const { offsetWidth, offsetHeight } = document.documentElement
     const { innerHeight } = window // innerHeight will be blank in Windows system
@@ -230,29 +217,41 @@ const videoOptionsTop = reactive({
             type: 'video/mp4'
         }
     ],
-    techOrder: ['StreamPlay']
+    techOrder: ['StreamPlay'],
+    StreamPlay: { duration: 0 }
 })
-const videoOptionsSide = reactive({
-    autoplay: false,
-    controls: false,
-    width: 800,
-    height: 400,
-    preload: 'metadata',
-    sources: [
-        {
-            src: 'http://127.0.0.1:8890',
-            type: 'video/mp4'
-        }
-    ],
-    techOrder: ['StreamPlay']
-})
+
 onMounted(() => {
-    playerTop = videojs(videoPlayerTop, videoOptionsTop, () => {
-        playerTop.log('onPlayerReady', this);
+    ipcRenderer.send('playVideoFromFile', path.join(current_exp.folder_path, 'video.mkv'), path.join(current_exp.folder_path, 'video1.mkv'));
+    ipcRenderer.on('videoServerReady', (event, message) => {
+        console.log(message, "message")
+        let videoOptionsTop = {
+            width: 800,
+            height: 400,
+            preload: 'metadata',
+            sources: [
+                {
+                    src: 'http://127.0.0.1:8888?startTime=0',
+                    type: 'video/mp4'
+                }
+            ],
+            techOrder: ['StreamPlay'],
+            StreamPlay: { duration: message.duration }
+        }
+        console.log(videoPlayerTop)
+        playerTop = videojs(videoPlayerTop.value, videoOptionsTop, () => {
+            playerTop.log('onPlayerReady', this);
+        });
+        console.log('videoServerReady-render:', message)
+        playerTop.load()
+        playerTop.play()
+        // playerSide.load()
+        // playerSide.play()
     });
-    playerSide = videojs(videoPlayerSide, videoOptionsSide, () => {
-        playerSide.log('onPlayerReady', this);
-    });
+
+    // playerSide = videojs(videoPlayerSide, videoOptionsSide, () => {
+    //     playerSide.log('onPlayerReady', this);
+    // });
 
 })
 onBeforeRouteLeave(() => {
@@ -265,14 +264,8 @@ onBeforeRouteLeave(() => {
     ipcRenderer.send("stopVideoDisplay")
 })
 const playVideo = () => {
-    ipcRenderer.send('playVideoFromFile', path.join(current_exp.folder_path, 'video.mkv'), path.join(current_exp.folder_path, 'video1.mkv'));
-    ipcRenderer.on('videoServerReady', (event, message) => {
-        console.log('videoServerReady-render:', message)
-        playerTop.load()
-        playerTop.play()
-        // playerSide.load()
-        // playerSide.play()
-    });
+    playerTop.load()
+    playerTop.play()
 }
 </script>
 <style>

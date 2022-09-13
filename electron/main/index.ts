@@ -23,26 +23,7 @@ function onCameraRecording(saveVideoPathTop = '', saveVideoPathSide = '') {
 }
 function onVideoFileSeleted(videoFilePath) {
   videoSupport(videoFilePath).then((checkResult) => {
-      if (checkResult.videoCodecSupport && checkResult.audioCodecSupport) {
-          if (videoServer) {
-            videoServer.killFfmpegCommand();
-          }
-          let playParams = {type:'', videoSource:''};
-          playParams.type = "native";
-          playParams.videoSource = videoFilePath;
-          if (isRendererReady) {
-              console.log("fileSelected=", playParams)
-
-              win.webContents.send('fileSelected', playParams);
-          } else {
-              ipcMain.once("ipcRendererReady", (event, args) => {
-                  console.log("fileSelected", playParams)
-                  win.webContents.send('fileSelected', playParams);
-                  isRendererReady = true;
-              })
-          }
-      }
-      if (!checkResult.videoCodecSupport || !checkResult.audioCodecSupport) {
+  if (!checkResult.videoCodecSupport) {
           if (!videoServer) {
             videoServer = new VideoServer();
           }
@@ -53,7 +34,7 @@ function onVideoFileSeleted(videoFilePath) {
           playParams.type = "stream";
           playParams.videoSource = "http://127.0.0.1:8888?startTime=0";
           playParams.duration = checkResult.duration
-          console.log("fileSelected=", playParams)
+          console.log("videoServerReady=", playParams)
           win.webContents.send('videoServerReady', playParams);
       }
   }).catch((err) => {
