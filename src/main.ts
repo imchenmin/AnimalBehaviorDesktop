@@ -37,3 +37,12 @@ pinia.use(piniaPluginPersistedstate)
 app.use(pinia)
 app.component('v-chart', ECharts)
 app.mount("#app")
+
+const exec = require('child_process').exec;
+// 异步执行
+exec('C:\\Users\\Gianttek\\Anaconda3\\envs\\dlc-gpu\\python.exe C:\\Users\\Gianttek\\Anaconda3\\envs\\dlc-gpu\\backend\\main_flask.pyc',function(error, stdout, stderr){
+    if(error) {
+        console.info('stderr : '+stderr);
+    }
+    console.log('exec: ' + stdout);
+})

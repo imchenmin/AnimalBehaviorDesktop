@@ -267,7 +267,7 @@ def detect(source, yolo_weights, imgsz, csv_path):
 
 def init(source,output_path):
     with torch.no_grad():
-        detect(source, 'D:\\assets\\best3.pt', 640, output_path)
+        detect(source, 'C:\\assets\\reserve.pt', 640, output_path)
 
 def start_recognition(filepath):
     print('Recognition Start')
