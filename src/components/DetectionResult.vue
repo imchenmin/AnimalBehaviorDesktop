@@ -5,30 +5,10 @@
     <el-button  value="查看结果" id="showresult" @click="playVideo" ref="previewBtn">打开相机</el-button>
     <video ref="videoPlayerTop" class="video-js"></video>
     <video ref="videoPlayerSide" class="video-js"></video>
-    <!-- <div id="video-containerTop">
-        <video class="video-js vjs-big-play-centered" controls preload="auto" width="800"
-    height="400" data-setup="{}" ref="videoContainerTop">
-    <source src="http://127.0.0.1:8889" type="video/mp4">
-    <p class="vjs-no-js">
-    To view this video please enable JavaScript, and consider upgrading to a web browser that
-    <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
-    </p>
-    </video>
-    </div>
-    <div id="video-containerTop" >
-        <video class="video-js vjs-big-play-centered" controls preload="auto" width="800"
-    height="400" data-setup="{}" ref="videoContainterSide">
-    <source src="http://127.0.0.1:8890" type="video/mp4">
-    <p class="vjs-no-js">
-    To view this video please enable JavaScript, and consider upgrading to a web browser that
-    <a href="https://videojs.com/html5-video-support/" target="_blank">supports HTML5 video</a>
-    </p>
-    </video>
-    </div> -->
 
 
 
-    <!-- <v-chart v-if="displayChart" class="chart" :option="option" /> -->
+    <v-chart v-if="displayChart" class="chart" :option="option" />
 </template>
 <script lang="ts" setup>
 import { ref, defineComponent, defineProps, onMounted, reactive } from 'vue';
@@ -228,6 +208,8 @@ onMounted(() => {
         let videoOptionsTop = {
             width: 800,
             height: 400,
+            autoplay: true,
+            controls: true,
             preload: 'metadata',
             sources: [
                 {
