@@ -94,6 +94,9 @@ export default {
         if (this.playerSide) {
             this.playerSide.dispose();
         }
+        const { experiments } = useStore()
+        experiments.loadProject()
+
         ipcRenderer.send("stopRecord")
 
     },
