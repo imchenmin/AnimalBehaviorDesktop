@@ -4,7 +4,7 @@
     <el-button  value="查看结果" id="showresult" @click="run_analysis" status="finish">分析</el-button>
     <el-button  value="查看结果" id="showresult" @click="playVideo" ref="previewBtn">打开相机</el-button>
     <video ref="videoPlayerTop" class="video-js"></video>
-    <video ref="videoPlayerSide" class="video-js"></video>
+    <!-- <video ref="videoPlayerSide" class="video-js"></video> -->
 
 
 
@@ -184,7 +184,7 @@ const option = ref({
     },
 })
 const videoPlayerTop = ref()
-const videoPlayerSide = ref()
+// const videoPlayerSide = ref()
 const videoOptionsTop = reactive({
     autoplay: false,
     controls: false,
@@ -251,5 +251,8 @@ const playVideo = () => {
 }
 </script>
 <style>
-
+.chart {
+    width: 80%;
+    margin-left: 50px;
+}
 </style>

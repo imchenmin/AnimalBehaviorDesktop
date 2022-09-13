@@ -78,7 +78,7 @@ export default class CameraServer {
             this._videoServerTop = http.createServer((request, response) => {
                 let bufferStream = new stream.PassThrough();
                 this._ffmpegCommandTop = ffmpeg()
-                    .input('video=USB webcam')
+                    .input('video=USB GS CAM')
                     .inputOption('-f', 'dshow')
                     .output(this._saveVideoPath.saveVideoPathTop)
                     .videoCodec('copy')
