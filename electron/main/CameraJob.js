@@ -22,22 +22,23 @@ function getParam(url, key) {
     return param[key] ? param[key] : null;
 }
 
-export default class CameraServer {
+class CameraJob {
 
-    constructor(props) {
+    constructor(saveVideoPath,camera_name,port) {
         this._ffmpegCommand;
         this._videoServer;
-        this._saveVideoPath = props._saveVideoPath;
-        this._camera_name = props.camera_name;
-        this._port = props._port
+        this._saveVideoPath = saveVideoPath;
+        this._camera_name = camera_name;
+        this._port = port
     }
 
     stopFFmpegCommand() {
-
         if (this._ffmpegCommand) {
-            // this._ffmpegCommand.ffmpegProc.stdin.write("q\n");
+            this._ffmpegCommand.ffmpegProc.stdin.write("q\n");
             // this._ffmpegCommand.kill()
+            console.log("kill ffmpeg")
         }
+
 
  
         this._videoServer.shutdown(function(err) {
@@ -45,47 +46,45 @@ export default class CameraServer {
                 return console.log('shutdown failed', err.message);
             }
             console.log('Everything is cleanly shutdown.');
+            // process.exit()
+
         });
       
         console.log("stopFFMPEG")
-
-
-
-
     }
     createCameraServer() {
         // top camera misc
-        let enableDestroy = require('server-destroy');
         let fs = require('fs')
         let stream = require('stream')
         console.log("camera start", this._saveVideoPath)
         if (!this._videoServer) {
             let videoCodec = 'libx264'
             console.log("top camera start")
+            let bufferStream = new stream.PassThrough();
+            this._ffmpegCommand = ffmpeg()
+                .input('video='+this._camera_name)
+                .inputOption('-f', 'dshow')
+                .output(this._saveVideoPath)
+                .videoCodec('copy')
+                .output(bufferStream)
+                .videoCodec(videoCodec)
+                .format('mp4')
+                .fps(30)
+                .outputOptions(
+                    '-movflags', 'frag_keyframe+empty_moov+faststart',
+                    '-g', '18')
+                .on('progress', function(progress) {
+                    console.log('time: ' + progress.timemark);
+                })
+                .on('error', function(err) {
+                    console.log('An error occurred: ' + err.message);
+                })
+                .on('end', function() {
+                    console.log('Processing finished !');
+                })
+            
+            this._ffmpegCommand.run()
             this._videoServer = http.createServer((request, response) => {
-                let bufferStream = new stream.PassThrough();
-                this._ffmpegCommand = ffmpeg()
-                    .input('video='+this._camera_name)
-                    .inputOption('-f', 'dshow')
-                    .output(this._saveVideoPath.saveVideoPath)
-                    .videoCodec('copy')
-                    .output(bufferStream)
-                    .videoCodec(videoCodec)
-                    .format('mp4')
-                    .fps(30)
-                    .outputOptions(
-                        '-movflags', 'frag_keyframe+empty_moov+faststart',
-                        '-g', '18')
-                    .on('progress', function(progress) {
-                        console.log('time: ' + progress.timemark);
-                    })
-                    .on('error', function(err) {
-                        console.log('An error occurred: ' + err.message);
-                    })
-                    .on('end', function() {
-                        console.log('Processing finished !');
-                    })
-                    .run()
                 bufferStream.pipe(response);
             })
             this._videoServer = require('http-shutdown')(this._videoServer);
@@ -94,13 +93,13 @@ export default class CameraServer {
         }
     }
 }
-
-let cameraJob = new cameraJob(argv[1])
+console.log('args',process.argv)
+let cameraJob = new CameraJob(process.argv[2],process.argv[3],process.argv[4])
 cameraJob.createCameraServer()
 
 process.on("message", (e)=>{
     if (e == 'stop') {
         cameraJob.stopFFmpegCommand()
-        process.exit()
+        
     }
 })

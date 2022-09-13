@@ -4,24 +4,16 @@ import { join } from "path";
 
 import { videoSupport } from "./ffmpeg-helper";
 import VideoServer from "./VideoServer";
-import CameraServer from "./CameraServer";
-
 //--- add native video part
 let topCameraJob, sideCameraJob , videoServer;
 let isRendererReady = false;
 let win: BrowserWindow | null = null;
 // Here, you can also use other preload
-const fork = require("child_process");
+const fork = require("child_process").fork;
 
 function onCameraRecording(saveVideoPathTop = "", saveVideoPathSide = "") {
-  topCameraJob = fork("cameraJob.js",[{
-    _saveVideoPath: saveVideoPathTop, 
-    _camera_name: "USB webcam",
-    _port: 8889 }])
-  sideCameraJob = fork("cameraJob.js",[{
-    _saveVideoPath: saveVideoPathTop, 
-    _camera_name: "KS2A293-D",
-    _port: 8890 }])
+  topCameraJob = fork("./electron/main/cameraJob.js",[saveVideoPathTop, "USB webcam", 8889])
+  sideCameraJob = fork("./electron/main/cameraJob.js",[saveVideoPathSide,"KS2A293-D", 8890 ])
   // httpServer = new CameraServer({
   //   _side: true,
   //   _top: true,
