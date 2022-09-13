@@ -861,7 +861,7 @@
                 let resultvideopath = this.videopath+"/result/"+this.videoname+"_result.mp4";
                 console.log(resultvideopath);
                 let poturl = `potplayer://${resultvideopath}`;
-                poturl = poturl.replace("\\","");
+                poturl = poturl.replaceAll("\\","\/");
                 console.log(poturl);
                 window.open(poturl, "_parent");
             },
