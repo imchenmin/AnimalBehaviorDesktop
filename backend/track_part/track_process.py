@@ -108,7 +108,7 @@ def isRayIntersectsSegment(poi,s_poi,e_poi): #[x,y] [lng,lat]
 
 #poly,namelist可作为全局变量在detect方法中存在，仅需将每一帧的坐标poi传入即可,嵌入了csv结果的输出
 def isPoiWithinPoly(csv_path,poly,namelist,videoname,videopath,resultpath):
-    cap = cv2.VideoCapture(videopath+"/"+videoname+".mp4")
+    cap = cv2.VideoCapture(videopath+"/"+videoname+".mkv")
     #print("!!!!!!!!!!!!!!!!!!!!")
     print(videopath)
     FPS = int(cap.get(cv2.CAP_PROP_FPS))

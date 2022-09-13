@@ -5,13 +5,13 @@ def convert_dlc_to_simple_csv(originalcsvpath,simplecsvpath):
     #csvpath = str(videoname)+"_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv"
     raw_data = pd.read_csv(originalcsvpath,skiprows=3)
     output = []
-    
+
     for i in range(BODY_PART_NUM):
         output.append([])
     
     for idx,row in raw_data.iterrows():
         partindex = 0
-        for i in range (1,len(row),3):
+        for i in range (1,3*BODY_PART_NUM,3):
             if pd.isnull(row[i]):
                 #bodypartlist[(pointer%BODY_PART_NUM)].append((-1,-1))
                 output[partindex].append(output[partindex][-1])

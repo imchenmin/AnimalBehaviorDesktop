@@ -29,7 +29,7 @@ def output_video_part(videopath,videoname,polylist,namelist,resultpath,check_out
     f.close()
     body_position_data=allpoints[0]
 
-    cap = cv2.VideoCapture(videopath+"/"+videoname+".mp4")
+    cap = cv2.VideoCapture(videopath+"/"+videoname+".mkv")
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     FPS = int(cap.get(cv2.CAP_PROP_FPS))
