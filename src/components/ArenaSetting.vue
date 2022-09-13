@@ -1,8 +1,9 @@
 <template>
     <StepControl :_id="current_exp._id" :activate="2"></StepControl>
-    <div id="main" style="border: solid black 1px; height:600; width:800; curssor: default; " ref="mainboard">
-        <video id="video_id" preload  style="position: absolute;" data-setup="{}" ref="videoObj" type='video/mp4' :src="videoSrc">
-        </video>
+    <div id="main" style="border: solid black 1px; curssor: default; " ref="mainboard">
+        <video ref="videoPlayerTop" class="video-js" style="position: absolute;"></video>
+        <!-- <video id="video_id" preload  style="position: absolute;" data-setup="{}" ref="videoObj" type='video/mp4' :src="videoSrc">
+        </video> -->
         <div id="canvaslist" style="position: absolute;" ref="canvaslist">
             <canvas id="canvas" ref="canvas"></canvas>
         </div>
@@ -44,12 +45,16 @@
 </template>
 <script >
     let fs = window.require('fs');
+    let ipcRenderer = require('electron').ipcRenderer;
     import {smalltalk} from "../assets/js/smalltalk.min.js"
     import "../assets/css/smalltalk.min.css"
     import "../assets/css/control_bar.css"
     import "../assets/css/font-awesome.min.css"
     import ExperiemntObj from '../objects/experiment'
     import useStore from '../store'
+    import path from 'path'
+    import videojs from 'video.js';
+    import 'video.js/dist/video-js.css';
 
     const bodypartOptions = ['Body', 'Head', 'Tail', 'Nose'];
     export default {
@@ -75,6 +80,73 @@
             }
         },
         mounted() {
+            var __this = this;
+            //video player init
+            const videoPlayerTop = __this.$refs.videoPlayerTop;
+            var playerTop = null;
+            let {totalT,presentT} = {totalT:0,presentT:0};
+            var playBtn = document.querySelector('.play_pause')
+            var progressTimer = document.querySelector('.progress_timer')
+            var durationTimer = document.querySelector('.duration_timer')
+            var progress = document.querySelector('.progress')
+            var player = document.querySelector('.control')
+            var expand = document.querySelector('.expand')
+            var innerbar = document.getElementById('control_bar').children[1]
+            function formatTime(t){
+                var h = parseInt(t/3600)
+                h = h<10?'0'+h:h 
+                var m = parseInt(t%3600/60)
+                m = m<10?'0'+m:m
+                var s = parseInt(t%60)
+                s = s<10?'0'+s:s
+                return h+':'+m+':'+s
+            } 
+            ipcRenderer.send('playVideoFromFile', path.join(__this.current_exp.folder_path, 'video.mkv'), path.join(__this.current_exp.folder_path, 'video1.mkv'));
+            ipcRenderer.on('videoServerReady', (event, message) => {
+                console.log(message, "message")
+                let videoOptionsTop = {
+                    width: 800,
+                    height: 450,
+                    preload: 'metadata',
+                    sources: [
+                        {
+                            src: 'http://127.0.0.1:8888?startTime=0',
+                            type: 'video/mp4'
+                        }
+                    ],
+                    techOrder: ['StreamPlay'],
+                    StreamPlay: { duration: message.duration }
+                }
+                console.log(videoPlayerTop)
+                playerTop = videojs(videoPlayerTop, videoOptionsTop, () => {
+                    playerTop.log('onPlayerReady', this);
+                });
+                console.log('videoServerReady-render:', message)
+                playerTop.load()
+                //playerTop.play()
+                playerTop.on('loadedmetadata',function(){
+                    //console.log('loadedmetadata')
+                    //console.log(playerTop.duration()) 
+                    let durationTimer = document.querySelector('.duration_timer');
+                    durationTimer.innerHTML = formatTime(playerTop.duration());
+                    totalT = playerTop.duration();
+                })
+                playerTop.on('timeupdate',function(){
+                    presentT = playerTop.currentTime();
+                    var videoCurrent = formatTime(presentT);
+                    progressTimer.innerHTML = videoCurrent;
+                    var percent = presentT/totalT*100;
+                    progress.style.width = percent+'%';
+                    if (percent==0 || playerTop.ended()){
+                        playBtn.classList.add('fa-play');
+                        playBtn.classList.remove('fa-pause');
+                    }
+                    // if (playerTop.ended()){
+                    //     playerTop.currentTime=(0.1);
+                    // }
+                })
+            });
+
             var isMove = false;
             function getDragAngle(event){
                 var element = event.target;
@@ -230,6 +302,8 @@
             };
             //poly
             var canvas = document.getElementById('canvas');
+            canvas.width = 800;
+            canvas.height = 450;
             var canvastodraw;
             var canvaslist = document.getElementById('canvaslist');
             var ctx = canvas.getContext('2d');
@@ -425,30 +499,22 @@
                 ctx.arc(x, y, r, s, e);
                 ctx.fill();
             }
-            //open video and video control
-            var videoObj = document.getElementById('video_id')
-            var playBtn = document.querySelector('.play_pause')
-            var progressTimer = document.querySelector('.progress_timer')
-            var durationTimer = document.querySelector('.duration_timer')
-            var progress = document.querySelector('.progress')
-            var player = document.querySelector('.control')
-            var expand = document.querySelector('.expand')
-            var innerbar = document.getElementById('control_bar').children[1]
+            //video control
             playBtn.addEventListener('click', function(){
-                if(videoObj.paused){
+                if(playerTop.paused()){
                     // 如果视频处于播放状态
-                    videoObj.play()
+                    playerTop.play()
                     this.classList.remove('fa-play')
                     this.classList.add('fa-pause')
                 }else{
-                    videoObj.pause()
+                    playerTop.pause()
                     this.classList.add('fa-play')
                     this.classList.remove('fa-pause')
                 }
             })
             innerbar.addEventListener('click', function(e){
-                if(videoObj.paused || videoObj.ended){
-                        videoObj.play()
+                if(playerTop.paused() || playerTop.ended()){
+                        playerTop.play()
                         playBtn.classList.remove('fa-play')
                         playBtn.classList.add('fa-pause')
                         enhanceVideoSeek(e);
@@ -456,80 +522,18 @@
                 else{
                         enhanceVideoSeek(e);
                 }
-                
-                
             })
             function enhanceVideoSeek(e){
-                //videoObj.pause()
                 var length = e.pageX - innerbar.offsetLeft-player.offsetLeft;
                 var percent = length / innerbar.offsetWidth;
                 progress.style.width = percent*innerbar.style.width+'px';
-                videoObj.currentTime = percent * videoObj.duration;
+                playerTop.currentTime(percent * playerTop.duration());
+                playerTop.play()
+                playBtn.classList.remove('fa-play')
+                playBtn.classList.add('fa-pause')
             }
-
-
             expand.addEventListener('click',function(){
-                videoObj.webkitRequestFullScreen()
-            })
-            function formatTime(t){
-                var h = parseInt(t/3600)
-                h = h<10?'0'+h:h 
-                var m = parseInt(t%3600/60)
-                m = m<10?'0'+m:m
-                var s = parseInt(t%60)
-                s = s<10?'0'+s:s
-                return h+':'+m+':'+s
-            } 
-            // var canvas = document.getElementById('canvas');
-            // var canvaslist = document.getElementById('canvaslist');
-            var vv = document.getElementById('video_id');
-            var mb = document.getElementById('main');
-            var cb = document.getElementById('control_bar');
-            var durationTimer = document.querySelector('.duration_timer');
-            var playBtn = document.querySelector('.play_pause');
-            let {totalT,presentT} = {totalT:0,presentT:0};
-            vv.addEventListener('canplaythrough',function(){
-                    //console.log("Height: " + vv.videoHeight + ", Width: " + vv.videoWidth);
-                    //vv.width = vv.videoWidth;
-                    //vv.height = vv.videoHeight;
-                    //mb.style.width = vv.videoWidth+"px";
-                    //mb.style.height = vv.videoHeight+"px";
-                    //console.log("Height: " + mb.style.width + ", Width: " + mb.style.height);
-                    // canvas.style.width = vv.videoWidth+"px";
-                    // canvas.style.height = vv.videoHeight+"px";
-                    // canvas.width = vv.videoWidth;
-                    // canvas.height = vv.videoHeight;
-                    
-                    vv.width = 800;
-                    vv.height = 450;
-                    mb.style.width = "800px";
-                    mb.style.height = "450px";
-                    canvas.style.width = "800px";
-                    canvas.style.height = "450px";
-                    canvas.width = 800;
-                    canvas.height = 450;
-                    cb.style.left = "auto";
-                    //cb.style.width = vv.videoWidth+"px";
-                    cb.style.width = "800px";
-                    cb.children[1].style.width = vv.width-210+"px";
-                    totalT = vv.duration;
-                    durationTimer.innerHTML = formatTime(totalT);
-                    console.log("videoloaded");
-                    // document.getElementById('t').style.marginLeft =vv.videoWidth/2-260;
-                    // document.getElementById('a').style.marginLeft =vv.videoWidth/2-260;
-                    // document.getElementById('addcanvas').style.marginLeft = vv.videoWidth/2-260;
-
-            });
-            vv.addEventListener('timeupdate',function(){
-                presentT = this.currentTime;
-                var videoCurrent = formatTime(presentT);
-                progressTimer.innerHTML = videoCurrent;
-                var percent = presentT/totalT*100;
-                progress.style.width = percent+'%';
-                if (percent==0 || percent==100){
-                    playBtn.classList.add('fa-play');
-                    playBtn.classList.remove('fa-pause');
-                }
+                playerTop.toggleFullScreen();
             })
             Rect.init("main");
             //add rectangle button
@@ -546,7 +550,7 @@
             //start mark button
             function beginmark(){
                 document.getElementById('startmark').value="终止标记";
-                document.getElementById('video_id').pause();
+                playerTop.pause();
                 playBtn.classList.add('fa-play');
                 playBtn.classList.remove('fa-pause');
                 document.getElementById('addrectangle').onclick = beginbutton;
@@ -567,6 +571,7 @@
     
             //upload mark button
             // var uploadbutton = document.getElementById("uploadbutton");
+            var mb = document.getElementById('main');
             function draw_rec(board, name, left, top, height, width, transform){
                 console.log("draw_rec");
                 var r = document.createElement('div');
@@ -713,7 +718,6 @@
                     
             });
             //get result
-            var __this = this;
             function runit(){
                 // fileImport()
                 console.log(__this.checkedParts)
@@ -732,8 +736,10 @@
                 var all_rectangles = document.getElementsByClassName('rectangle');
                 var all_ud_canvases = document.getElementsByClassName('ud_canvas');
                 let csvString = "";
-                data.push(vv.videoWidth);
-                data.push(vv.videoHeight);
+                const showedvideowidth = 800;
+                const showedvideoheight = 450;
+                data.push(showedvideowidth);
+                data.push(showedvideoheight);
                 data.push(all_rectangles.length);
                 let topappend = parseInt(father_board.offsetTop);
                 let leftappend = parseInt(father_board.offsetLeft);
@@ -765,25 +771,6 @@
                 data.push(__this.videoname)
                 data.push(__this.checkedParts)
                 console.log(data)
-                // var argvs= {
-                //     data: JSON.stringify({
-                //         'argvs': data
-                //     })
-                // }
-                // $.ajax(
-                // {
-                // type: "POST",
-                // url: "127.0.0.1:5001/execute",
-                // data: argvs,
-                // success: function(msg)
-                // {       
-                //         console.log("success");
-                        
-                // },
-                // error: function (xhr, status, error) {
-                //         alert(error);
-                // }
-                // });
                 fetch('http://127.0.0.1:5001/api/runtrack', {
                     method: 'POST',
                     body: JSON.stringify({
@@ -886,11 +873,21 @@
     
 </script>
 <style lang="scss" scoped>
+    #control_bar{
+        left:auto;
+        width: 800px;
+    }
+    #main{
+        width:800px;
+        height:450px;
+    }
     canvas {
         border: 1px solid #333;
         display: block;
     }
     #canvas{
+        width:800px;
+        height:450px;
         position: absolute;
         left: 0;
         top: 0;
