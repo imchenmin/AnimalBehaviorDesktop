@@ -24,8 +24,8 @@ class BehaviorCounter:
             if 'end' in self.ans.keys() and self.frame_count - self.ans['end'] < self.threshold:
                 self.ans['end'] = self.frame_count
             elif 'end' in self.ans.keys() and self.frame_count - self.ans['end'] >= self.threshold:
-                self.ans['start_time'] = str(timedelta(seconds=(self.ans['st'] / self.fps)))
-                self.ans['end_time'] = str(timedelta(seconds=(self.ans['end'] / self.fps)))
+                self.ans['start_time'] = str(round(self.ans['st'] / self.fps), 2)
+                self.ans['end_time'] = str(round(self.ans['end'] / self.fps), 2)
                 if self.ans['end'] - self.ans['st'] >= self.filter_frame:
                     self.res.append(self.ans)
                     self.count += 1 

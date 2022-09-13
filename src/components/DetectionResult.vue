@@ -49,6 +49,7 @@ var types = [
     { name: '理毛', color: '#7b9ce1' },
     { name: '扶墙站立', color: '#bd6d6c' },
     { name: '不扶墙站立', color: '#75d874' },
+    { name: '洗脸', color: '#e0bc78'}
     // { name: 'Listeners', color: '#e0bc78' },
     // { name: 'GPU Memory', color: '#dc77dc' },
     // { name: 'GPU', color: '#72b362' }

@@ -222,7 +222,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                                 mouse_genetype: form.mouse_genetype,
                                 mouse_dob: form.mouse_dob,
                                 tracking_mouse_number: form.tracking_mouse_number,
-                                detection_behavior_kinds: ['理毛','扶墙站立','不扶墙站立'],
+                                detection_behavior_kinds: ['理毛','扶墙站立','不扶墙站立','洗脸'],
                                 record_state: false,
                                 detection_state: false,
                                 tracking_state: false

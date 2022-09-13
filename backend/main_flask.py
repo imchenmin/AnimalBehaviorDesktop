@@ -3,8 +3,8 @@ import deeplabcut
 #track part
 #sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
 # sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend')
-sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend\\yolov5')
-sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend')
+# sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend\\yolov5')
+# sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend')
 
 from track_part.track_process import *
 from track_part.draw_result import draw_raw_img

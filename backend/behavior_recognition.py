@@ -1,14 +1,10 @@
-import sys
-import os
 from yolov5.models.experimental import attempt_load
 from yolov5.utils.general import check_img_size, non_max_suppression, scale_coords
 from yolov5.utils.torch_utils import select_device
 import pandas as pd
-import time
 import cv2
 import torch
 import numpy as np
-import csv
 from yolov5.utils.datasets import letterbox
 
 def xyxy_to_xywh(*xyxy):
@@ -34,18 +30,20 @@ def getEach(data, fps):
                 res.append(i + 2)
     return res
 
-def detect(source, yolo_weights, imgsz, csv_path, behavior='wash'):
+def detect(source, yolo_weights, imgsz, csv_path):
  
     half=False  # use FP16 half-precision inference
     init = 0
     from BehaviorCounter import BehaviorCounter
-    if behavior == "wash":
-        bcounter = BehaviorCounter(fps=60, threshold=10, filter_frame=10)
-    elif behavior == "stand":
-        bcounter1 = BehaviorCounter(fps=60, threshold=10, filter_frame=10)
-        bcounter2 = BehaviorCounter(fps=60, threshold=10, filter_frame=10)
+    bcounter = BehaviorCounter(fps=60, threshold=10, filter_frame=10)
     device = select_device('0')
     half &= device.type != 'cpu'  # half precision only supported on CUDA
+    clsname = ['Wall', 'Stand', 'Normal', 'Wash', 'Groom']
+    clsweight = [1,2,0,3,4]
+    wall_counter = BehaviorCounter(fps=60, threshold=10, filter_frame=10)
+    stand_counter = BehaviorCounter(fps=60, threshold=10, filter_frame=10)
+    wash_counter = BehaviorCounter(fps=60, threshold=10, filter_frame=10)
+    groom_counter = BehaviorCounter(fps=60, threshold=10, filter_frame=10)
 
     # Load model
     model = attempt_load(yolo_weights, map_location=device)  # load FP32 model
@@ -59,6 +57,7 @@ def detect(source, yolo_weights, imgsz, csv_path, behavior='wash'):
     # Set Dataloader
     cap = cv2.VideoCapture(source)
     frameps = int(cap.get(cv2.CAP_PROP_FPS))
+    cap.set(cv2.CAP_PROP_POS_FRAMES, (4*60 + 30)*60)
     # Run inference
     if device.type != 'cpu':
         model(torch.zeros(1, 3, imgsz, imgsz).to(device).type_as(next(model.parameters())))  # run once
@@ -69,10 +68,8 @@ def detect(source, yolo_weights, imgsz, csv_path, behavior='wash'):
     cv2.resizeWindow('res',width=1280,height=360)
     while True:
         frame_idx+=1
-        flag_left = -1
-        flag_right = -1
-        
-        t1 = time.time()
+        if frame_idx > 1000:
+            break
         ret, frame = cap.read()
         if not ret:
             break
@@ -95,44 +92,42 @@ def detect(source, yolo_weights, imgsz, csv_path, behavior='wash'):
         pred_right = model(img_right, augment=False)[0]
         pred_right = non_max_suppression(pred_right, 0.2, 0.5, None, False)
 
-        # flag = 0
-        first = True
-
+        conf_max_right = 0
+        conf_max_right_label = 0
+        conf_max_right_box = [0,0,0,0]
         for i, det in enumerate(pred_right):  # detections per image
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img_right.shape[2:], det[:, :4], frame_right.shape).round()
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
-                    if first:
-                        if behavior == "wash":
-                            # bcounter.read(int(int(cls.item()) != 0))
-                            flag_right = [int(int(cls.item()) != 0)]
-                        elif behavior == "stand":
-                            # bcounter1.read(int(int(cls.item()) != 0))
-                            # bcounter2.read(int(int(cls.item()) != 1))
-                            flag_right = [int(int(cls.item()) != 0), int(int(cls.item()) != 1)]
-
-                        first = False
                     # to deep sort format
                     x_c, y_c, bbox_w, bbox_h = xyxy_to_xywh(*xyxy)
                     #### change here ####
-                    if behavior == "wash":
-                        if int(cls.item()) == 0:
-                            if conf > 0.5:
-                                cv2.rectangle(frame_right, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
-                                cv2.putText(frame_right, 'Wash', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
-                    else:
-                        if int(cls.item()) == 0:
-                            cv2.rectangle(frame_right, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
-                            cv2.putText(frame_right, 'Wall', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
-                        if int(cls.item()) == 1:
-                            cv2.rectangle(frame_right, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
-                            cv2.putText(frame_right, 'Stand', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
-                        if int(cls.item()) == 2:
-                            cv2.rectangle(frame_right, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
-                            cv2.putText(frame_right, 'Norm', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
-
+                    if int(cls.item()) == 0:
+                        if 2 * conf > conf_max_right:
+                            conf_max_right_label = 0
+                            conf_max_right = 1.2 * conf
+                            conf_max_right_box = [x_c, y_c, bbox_w, bbox_h]
+                    if int(cls.item()) == 1:
+                        if conf > conf_max_right:
+                            conf_max_right_label = 1
+                            conf_max_right = 1 * conf
+                            conf_max_right_box = [x_c, y_c, bbox_w, bbox_h]
+                    if int(cls.item()) == 3:
+                        if 3 * conf > conf_max_right:
+                            conf_max_right_label = 3
+                            conf_max_right = 1.5 * conf
+                            conf_max_right_box = [x_c, y_c, bbox_w, bbox_h]
+                    if int(cls.item()) == 4:
+                        if 3 * conf > conf_max_right:
+                            conf_max_right_label = 4
+                            conf_max_right = 1.5 * conf
+                            conf_max_right_box = [x_c, y_c, bbox_w, bbox_h]
+    
+        conf_max_left = 0
+        conf_max_left_label = 0
+        conf_max_left_box = [0,0,0,0]
         img_left = letterbox(frame_left)[0]
         # Convert
         img_left = img_left[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
@@ -149,96 +144,130 @@ def detect(source, yolo_weights, imgsz, csv_path, behavior='wash'):
         pred_right = model(img_left, augment=False)[0]
         pred_right = non_max_suppression(pred_right, 0.2, 0.5, None, False)
  
-        # flag = 0
-        first = True
         for i, det in enumerate(pred_right):  # detections per image
             if len(det):
                 # Rescale boxes from img_size to im0 size
                 det[:, :4] = scale_coords(img_left.shape[2:], det[:, :4], frame_left.shape).round()
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
-                    if first:
-                        if behavior == "wash":
-                            flag_left = [int(int(cls.item()) != 0)]
-                        elif behavior == "stand":
-                            flag_left = [int(int(cls.item()) != 0), int(int(cls.item()) != 1)]
-                        first = False
                     # to deep sort format
                     x_c, y_c, bbox_w, bbox_h = xyxy_to_xywh(*xyxy)
-                    #### change here ####
-                    if behavior == "wash":
-                        if int(cls.item()) == 0:
-                            if conf > 0.5:
-                                cv2.rectangle(frame_left, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
-                                cv2.putText(frame_left, 'Wash', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
-                    else:
-                        if int(cls.item()) == 0:
-                            cv2.rectangle(frame_left, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
-                            cv2.putText(frame_left, 'Wall', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
-                        if int(cls.item()) == 1:
-                            cv2.rectangle(frame_left, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
-                            cv2.putText(frame_left, 'Stand', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
-                        if int(cls.item()) == 2:
-                            cv2.rectangle(frame_left, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
-                            cv2.putText(frame_left, 'Normal', (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+                    if int(cls.item()) == 0:
+                        if 2 * conf > conf_max_left:
+                            conf_max_left_label = 0
+                            conf_max_left = 1.2 * conf
+                            conf_max_left_box = [x_c, y_c, bbox_w, bbox_h]
+                    if int(cls.item()) == 1:
+                        if conf > conf_max_left:
+                            conf_max_left_label = 1
+                            conf_max_left = 1 * conf
+                            conf_max_left_box = [x_c, y_c, bbox_w, bbox_h]
+                    if int(cls.item()) == 3:
+                        if 3 * conf > conf_max_left:
+                            conf_max_left_label = 3
+                            conf_max_left = 1.5 * conf
+                            conf_max_left_box = [x_c, y_c, bbox_w, bbox_h]
+                    if int(cls.item()) == 4:
+                        if 3 * conf > conf_max_left:
+                            conf_max_left_label = 4
+                            conf_max_left = 1.5 * conf
+                            conf_max_left_box = [x_c, y_c, bbox_w, bbox_h]
         
+        if conf_max_left > 0 and conf_max_right > 0:
+            tmp_left = clsweight[conf_max_left_label] * conf_max_left
+            tmp_right = clsweight[conf_max_right_label] * conf_max_right
+
+            if tmp_left > tmp_right:
+                cur_label = conf_max_left_label
+                x_c, y_c, bbox_w, bbox_h = conf_max_left_box    
+            else:
+                x_c1, y_c1, bbox_w1, bbox_h1 = conf_max_right_box
+                cur_label = conf_max_right_label
+
+            cv2.rectangle(frame_left, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
+            cv2.putText(frame_left, clsname[cur_label], (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+
+            cv2.rectangle(frame_right, (int(x_c1 - bbox_w1/2), int(y_c1 - bbox_h1/2)), (int(x_c1 + bbox_w1/2), int(y_c1 + bbox_h1/2)), (0, 0, 255), 2)
+            cv2.putText(frame_right, clsname[cur_label], (int(x_c1 - bbox_w1/2), int(y_c1 - bbox_h1/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+
+        elif conf_max_left > 0:
+            cur_label = conf_max_left_label
+            x_c, y_c, bbox_w, bbox_h = conf_max_left_box    
+            cv2.rectangle(frame_left, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
+            cv2.putText(frame_left, clsname[conf_max_left_label], (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+        elif conf_max_right > 0:
+            cur_label = conf_max_right_label
+            x_c, y_c, bbox_w, bbox_h = conf_max_right_box
+            cv2.rectangle(frame_right, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
+            cv2.putText(frame_right, clsname[conf_max_right_label], (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+        else:
+            cur_label = -1
+
+        if cur_label == -1:
+            wall_counter.read()
+            stand_counter.read()
+            wash_counter.read()
+            groom_counter.read()
+        else:
+            if cur_label != 0:
+                wall_counter.read()
+            else:
+                wall_counter.read(0)
+
+            if cur_label != 1:
+                stand_counter.read()
+            else:
+                stand_counter.read(0)
+
+            if cur_label != 3:
+                wash_counter.read()
+            else:
+                wash_counter.read(0)
+
+            if cur_label != 4:
+                groom_counter.read()
+            else:
+                groom_counter.read(0)
         
-        if behavior == "wash":
-            if flag_left != -1 and flag_right != -1:
-                bcounter.read(flag_left[0] or flag_right[0])
-            elif flag_left != -1:
-                bcounter.read(flag_left[0])
-            elif flag_right != -1:
-                bcounter.read(flag_right[0])
-            else:
-                bcounter.read()
-
-        elif behavior == "stand":
-            if flag_left != -1 and flag_right != -1:
-                bcounter1.read(flag_left[0] or flag_right[0])
-                bcounter2.read(flag_left[1] or flag_right[1])
-
-            elif flag_left != -1:
-                bcounter1.read(flag_left[0])
-                bcounter2.read(flag_left[1])
-            elif flag_right != -1:
-                bcounter1.read(flag_right[0])
-                bcounter2.read(flag_right[1])
-            else:
-                bcounter1.read()
-                bcounter2.read()
-       
-        whole_frame = cv2.hconcat([frame_left, frame_right])#垂直拼接
+        whole_frame = cv2.hconcat([frame_left, frame_right])#拼接
 
         vid_writer.write(whole_frame)
-        cv2.imshow('res', whole_frame)
-        cv2.waitKey(1)
+        # cv2.imshow('res', whole_frame)
+        # cv2.waitKey(1)
     cv2.destroyAllWindows()
     vid_writer.release()
-    if behavior == "wash":
-        df = pd.DataFrame(bcounter.res)
-        if df.shape[0] != 0:
-            df['class'] = 0
-        print(df)
+    df_wall = pd.DataFrame(wall_counter.res)
+    df_stand = pd.DataFrame(stand_counter.res)
+    df_wash = pd.DataFrame(wash_counter.res)
+    df_groom = pd.DataFrame(groom_counter.res)
 
-    elif behavior == "stand":
-        df1 = pd.DataFrame(bcounter1.res)
-        df2 = pd.DataFrame(bcounter2.res)
-        if df1.shape[0] != 0:
-            df1['class'] = 1
-        if df2.shape[0] != 0:
-            df2['class'] = 2
-        df = pd.concat([df1,df2],axis=0)
-    return df
+    if df_wall.shape[0] != 0:
+        df_wall['class'] = 1
+    if df_stand.shape[0] != 0:
+        df_stand['class'] = 2
+    if df_groom.shape[0] != 0:
+        df_groom['class'] = 0
+    if df_wash.shape[0] != 0:
+        df_wash['class'] = 3
+    
+    df_res = []
+    df = []
+    if len(df_groom) != 1:
+        df_res.append(df_groom[1:]) 
+    if len(df_wall) != 1:
+        df_res.append(df_wall[1:]) 
+    if len(df_stand) != 1:
+        df_res.append(df_stand[1:]) 
+    if len(df_wash) != 1:
+        df_res.append(df_wash[1:])
+
+    if len(df_res) != 0:
+        df = pd.concat(df_res,axis=0)
+        df[['class','start_time','end_time']].to_csv(csv_path, header=None, index=None)
 
 def init(source,output_path):
-    df_list = [pd.DataFrame.from_dict({"class": [0], "st":[1], 'end':[1]})]
     with torch.no_grad():
-        df_list.append(detect(source, 'D:\\assets\\wash.pt', 640, output_path,'wash'))
-    with torch.no_grad():
-        df_list.append(detect(source, 'D:\\assets\\stand.pt', 640, output_path,'stand'))
-    df = pd.concat(df_list,axis=0)
-    df[['class','st','end']].to_csv(output_path, header=None,index=None)
+        detect(source, 'D:\\assets\\best3.pt', 640, output_path)
 
 def start_recognition(filepath):
     print('Recognition Start')
