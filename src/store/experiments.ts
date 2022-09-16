@@ -17,20 +17,24 @@ export const useExperimentsStore = defineStore('experiments', {
             let fs = require("fs")
             let util = require('util')
             let count = 0
-            for (let i of this.project_config_list) {
-                let exists =  await util.promisify(fs.exists)(i)
+            for (let i = 0; i < this.project_config_list.length; ++i) {
+                let exists =  await util.promisify(fs.exists)(this.project_config_list[i])
                 if (exists) {
-                    const db = new Datastore({ filename: i, autoload: true })
+                    const db = new Datastore({ filename: this.project_config_list[i], autoload: true })
                     db.find({}, async (err, docs) => {
                         if (!err) {
                             let current_exp = docs[0] as ExperiemntObj
-                            let capture =  await util.promisify(fs.exists)(path.join(i,'..', 'video.mkv'))
+                            let capture =  await util.promisify(fs.exists)(path.join(this.project_config_list[i],'..', 'video.mkv'))
                             current_exp.record_state=capture
-                            this.opened_project.push(docs[0])
+                            this.opened_project.push(current_exp)
                         } else {
-                            console.log("project database load error", i)
+                            console.log("project database load error", this.project_config_list[i])
                         }
                     })
+                } else {
+                    console.log(this.project_config_list);
+                    
+                    this.project_config_list.splice(i,1)
                 }
                 count++
             }
