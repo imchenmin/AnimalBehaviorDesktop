@@ -42,6 +42,14 @@ export default class VideoServer {
         if (this._ffmpegCommand) {
             this._ffmpegCommand.kill();
         }
+        this._videoServer.shutdown(function(err) {
+            if (err) {
+                return console.log('shutdown failed', err.message);
+            }
+            console.log('Everything is cleanly shutdown.');
+            // process.exit()
+
+        });
     }
 
     createServer() {
@@ -72,7 +80,9 @@ export default class VideoServer {
                     })
                 let videoStream = this._ffmpegCommand.pipe();
                 videoStream.pipe(response);
-            }).listen(8888);
+            })
+            this._videoServer = require('http-shutdown')(this._videoServer);
+            this._videoServer.listen(8888);
         }
     }
 }
