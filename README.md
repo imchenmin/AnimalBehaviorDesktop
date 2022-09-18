@@ -1,6 +1,6 @@
 # Animal Behavior Desktop 
-
-## Installation 
+项目进展在[Trello](https://trello.com/b/JFfQaDSd/%E5%8A%A8%E7%89%A9%E8%A1%8C%E4%B8%BA%E5%AD%A6%E8%BD%AF%E4%BB%B6)
+## Installation 
 
 ```
 git clone git@github.com:chenminken/AnimalBehaviorDesktop.git
