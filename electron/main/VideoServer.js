@@ -1,5 +1,6 @@
 'use strict';
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+// 避免在Electron打包的时候找不到asar之外的ffmpeg路径。const ffmpeg = require('fluent-ffmpeg');
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path.replace('app.asar', 'app.asar.unpacked');
 const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
 const http = require('http');

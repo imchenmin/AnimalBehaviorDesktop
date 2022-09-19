@@ -5,7 +5,7 @@
   "appId": "com.imchenmin.animal-behavior-desktop",
   "productName": "具安行为识别",
     "copyright": "Copyright © 2022 Min Chen & Jinhao Zhong & Binxian Sun",
-  "asar": false,
+  "asar": true,
   "directories": {
     "output": "release/${version}"
   },

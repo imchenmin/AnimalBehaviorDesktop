@@ -1,5 +1,6 @@
 'use strict';
-const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+// 避免在Electron打包的时候找不到asar之外的ffmpeg路径。const ffmpeg = require('fluent-ffmpeg');
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path.replace('app.asar', 'app.asar.unpacked');
 const ffmpeg = require('fluent-ffmpeg');
 ffmpeg.setFfmpegPath(ffmpegPath);
 const http = require('http');
@@ -24,7 +25,7 @@ function getParam(url, key) {
 
 class CameraJob {
 
-    constructor(saveVideoPath,camera_name,port) {
+    constructor(saveVideoPath, camera_name, port) {
         this._ffmpegCommand;
         this._videoServer;
         this._saveVideoPath = saveVideoPath;
@@ -40,7 +41,7 @@ class CameraJob {
         }
 
 
- 
+
         this._videoServer.shutdown(function(err) {
             if (err) {
                 return console.log('shutdown failed', err.message);
@@ -49,7 +50,7 @@ class CameraJob {
             // process.exit()
 
         });
-      
+
         console.log("stopFFMPEG")
     }
     createCameraServer() {
@@ -62,7 +63,7 @@ class CameraJob {
             console.log("top camera start")
             let bufferStream = new stream.PassThrough();
             this._ffmpegCommand = ffmpeg()
-                .input('video='+this._camera_name)
+                .input('video=' + this._camera_name)
                 .inputOption('-f', 'dshow')
                 .output(this._saveVideoPath)
                 .videoCodec('copy')
@@ -82,7 +83,7 @@ class CameraJob {
                 .on('end', function() {
                     console.log('Processing finished !');
                 })
-            
+
             this._ffmpegCommand.run()
             this._videoServer = http.createServer((request, response) => {
                 bufferStream.pipe(response);
@@ -93,13 +94,13 @@ class CameraJob {
         }
     }
 }
-console.log('args',process.argv)
-let cameraJob = new CameraJob(process.argv[2],process.argv[3],process.argv[4])
+console.log('args', process.argv)
+let cameraJob = new CameraJob(process.argv[2], process.argv[3], process.argv[4])
 cameraJob.createCameraServer()
 
-process.on("message", (e)=>{
+process.on("message", (e) => {
     if (e == 'stop') {
         cameraJob.stopFFmpegCommand()
-        
+
     }
 })
