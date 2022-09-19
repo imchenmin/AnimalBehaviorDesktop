@@ -24,10 +24,21 @@
         "target": "nsis",
         "arch": [
           "x64"
-        ]
+        ],
       }
     ],
-    "artifactName": "${productName}_${version}.${ext}"
+    "artifactName": "${productName}_${version}.${ext}",
+    "extraResources": [
+      {
+        "from": "utils",
+        "to": "app.asar.unpacked/utils"
+      }
+    ],
+    "asarUnpack": [
+        "**/node_modules/@ffmpeg-installer/ffmpeg/**/*",
+        "**/node_modules/fluent-ffmpeg/**/*",
+        "**/node_modules/http-shutdown/*",
+      ],
   },
   "nsis": {
     "oneClick": false,
