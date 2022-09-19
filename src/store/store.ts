@@ -16,7 +16,9 @@ export const useVersionStore = defineStore('version', {
 export const useDefaultSetting = defineStore('settings', {
     state: () => {
         return {
-            default_parent_folder: ""
+            default_parent_folder: "",
+            default_yolo_path: "",
+            cameraConfig: "",
         }
     },
     actions: {

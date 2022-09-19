@@ -12,8 +12,10 @@ let win: BrowserWindow | null = null;
 const fork = require("child_process").fork;
 
 function onCameraRecording(saveVideoPathTop = "", saveVideoPathSide = "") {
-  topCameraJob = fork("./electron/main/cameraJob.js",[saveVideoPathTop, "USB webcam", 8889])
-  sideCameraJob = fork("./electron/main/cameraJob.js",[saveVideoPathSide,"KS2A293-D", 8890 ])
+  let isDev = process.env.NODE_ENV !== 'production';
+  let scriptPath = isDev ? join(__dirname, 'utils/cameraJob.js') : join(process.resourcesPath, 'app.asar.unpacked/utils/cameraJob.js');
+  topCameraJob = fork(scriptPath,[saveVideoPathTop, "USB webcam", 8889])
+  sideCameraJob = fork(scriptPath,[saveVideoPathSide,"KS2A293-D", 8890 ])
   // httpServer = new CameraServer({
   //   _side: true,
   //   _top: true,

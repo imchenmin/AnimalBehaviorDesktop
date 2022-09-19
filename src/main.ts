@@ -40,7 +40,7 @@ app.mount("#app")
 
 const exec = require('child_process').exec;
 // 异步执行
-exec('C:\\Users\\Gianttek\\Anaconda3\\envs\\dlc-gpu\\python.exe C:\\Users\\Gianttek\\Anaconda3\\envs\\dlc-gpu\\backend\\main_flask.pyc',function(error, stdout, stderr){
+exec('C:\\Users\\Gianttek\\Anaconda3\\envs\\dlc-gpu\\python.exe C:\\Users\\Gianttek\\Anaconda3\\envs\\dlc-gpu\\backend\\main_flask.py',function(error, stdout, stderr){
     if(error) {
         console.info('stderr : '+stderr);
     }
