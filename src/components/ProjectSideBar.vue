@@ -54,9 +54,9 @@
                     <h2>追踪分析选项</h2>
                 </div>
                 <el-form-item>
-                    <el-button type="primary" @click="submitForm(ruleFormRef)" :disabled="!isReadyToCreate">Create
+                    <el-button type="primary" @click="submitForm(ruleFormRef)" :disabled="!isReadyToCreate">创建
                     </el-button>
-                    <el-button>Cancel</el-button>
+                    <el-button @click="createNewProjectVisible = false">取消</el-button>
                 </el-form-item>
             </el-form>
         </el-dialog>
@@ -211,6 +211,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                     fs.mkdir(folder_path.value, function (error) {
                         console.log(error)
                         if (!error) {
+                            form.date1 = new Date()
                             let record = {
                                 folder_path: folder_path.value,
                                 name: form.name,

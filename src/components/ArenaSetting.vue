@@ -46,8 +46,6 @@
 <script >
     let fs = window.require('fs');
     let ipcRenderer = require('electron').ipcRenderer;
-    import {smalltalk} from "../assets/js/smalltalk.min.js"
-    import "../assets/css/smalltalk.min.css"
     import "../assets/css/control_bar.css"
     import "../assets/css/font-awesome.min.css"
     import ExperiemntObj from '../objects/experiment'
@@ -228,7 +226,7 @@
             givename.href = "javascript:void(0);";
 
             givename.onclick = function(){ 
-                smalltalk.prompt("请输入此区域名称", '输入任意字符', o.getAttribute("name")).then(function(value) {
+                window.prompt("请输入此区域名称", '输入任意字符', o.getAttribute("name")).then(function(value) {
                     o.setAttribute("name",value);
                     showname.innerText = value;
                 }, function() {
@@ -432,7 +430,7 @@
                 //showname.style.pointerEvents='none';
                 givename.href = "javascript:void(0);";
                 givename.onclick = function(){ 
-                    smalltalk.prompt("请输入此区域名称", '输入任意字符', canvas.getAttribute("name")).then(function(value) {
+                    window.prompt("请输入此区域名称", '输入任意字符', canvas.getAttribute("name")).then(function(value) {
                         canvas.setAttribute("name",value);
                         showname.innerText = value;
                     }, function() {
@@ -598,7 +596,7 @@
                     // var new_name = prompt("请输入此区域名称",r.getAttribute("name")); 
                     // r.setAttribute("name",new_name);
                     // showname.innerText = new_name;
-                    smalltalk.prompt("请输入此区域名称", '输入任意字符', r.getAttribute("name")).then(function(value) {
+                    window.prompt("请输入此区域名称", '输入任意字符', r.getAttribute("name")).then(function(value) {
                         r.setAttribute("name",value);
                         showname.innerText = value;
                     }, function() {
@@ -658,7 +656,7 @@
                     // var new_name = prompt("请输入此区域名称",canvas.getAttribute("name")); 
                     // new_canvas.setAttribute("name",new_name);
                     // showname.innerText = new_name;
-                    smalltalk.prompt("请输入此区域名称", '输入任意字符', canvas.getAttribute("name")).then(function(value) {
+                    window.prompt("请输入此区域名称", '输入任意字符', canvas.getAttribute("name")).then(function(value) {
                         new_canvas.setAttribute("name",value);
                         showname.innerText = value;
                     }, function() {
@@ -722,7 +720,7 @@
                 // fileImport()
                 console.log(__this.checkedParts)
                 if (__this.checkedParts.length==0){
-                    smalltalk.alert('错误', '请至少选择一个感兴趣的部位').then(() => {
+                    window.alert('请至少选择一个感兴趣的部位').then(() => {
                         console.log('ok');
                     });
                     //console.log("no select!!!!")
@@ -783,7 +781,7 @@
                 let result = response.text()
                 result.then(res => {
                     console.log(res);
-                    smalltalk.alert('通知', '处理完毕').then(() => {});
+                    window.alert('通知', '处理完毕').then(() => {});
                 })})
 
             }

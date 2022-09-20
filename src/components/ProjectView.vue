@@ -18,9 +18,9 @@
         <el-form-item label="备注">
             <el-input v-model="current_exp.description" type="textarea" />
         </el-form-item>
-        <el-form-item label="日期" prop="date">
+        <!-- <el-form-item label="日期" prop="date">
             <el-date-picker v-model="current_exp.date" type="date" placeholder="Pick a date" />
-        </el-form-item>
+        </el-form-item> -->
         <el-form-item label="项目路径">
             <p class="form-custom-item"> {{ current_exp.folder_path }}</p>
         </el-form-item>

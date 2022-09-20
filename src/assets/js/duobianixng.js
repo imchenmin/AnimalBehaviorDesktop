@@ -121,7 +121,7 @@
         //showname.style.pointerEvents='none';
         givename.href = "javascript:void(0);";
         givename.onclick = function(){ 
-            smalltalk.prompt("请输入此区域名称", '输入任意字符', canvas.getAttribute("name")).then(function(value) {
+            window.prompt("请输入此区域名称", '输入任意字符', canvas.getAttribute("name")).then(function(value) {
                 canvas.setAttribute("name",value);
                 showname.innerText = value;
             }, function() {
