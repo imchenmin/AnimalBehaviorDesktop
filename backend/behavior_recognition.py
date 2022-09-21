@@ -64,8 +64,8 @@ def detect(source, yolo_weights, imgsz, csv_path):
     frame_idx = 0
 
     vid_writer = cv2.VideoWriter(csv_path[:-4]+'.mp4', cv2.VideoWriter_fourcc(*'mp4v'), frameps, (2560, 720))
-    cv2.namedWindow('res',0)
-    cv2.resizeWindow('res',width=1280,height=360)
+    #cv2.namedWindow('res',0)
+    #cv2.resizeWindow('res',width=1280,height=360)
     while True:
         frame_idx+=1
         if frame_idx > 1000:
@@ -268,7 +268,8 @@ def detect(source, yolo_weights, imgsz, csv_path):
 def init(source,output_path):
     with torch.no_grad():
         detect(source, 'C:\\assets\\reserve.pt', 640, output_path)
-
+    
 def start_recognition(filepath):
     print('Recognition Start')
-    init(filepath + '/video1.mp4', filepath + "/detection_result.csv")
+    init(filepath + '/video1.mkv', filepath + "/detection_result.csv")
+    return 'done'

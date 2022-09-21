@@ -3,7 +3,7 @@ import deeplabcut
 #track part
 #sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
 # sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend')
-# sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend\\yolov5')
+#sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend\\yolov5')
 # sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend')
 
 from track_part.track_process import *
@@ -155,8 +155,8 @@ def wash_recognition():
     filename = json.loads(request.data)
     filename = filename['video_filename']
     print(filename)
-    start_recognition(filename)
-    return ('done')
+    return start_recognition(filename)
+    
 
 
 if __name__ == '__main__':
