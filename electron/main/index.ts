@@ -233,10 +233,6 @@ async function createWindow() {
   });
   ipcMain.on("playVideoFromFile", function (event, arg1, arg2) {
     console.log("playVideoFromFile", arg1, arg2);
-    if (videoServer) {
-      console.log("A http server exist, fatal error");
-      return;
-    }
     onVideoFileSeleted(arg1); //目前只处理一个视频。
   });
   checkUpdate();
