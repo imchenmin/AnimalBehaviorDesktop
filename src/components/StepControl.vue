@@ -20,9 +20,12 @@ const { experiments } = useStore()
 const current_exp = computed(() => experiments.get_from_id(props._id))
 const state_msg = computed(() => {
     let arr = new Array()
+    let tmp = experiments.get_from_id(props._id)
+    console.log(tmp, props._id);
+    
     arr[0] = "已完成"
-    arr[1] = current_exp.value.record_state? "已录制" : "请录制"
-    arr[2] = current_exp.value.record_state? "未分析" : "请录制后分析"
+    arr[1] = tmp.record_state? "已录制" : "请录制"
+    arr[2] = tmp.record_state? "未分析" : "请录制后分析"
     return arr
 })
 const router = useRouter()
