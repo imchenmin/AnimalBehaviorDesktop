@@ -64,7 +64,6 @@ export default class VideoServer {
                 var startTime = parseInt(getParam(request.url, "startTime"));
                 console.log("starttime", startTime, request.url)
                 let videoCodec = this.videoSourceInfo.checkResult.videoCodecSupport ? 'copy' : 'libx264';
-                this.killFfmpegCommand();
                 this._ffmpegCommand = ffmpeg()
                     .input(this.videoSourceInfo.videoSourcePath)
                     .nativeFramerate()

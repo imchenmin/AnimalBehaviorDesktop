@@ -5,7 +5,7 @@ import { join } from "path";
 import { videoSupport } from "./ffmpeg-helper";
 import VideoServer from "./VideoServer";
 //--- add native video part
-let topCameraJob, sideCameraJob , videoServer:VideoServer;
+let topCameraJob, sideCameraJob , videoServer;
 let isRendererReady = false;
 let win: BrowserWindow | null = null;
 // Here, you can also use other preload
