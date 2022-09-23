@@ -24,19 +24,27 @@ function getParam(url, key) {
 
 class CameraJob {
 
-    constructor(saveVideoPath,camera_name,port) {
+    constructor(saveVideoPath,camera_name,port,size) {
         this._ffmpegCommand;
         this._videoServer;
         this._saveVideoPath = saveVideoPath;
         this._camera_name = camera_name;
         this._port = port
+        this._video_size = size
+        this.is_run = true
     }
 
     stopFFmpegCommand() {
+        if (this.is_run == false) {
+            console.log("second run, skipped");
+            return
+        }
+        this.is_run = false
         if (this._ffmpegCommand) {
             this._ffmpegCommand.ffmpegProc.stdin.write("q\n");
             // this._ffmpegCommand.kill()
             console.log("kill ffmpeg")
+            process.exit()
         }
 
 
@@ -59,11 +67,11 @@ class CameraJob {
         console.log("camera start", this._saveVideoPath)
         if (!this._videoServer) {
             let videoCodec = 'libx264'
-            console.log("top camera start")
+            console.log(" camera start")
             let bufferStream = new stream.PassThrough();
             this._ffmpegCommand = ffmpeg()
                 .input('video='+this._camera_name)
-                .inputOption('-f', 'dshow')
+                .inputOptions(['-f dshow', '-s ' + this._video_size])
                 .output(this._saveVideoPath)
                 .videoCodec('copy')
                 .output(bufferStream)
@@ -94,7 +102,7 @@ class CameraJob {
     }
 }
 console.log('args',process.argv)
-let cameraJob = new CameraJob(process.argv[2],process.argv[3],process.argv[4])
+let cameraJob = new CameraJob(process.argv[2],process.argv[3],process.argv[4],process.argv[5])
 cameraJob.createCameraServer()
 
 process.on("message", (e)=>{

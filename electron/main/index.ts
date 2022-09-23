@@ -10,10 +10,11 @@ let isRendererReady = false;
 let win: BrowserWindow | null = null;
 // Here, you can also use other preload
 const fork = require("child_process").fork;
+app.disableHardwareAcceleration()
 
 function onCameraRecording(saveVideoPathTop = "", saveVideoPathSide = "") {
-  topCameraJob = fork("./electron/main/cameraJob.js",[saveVideoPathTop, "USB webcam", 8889])
-  sideCameraJob = fork("./electron/main/cameraJob.js",[saveVideoPathSide,"KS2A293-D", 8890 ])
+  topCameraJob = fork("./electron/main/cameraJob.js",[saveVideoPathTop, "USB GS CAM", 8889,'1280x720'])
+  sideCameraJob = fork("./electron/main/cameraJob.js",[saveVideoPathSide,"KS2A293-D", 8890,'2560x720' ])
   // httpServer = new CameraServer({
   //   _side: true,
   //   _top: true,
@@ -38,6 +39,9 @@ function onVideoFileSeleted(videoFilePath) {
     .then((checkResult) => {
       if (!checkResult.videoCodecSupport) {
         if (!videoServer) {
+          videoServer = new VideoServer();
+        } else{
+          videoServer.killFfmpegCommand();
           videoServer = new VideoServer();
         }
         videoServer.videoSourceInfo = {
@@ -229,10 +233,6 @@ async function createWindow() {
   });
   ipcMain.on("playVideoFromFile", function (event, arg1, arg2) {
     console.log("playVideoFromFile", arg1, arg2);
-    if (videoServer) {
-      console.log("A http server exist, fatal error");
-      return;
-    }
     onVideoFileSeleted(arg1); //目前只处理一个视频。
   });
   checkUpdate();

@@ -28,6 +28,7 @@ export default class VideoServer {
         this._videoServer;
         this._videoSourceInfo;
         this._ffmpegCommand;
+        this.is_run = true
     }
 
     set videoSourceInfo(info) {
@@ -39,6 +40,10 @@ export default class VideoServer {
     }
 
     killFfmpegCommand() {
+        if (this.is_run == false) {
+            return
+        }
+        this.is_run = false
         if (this._ffmpegCommand) {
             this._ffmpegCommand.kill();
         }
@@ -59,7 +64,6 @@ export default class VideoServer {
                 var startTime = parseInt(getParam(request.url, "startTime"));
                 console.log("starttime", startTime, request.url)
                 let videoCodec = this.videoSourceInfo.checkResult.videoCodecSupport ? 'copy' : 'libx264';
-                this.killFfmpegCommand();
                 this._ffmpegCommand = ffmpeg()
                     .input(this.videoSourceInfo.videoSourcePath)
                     .nativeFramerate()
