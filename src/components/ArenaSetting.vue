@@ -46,6 +46,7 @@
 <script >
     let fs = window.require('fs');
     let ipcRenderer = require('electron').ipcRenderer;
+    import { ElMessage, ElMessageBox } from 'element-plus'
     import "../assets/css/control_bar.css"
     import "../assets/css/font-awesome.min.css"
     import ExperiemntObj from '../objects/experiment'
@@ -226,15 +227,18 @@
             givename.href = "javascript:void(0);";
 
             givename.onclick = function(){ 
-                window.prompt("请输入此区域名称", '输入任意字符', o.getAttribute("name")).then(function(value) {
+                ElMessageBox.prompt("请输入此区域名称", '输入任意非中文字符', {
+                    confirmButtonText: '确认',
+                    cancelButtonText: '取消',
+                    inputValue: o.getAttribute("name")})
+                .then(({ value }) => {
+                    //console.log(`input ${value}`)
                     o.setAttribute("name",value);
                     showname.innerText = value;
-                }, function() {
-                    //console.log('close');
                 })
-                // var name = prompt("请输入此区域名称",o.getAttribute("name")); 
-                // o.setAttribute("name",name);
-                // showname.innerText = name;
+                .catch(() => {
+                    console.log('cancel input')
+                })
             } 
             givename.innerText = "+";
 
@@ -430,15 +434,18 @@
                 //showname.style.pointerEvents='none';
                 givename.href = "javascript:void(0);";
                 givename.onclick = function(){ 
-                    window.prompt("请输入此区域名称", '输入任意字符', canvas.getAttribute("name")).then(function(value) {
+                    ElMessageBox.prompt("请输入此区域名称", '输入任意非中文字符', {
+                        confirmButtonText: '确认',
+                        cancelButtonText: '取消',
+                        inputValue: canvas.getAttribute("name")})
+                    .then(({ value }) => {
+                        //console.log(`input ${value}`)
                         canvas.setAttribute("name",value);
                         showname.innerText = value;
-                    }, function() {
-                    //console.log('close');
-                })
-                    // var name = prompt("请输入此区域名称",canvas.getAttribute("name")); 
-                    // canvas.setAttribute("name",name);
-                    // showname.innerText = name;
+                    })
+                    .catch(() => {
+                        console.log('cancel input')
+                    })
                 } 
                 givename.style.position="absolute";
                 givename.style.top = yindex+"px";
@@ -593,13 +600,17 @@
                 showname.innerText = name;
                 givename.href = "javascript:void(0);";
                 givename.onclick = function(){ 
-                    // var new_name = prompt("请输入此区域名称",r.getAttribute("name")); 
-                    // r.setAttribute("name",new_name);
-                    // showname.innerText = new_name;
-                    window.prompt("请输入此区域名称", '输入任意字符', r.getAttribute("name")).then(function(value) {
+                    ElMessageBox.prompt("请输入此区域名称", '输入任意非中文字符', {
+                        confirmButtonText: '确认',
+                        cancelButtonText: '取消',
+                        inputValue: r.getAttribute("name")})
+                    .then(({ value }) => {
+                        //console.log(`input ${value}`)
                         r.setAttribute("name",value);
                         showname.innerText = value;
-                    }, function() {
+                    })
+                    .catch(() => {
+                        console.log('cancel input')
                     })
                 }
                 r.setAttribute("name",name);
@@ -634,6 +645,8 @@
                 ctx.moveTo(detail[1],detail[2]);
                 let canvasindextop = parseInt(mb.offsetTop);
                 let canvasindexleft = parseInt(mb.offsetLeft);
+                sum_xindex+=canvasindexleft;
+                sum_yindex+=canvasindextop;
                 let j = 0;
                 for (j = 3; j<=detail.length-3; j=j+2){
                     sum_xindex+=parseInt(detail[j]);
@@ -644,7 +657,6 @@
                 }
                 ctx.closePath();
                 ctx.stroke();
-                
                 sum_xindex = sum_xindex/((detail.length-2)/2);
                 sum_yindex = sum_yindex/((detail.length-2)/2);
                 var givename = document.createElement('a');
@@ -653,13 +665,17 @@
                 showname.innerText = name;
                 givename.href = "javascript:void(0);";
                 givename.onclick = function(){ 
-                    // var new_name = prompt("请输入此区域名称",canvas.getAttribute("name")); 
-                    // new_canvas.setAttribute("name",new_name);
-                    // showname.innerText = new_name;
-                    window.prompt("请输入此区域名称", '输入任意字符', canvas.getAttribute("name")).then(function(value) {
+                    ElMessageBox.prompt("请输入此区域名称", '输入任意非中文字符', {
+                        confirmButtonText: '确认',
+                        cancelButtonText: '取消',
+                        inputValue: new_canvas.getAttribute("name")})
+                    .then(({ value }) => {
+                        //console.log(`input ${value}`)
                         new_canvas.setAttribute("name",value);
                         showname.innerText = value;
-                    }, function() {
+                    })
+                    .catch(() => {
+                        console.log('cancel input')
                     })
                 } 
                 givename.style.position="absolute";

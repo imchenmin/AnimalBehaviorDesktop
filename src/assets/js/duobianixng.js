@@ -121,15 +121,18 @@
         //showname.style.pointerEvents='none';
         givename.href = "javascript:void(0);";
         givename.onclick = function(){ 
-            window.prompt("请输入此区域名称", '输入任意字符', canvas.getAttribute("name")).then(function(value) {
+            ElMessageBox.prompt("请输入此区域名称", '输入任意非中文字符', {
+                confirmButtonText: '确认',
+                cancelButtonText: '取消',
+                inputValue: canvas.getAttribute("name")})
+            .then(({ value }) => {
+                //console.log(`input ${value}`)
                 canvas.setAttribute("name",value);
                 showname.innerText = value;
-            }, function() {
-            //console.log('close');
-        })
-            // var name = prompt("请输入此区域名称",canvas.getAttribute("name")); 
-            // canvas.setAttribute("name",name);
-            // showname.innerText = name;
+            })
+            .catch(() => {
+                console.log('cancel input')
+            })
         } 
         givename.style.position="absolute";
         givename.style.top = yindex+"px";
