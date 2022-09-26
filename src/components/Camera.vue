@@ -95,7 +95,7 @@ export default {
             this.playerSide.dispose();
         }
         const { experiments } = useStore()
-        experiments.loadProject()
+        // experiments.loadProject()
 
         ipcRenderer.send("stopRecord")
 
@@ -114,6 +114,8 @@ export default {
             this.cameraflag = false
         },
         stop_preview() {
+            this.current_exp.record_state=true; // 需要考虑没有成功录制的情况，暂存
+            console.log(this.current_exp);
             ipcRenderer.send("stopRecord")
             this.cameraflag = true
         },
