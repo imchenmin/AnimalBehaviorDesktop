@@ -176,13 +176,14 @@ async function createWindow() {
     win.loadURL(url);
     // Open devTool if the app is not packaged
     // win.webContents.openDevTools()
-    let uri = path.resolve("./electron/6.2.1_0");
-    try {
-    await session.defaultSession.loadExtension(uri, { allowFileAccess: true });
-    }
-    catch (e) {
-      console.log("error",e)
-    }
+    //TODO: 添加环境检测
+    // let uri = path.resolve("./electron/6.2.1_0");
+    // try {
+    // await session.defaultSession.loadExtension(uri, { allowFileAccess: true });
+    // }
+    // catch (e) {
+    //   console.log("error",e)
+    // }
   }
 
   // Test actively push message to the Electron-Renderer
