@@ -62,7 +62,6 @@
             </el-form>
         </el-dialog>
         <el-button @click="createNewProjectVisible = true" size="large">Add</el-button>
-        <el-button @click="$router.push('/')" size="large">Edit</el-button>
         <el-button @click="importProject" size="large">Import</el-button>
         <!-- 列表 -->
         <el-menu

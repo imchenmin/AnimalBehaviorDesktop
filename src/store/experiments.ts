@@ -44,7 +44,6 @@ export const useExperimentsStore = defineStore('experiments', () => {
                         }
                     })
                 } else {
-                    
                     config.value.openedProjectList.splice(i,1)
                 }   
                 count++
@@ -99,22 +98,32 @@ export const useExperimentsStore = defineStore('experiments', () => {
     }
     function updateConfig() {
         const db = new Datastore({ filename: "settings.json", autoload: true })
-        db.update({_id: this.config._id},this.config, (err,newDoc) => {
+        db.update({_id: config.value._id},config.value, (err,newDoc) => {
             console.log('update', newDoc)
         })
     }
-    return {opened_project, config, loadProject, addProject, get_from_id, importProject, updateConfig}
+    async function updateProject(payload: ExperiemntObj) {
+        const db = new Datastore({ filename: path.join(payload.folder_path, 'project.json'), autoload: true })
+        await db.update({_id: payload._id},payload, (err,newDoc) => {
+            console.log('update', newDoc)
+        })
+    } 
+    async function closeProject(project_id: String) {
+        // 关闭指定的项目，从列表中移除
+        for (let i = 0; i < config.value.openedProjectList.length; ++i) {
+            console.log(this.opened_project)
+            if (this.opened_project[i]._id == project_id) {
+                this.config.openedProjectList.splice(i,1)
+                this.opened_project.splice(i,1)
+                console.log()
+                updateConfig()
+                ElMessage({message: "已成功关闭项目！"})
+                router.push('/')
+                return
+            }
+        }
+    }
+
+    return {opened_project, config, loadProject, addProject, get_from_id, importProject, updateConfig, updateProject, closeProject}
 })
-
-
-//         async updateProject(payload: ExperiemntObj) {
-//             const db = new Datastore({ filename: path.join(payload.folder_path, 'project.json'), autoload: true })
-//             await db.update({_id: payload._id},payload, (err,newDoc) => {
-//                 console.log('update', newDoc)
-//             })
-//         },
-
-
-//     }
-// })
 export default useExperimentsStore

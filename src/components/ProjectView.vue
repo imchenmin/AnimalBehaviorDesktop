@@ -55,6 +55,7 @@
             <el-button type="primary" @click="updateForm(ruleFormRef)">修改
             </el-button>
             <el-button>取消修改</el-button>
+            <el-button @click="closeProjectWrapper">关闭项目</el-button>
         </el-form-item>
     </el-form>
 
@@ -132,6 +133,9 @@ const updateForm = async (formEl: FormInstance | undefined) => {
             console.log('error submit!', fields)
         }
     })
+}
+const closeProjectWrapper = () => {
+    experiments.closeProject(current_exp._id)
 }
 </script>
 <style scoped>
