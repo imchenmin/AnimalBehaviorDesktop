@@ -6,7 +6,7 @@ import useStore from '../store'
 export default {
   setup() {
     const { version, experiments } = useStore();
-    experiments.loadProject()
+    // experiments.loadProject()
     return {
       version
     }

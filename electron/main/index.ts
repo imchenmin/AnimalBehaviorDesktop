@@ -176,6 +176,7 @@ async function createWindow() {
     win.loadURL(url);
     // Open devTool if the app is not packaged
     // win.webContents.openDevTools()
+    //TODO: 添加环境检测
     // let uri = path.resolve("./electron/6.2.1_0");
     // try {
     // await session.defaultSession.loadExtension(uri, { allowFileAccess: true });
