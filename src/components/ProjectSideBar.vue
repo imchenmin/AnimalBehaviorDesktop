@@ -6,6 +6,7 @@
                 <el-form-item label="实验名称" prop="name">
                     <el-input v-model="form.name" />
                 </el-form-item>
+                <!-- TODO:在未来要去掉 -->
                 <el-form-item label="实验类型" prop="type">
                     <el-select v-model="form.type" placeholder="please select your zone">
                         <el-option label="追踪" value="tracking" />
@@ -42,7 +43,7 @@
 
                 </div>
                 <div class="detection-setting" v-if="form.type == 'detection'">
-                    <h2>精细行为分析选项</h2>
+                    <h2>行为分析选项</h2>
                     <el-form-item label="小鼠数量" prop="tracking_mouse_number">
                         <el-select v-model="form.tracking_mouse_number" placeholder="数量">
                             <el-option label="1" value=1 />
@@ -60,8 +61,8 @@
                 </el-form-item>
             </el-form>
         </el-dialog>
-        <el-button @click="createNewProjectVisible = true" size="large">添加新项目</el-button>
-        <el-button @click="$router.push('/')" size="large">Home</el-button>
+        <el-button @click="createNewProjectVisible = true" size="large">Add</el-button>
+        <el-button @click="importProject" size="large">Import</el-button>
         <!-- 列表 -->
         <el-menu
         :default-activate="2"
@@ -97,7 +98,6 @@ import ExperiemntObj from '../objects/experiment'
 
 
 const { settings, experiments, } = useStore()
-const tabledata = reactive({arr: experiments.opened_project})
 let fs = require("fs")
 let util = require('util')
 experiments.loadProject()
@@ -176,13 +176,16 @@ let sortDateFn = (a,b)=>{
         return 0
     }
 const detection_list = computed(() => {
-    let filterArr = tabledata.arr.filter(p => p.analysis_method == "detection")
+    
+    let filterArr = experiments.opened_project.filter(p => p.analysis_method == "detection")
     filterArr.sort(sortDateFn)
+    console.log(filterArr)
     return filterArr
 })
 const tracking_list = computed(() => {
-    let filterArr  = tabledata.arr.filter(p => p.analysis_method == "tracking")
+    let filterArr = experiments.opened_project.filter(p => p.analysis_method == "tracking")
     filterArr.sort(sortDateFn)
+    console.log(filterArr)
     return filterArr
 
 })
@@ -230,7 +233,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
 
                             } as ExperiemntObj
                             experiments.addProject(record).then(()=>{
-                                tabledata.arr = experiments.opened_project
+                                // tabledata.value = experiments.opened_project
                             })
                             createNewProjectVisible.value = false
                             formEl.resetFields()
@@ -241,6 +244,22 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         } else {
             console.log('error submit!', fields)
         }
+    })
+}
+const importProject = ()=> {
+    // select from folder
+    const { dialog } = require('@electron/remote')
+    dialog.showOpenDialog({
+        title: '打开项目文件, json',
+        defaultPath: '/',
+        properties: ['openFile'],
+        buttonLabel: "选择项目配置文件",
+        filters: [
+            {name: "项目配置文件", extentsions: ['json']}
+        ]
+    }).then((val) => {
+        experiments.importProject(val.filePaths[0])
+        
     })
 }
 
