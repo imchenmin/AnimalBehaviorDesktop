@@ -157,7 +157,11 @@ def wash_recognition():
     print(filename)
     return start_recognition(filename)
     
-
+@app.route('/api/get_status', methods=['POST', 'GET'])
+def get_status():
+    filename = json.loads(request.data)
+    filename = filename['video_filename']
+    print(filename)
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1',port=5001)
