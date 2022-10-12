@@ -84,6 +84,9 @@ export default {
 
     },
     methods: {
+        setVideoRef(el) {            
+            this.itemRefs.push(el)
+        },
         run_preview() {
             ipcRenderer.send("ipcRendererReady", "true");
             ipcRenderer.send('cameraRecording', this.current_exp.folder_path,JSON.stringify(this.cameraList));
