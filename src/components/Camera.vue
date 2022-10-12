@@ -1,6 +1,6 @@
 <template >
     <step-control :_id="current_exp._id" :active="1"></step-control>
-    <el-form :model="record">
+    <el-form >
         <el-form-item>
             <el-button type="primary" @click="run_preview" v-if="cameraflag">打开相机</el-button>
             <el-button type="primary" @click="stop_preview" v-else>关闭相机</el-button>
