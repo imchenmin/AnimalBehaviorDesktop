@@ -1,5 +1,9 @@
 class CameraObject {
-    video_name: string;
+    name: string;
+    alternativeName: string;
+    selected: boolean;
     size: string;
     fps: number;
+
 }
+export default CameraObject

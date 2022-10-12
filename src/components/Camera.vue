@@ -9,8 +9,10 @@
         </el-form-item>
     </el-form>
     <div v-show="!cameraflag" >
-        <video ref="videoPlayerTop" class="video-js"></video>
-        <video ref="videoPlayerSide" class="video-js"></video>
+      <div v-for="camera in cameraList" >
+        <p>{{camera.name}}</p>
+        <video :ref="setVideoRef" :key="camera.name" class="video-js"></video>
+      </div>
     </div>
 
 </template>
@@ -31,37 +33,9 @@ export default {
         current_exp_id: '',
         cameraflag: true,
         recordflag: true,
-        playerTop: null,
-        playerSide: null,
-        videoOptionsTop: {
-            autoplay: false,
-            controls: false,
-            width: 800,
-            height: 400,
-            preload: 'metadata',
-            sources: [
-                {
-                    src: 'http://127.0.0.1:8889',
-                    type: 'video/mp4'
-                }
-            ],
-            techOrder: ['StreamPlay']
-        },
-        videoOptionsSide: {
-            autoplay: false,
-            controls: false,
-            width: 800,
-            height: 400,
-            preload: 'metadata',
-            sources: [
-                {
-                    src: 'http://127.0.0.1:8890',
-                    type: 'video/mp4'
-                }
-            ],
-            techOrder: ['StreamPlay']
-        }
-
+        players: [],
+        cameraList: [],
+        itemRefs: [],
     }),
     computed: {
         current_exp() {
@@ -70,12 +44,30 @@ export default {
             return experiments.get_from_id(this.exp_id)
         }
     },
+    beforeMount() {
+        const { experiments } = useStore()
+        this.cameraList = experiments.config.cameraList
+    },
     mounted() {
-        this.playerTop = videojs(this.$refs.videoPlayerTop, this.videoOptionsTop, () => {
-            this.playerTop.log('onPlayerReady', this);
-        });
-        this.playerSide = videojs(this.$refs.videoPlayerSide, this.videoOptionsSide, () => {
-            this.playerSide.log('onPlayerReady', this);
+        console.log(this.itemRefs)
+        this.itemRefs.forEach((element,index) => {
+            let videoOptions ={
+                autoplay: true,
+                controls: false,
+                width: 800,
+                height: 400,
+                preload: 'metadata',
+                sources: [
+                    {
+                        src: `http://127.0.0.1:${8889+index}/`,
+                        type: 'video/mp4'
+                    }
+                ],
+                techOrder: ['StreamPlay']
+            }
+            let vidoeitem = videojs(this.itemRefs[index], videoOptions);
+            console.log(vidoeitem)
+            this.players.push(vidoeitem)
         });
     },
     beforeUnmount() {
@@ -88,28 +80,22 @@ export default {
     },
     beforeRouteLeave(to, from) {
         console.log("router leave")
-        if (this.playerTop) {
-            this.playerTop.dispose();
-        }
-        if (this.playerSide) {
-            this.playerSide.dispose();
-        }
-        const { experiments } = useStore()
-        // experiments.loadProject()
-
         ipcRenderer.send("stopRecord")
 
     },
     methods: {
         run_preview() {
             ipcRenderer.send("ipcRendererReady", "true");
-            ipcRenderer.send('cameraRecording', path.join(this.current_exp.folder_path, 'video.mkv'), path.join(this.current_exp.folder_path, 'video1.mkv'));
+            ipcRenderer.send('cameraRecording', this.current_exp.folder_path,JSON.stringify(this.cameraList));
             ipcRenderer.on('cameraRecoridngReady',  (event, message)=> {
                 console.log('cameraRecoridng-render:', message)
-                this.playerTop.load()
-                this.playerTop.play()
-                this.playerSide.load()
-                this.playerSide.play()
+                setTimeout(()=>{
+                    this.players.forEach(element => {
+                    element.load();
+                    element.play();
+                },2000);
+                })
+
             });
             this.cameraflag = false
         },

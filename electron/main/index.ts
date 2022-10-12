@@ -1,35 +1,47 @@
 import { app, BrowserWindow, shell, ipcMain, dialog } from "electron";
 import { release } from "os";
 import { join } from "path";
+const { spawn, exec } = require("child_process");
+
 
 import { videoSupport } from "./ffmpeg-helper";
 import VideoServer from "./VideoServer";
 //--- add native video part
-let topCameraJob, sideCameraJob , videoServer;
+let CameraJobs = []
+let videoServer;
 let isRendererReady = false;
 let win: BrowserWindow | null = null;
 // Here, you can also use other preload
 const fork = require("child_process").fork;
 app.disableHardwareAcceleration()
 
-function onCameraRecording(saveVideoPathTop = "", saveVideoPathSide = "") {
-  topCameraJob = fork("./electron/main/cameraJob.js",[saveVideoPathTop, "USB GS CAM", 8889,'1280x720'])
-  sideCameraJob = fork("./electron/main/cameraJob.js",[saveVideoPathSide,"KS2A293-D", 8890,'2560x720' ])
-  // httpServer = new CameraServer({
-  //   _side: true,
-  //   _top: true,
-  //   _saveVideoPath: {
-  //     saveVideoPathTop: saveVideoPathTop,
-  //     saveVideoPathSide: saveVideoPathSide,
-  //   },
-  // });
-  // httpServer.createCameraServer();
-  console.log("createVideoServer success");
+function onCameraRecording(saveVideoPath, cameraListStr) {
   let playParams = {
     type: "stream",
-    videoSourceTop: "http://127.0.0.1:8889",
-    videoSourceSide: "http://127.0.0.1:8890",
   };
+  console.log("cameraRecording", saveVideoPath)
+  let cameraList = JSON.parse(cameraListStr)
+  cameraList.forEach((element, index) => {
+    // 需要assert selected 为true
+    let job = fork("./electron/main/cameraJob.js",
+        [join(saveVideoPath,`video${index}.mkv`),element.alternativeName,8889 + index,"1280x720"]
+      )
+    console.log(job);
+    
+    CameraJobs.push(job);
+    Object.defineProperty(playParams,
+      `videoSource${index}`,
+      {
+        value: `http://127.0.0.1:${8889 + index}/`,
+        writable: true, 
+        enumerable: true, 
+        configurable: true
+      }
+    );
+  });
+
+  console.log("createVideoServer success");
+
   console.log("cameraRecoridng=", playParams);
 
   win.webContents.send("cameraRecoridngReady", playParams);
@@ -40,7 +52,7 @@ function onVideoFileSeleted(videoFilePath) {
       if (!checkResult.videoCodecSupport) {
         if (!videoServer) {
           videoServer = new VideoServer();
-        } else{
+        } else {
           videoServer.killFfmpegCommand();
           videoServer = new VideoServer();
         }
@@ -202,35 +214,24 @@ async function createWindow() {
   });
   ipcMain.on("stopRecord", function (event, arg) {
     console.log("stopRecord", arg);
-    if (!topCameraJob) {
-      console.log("To HTTPServer didn't exist, so ignore stop command");
-      return;
-    }
-    topCameraJob.send("stop",()=>{
-      console.log("top camera stop");
-      
-    })
-    topCameraJob.on('close', function () {
-      console.log('子进程关闭了')
-    })
+    CameraJobs.forEach(element => {
+      if (!element) {
+        console.log("To HTTPServer didn't exist, so ignore stop command");
+        return;
+      }
+      element.send("stop", () => {
+        console.log("top camera stop");
+  
+      })
+      element.on('close', function () {
+        console.log('子进程关闭了')
+      })
+  
+      element.on('exit', function () {
+        console.log('子进程退出了')
+      })
+    });
     
-    topCameraJob.on('exit', function () {
-      console.log('子进程退出了')
-    })
-    if (!sideCameraJob) {
-      console.log("To HTTPServer didn't exist, so ignore stop command");
-      return;
-    }
-    sideCameraJob.send("stop",()=>{
-      console.log("side camera stop");
-      
-    })
-    sideCameraJob.on('close', function () {
-      console.log('子进程关闭了')
-    })
-    sideCameraJob.on('exit', function () {
-      console.log('子进程退出了')
-    })
   });
   ipcMain.on("playVideoFromFile", function (event, arg1, arg2) {
     console.log("playVideoFromFile", arg1, arg2);

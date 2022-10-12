@@ -6,6 +6,8 @@ import ConfigObject from '../objects/configObject';
 import { ElMessage } from 'element-plus'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router';
+let fs = require("fs")
+let util = require('util')
 
 export const useExperimentsStore = defineStore('experiments', () => {
     const router = useRouter()
@@ -26,8 +28,7 @@ export const useExperimentsStore = defineStore('experiments', () => {
             } else {
                 console.log("err",err);
             }
-            let fs = require("fs")
-            let util = require('util')
+
             let count = 0
             for (let i = 0; i < config.value.openedProjectList.length; ++i) {
                 let exists =  await util.promisify(fs.exists)(config.value.openedProjectList[i])
@@ -82,6 +83,8 @@ export const useExperimentsStore = defineStore('experiments', () => {
                 console.log(current_exp, typeof current_exp)
                 if (this.config.openedProjectList.indexOf(payload) == -1) {
                     this.config.openedProjectList.push(payload)
+                    let capture =  await util.promisify(fs.exists)(path.join(payload,'..', 'video.mkv'))
+                    current_exp.record_state=capture
                     this.opened_project.push(current_exp)
                     this.updateConfig()
                     ElMessage({

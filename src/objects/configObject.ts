@@ -6,6 +6,7 @@ class ConfigObject {
 
     constructor() {
         this.openedProjectList = [];
+        this.cameraList = [];
     }   
 }
 export default ConfigObject
