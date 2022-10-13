@@ -59,9 +59,12 @@ try {
     let csv_path = path.join(current_exp.folder_path, 'detection_result.csv')
     let csvstr: string = fs.readFileSync(csv_path, "utf8", 'r+');
     let arr: string[] = csvstr.split('\r\n');
-    arr.forEach(line => {
-        if (line != '') array.push(line.split(','));
-    })
+    arr.forEach((line,index) => {
+                    if (index != 0) {
+                        if (line != '') array.push(line.split(',').slice(1));
+                    }
+
+                })
 } catch {
     console.log("didn't display chart")
     displayChart.value = false
@@ -96,8 +99,11 @@ const run_analysis = () => {
                 let csv_path = path.join(current_exp.folder_path, 'detection_result.csv')
                 let csvstr: string = fs.readFileSync(csv_path, "utf8", 'r+');
                 let arr: string[] = csvstr.split('\r\n');
-                arr.forEach(line => {
-                    if (line != '') array.push(line.split(','));
+                arr.forEach((line,index) => {
+                    if (index != 0) {
+                        if (line != '') array.push(line.split(',').slice(1));
+                    }
+
                 })
             } catch {
                 console.log("didn't display chart")

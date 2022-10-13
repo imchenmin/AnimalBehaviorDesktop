@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 class BehaviorCounter:
-    def __init__(self, fps=117.093896,threshold=20, filter_frame=30):
+    def __init__(self, fps=117.093896,threshold=20, filter_frame=30, type=''):
         self.fps = fps
         # continue 
         self.threshold =threshold
@@ -12,6 +12,7 @@ class BehaviorCounter:
         self.count = 0
         self.df = ""
         self.scount = 0
+        self.type = type
     
     # 计算当前处在第几次抓搔中
     def read(self, label = -1):
@@ -26,6 +27,7 @@ class BehaviorCounter:
             elif 'end' in self.ans.keys() and self.frame_count - self.ans['end'] >= self.threshold:
                 self.ans['start_time'] = str(round(self.ans['st'] / self.fps, 2))
                 self.ans['end_time'] = str(round(self.ans['end'] / self.fps, 2))
+                self.ans['type'] = self.type
                 if self.ans['end'] - self.ans['st'] >= self.filter_frame:
                     self.res.append(self.ans)
                     self.count += 1 

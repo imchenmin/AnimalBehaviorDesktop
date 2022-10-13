@@ -40,10 +40,10 @@ def detect(source, yolo_weights, imgsz, csv_path):
     half &= device.type != 'cpu'  # half precision only supported on CUDA
     clsname = ['Wall', 'Stand', 'Normal', 'Wash', 'Groom']
     clsweight = [1,2,0,3,4]
-    wall_counter = BehaviorCounter(fps=60, threshold=10, filter_frame=10)
-    stand_counter = BehaviorCounter(fps=60, threshold=10, filter_frame=10)
-    wash_counter = BehaviorCounter(fps=60, threshold=10, filter_frame=10)
-    groom_counter = BehaviorCounter(fps=60, threshold=10, filter_frame=10)
+    wall_counter = BehaviorCounter(fps=60, threshold=10, filter_frame=10, type='Wall')
+    stand_counter = BehaviorCounter(fps=60, threshold=10, filter_frame=10, type='Stand')
+    wash_counter = BehaviorCounter(fps=60, threshold=10, filter_frame=10, type='Wash')
+    groom_counter = BehaviorCounter(fps=60, threshold=10, filter_frame=10, type='Groom')
 
     # Load model
     model = attempt_load(yolo_weights, map_location=device)  # load FP32 model
@@ -243,13 +243,16 @@ def detect(source, yolo_weights, imgsz, csv_path):
 
     if df_wall.shape[0] != 0:
         df_wall['class'] = 1
+        df_wall['type'] = 'Wall'
     if df_stand.shape[0] != 0:
         df_stand['class'] = 2
+        df_wall['type'] = 'Stand'
     if df_groom.shape[0] != 0:
         df_groom['class'] = 0
+        df_wall['type'] = 'Groom'
     if df_wash.shape[0] != 0:
         df_wash['class'] = 3
-    
+        df_wall['type'] = 'Wash'
     df_res = []
     df = []
     if len(df_groom) != 1:
@@ -263,7 +266,7 @@ def detect(source, yolo_weights, imgsz, csv_path):
 
     if len(df_res) != 0:
         df = pd.concat(df_res,axis=0)
-        df[['class','start_time','end_time']].to_csv(csv_path, header=None, index=None)
+        df[['class','start_time','end_time','type']].to_csv(csv_path)
 
 def init(source,output_path):
     with torch.no_grad():

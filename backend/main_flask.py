@@ -163,5 +163,10 @@ def get_status():
     filename = filename['video_filename']
     print(filename)
 
+@app.route('/api/record', methods=['POST', 'GET'])
+def btn_record():
+    
+    print()
+
 if __name__ == '__main__':
     app.run(host='127.0.0.1',port=5001)
