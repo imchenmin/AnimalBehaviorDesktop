@@ -24,7 +24,7 @@ function onCameraRecording(saveVideoPath, cameraListStr) {
   cameraList.forEach((element, index) => {
     // 需要assert selected 为true
     let job = fork("./electron/main/cameraJob.js",
-        [join(saveVideoPath,`video${index}.mkv`),element.alternativeName,8889 + index,"1280x720"]
+        [join(saveVideoPath,`video${index}.mkv`),element.alternativeName,18889 + index,"1280x720"]
       )
     console.log(job);
     
@@ -32,7 +32,7 @@ function onCameraRecording(saveVideoPath, cameraListStr) {
     Object.defineProperty(playParams,
       `videoSource${index}`,
       {
-        value: `http://127.0.0.1:${8889 + index}/`,
+        value: `http://127.0.0.1:${18889 + index}/`,
         writable: true, 
         enumerable: true, 
         configurable: true

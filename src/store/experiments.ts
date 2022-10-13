@@ -4,8 +4,9 @@ import path from 'path'
 import ExperiemntObj from '../objects/experiment'
 import ConfigObject from '../objects/configObject';
 import { ElMessage } from 'element-plus'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router';
+import cameraObject from "../objects/CameraObject";
 let fs = require("fs")
 let util = require('util')
 
@@ -126,7 +127,15 @@ export const useExperimentsStore = defineStore('experiments', () => {
             }
         }
     }
+    function getActiveCameraList() {
+        console.log(config.value)
+        if (config.value) {
+            return config.value.cameraList.filter(p=> p.selected == true)
+        }
+        else return new Array<cameraObject>()
 
-    return {opened_project, config, loadProject, addProject, get_from_id, importProject, updateConfig, updateProject, closeProject}
+    }
+
+    return {opened_project, config, loadProject, addProject, get_from_id, importProject, updateConfig, updateProject, closeProject, getActiveCameraList}
 })
 export default useExperimentsStore

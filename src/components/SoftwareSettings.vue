@@ -10,7 +10,7 @@
                 <el-button @click="getCameraList">加载相机</el-button>
         <div v-if="experiments">
             <div v-for="device in experiments.config.cameraList">
-            <el-checkbox  v-model="device.select" @change="updateConfigWrapper">
+            <el-checkbox  v-model="device.selected" @change="updateConfigWrapper">
                 {{device.name}}
             </el-checkbox>
             <textarea>{{device.alternativeName}}</textarea>

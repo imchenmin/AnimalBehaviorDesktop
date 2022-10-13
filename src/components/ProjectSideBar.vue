@@ -63,7 +63,8 @@
         </el-dialog>
         <el-button @click="createNewProjectVisible = true" size="large">Add</el-button>
         <el-button @click="importProject" size="large">Import</el-button>
-        <!-- 列表 -->
+        <el-button @click="openSettings" size="large">Settings</el-button>
+      <!-- 列表 -->
         <el-menu
         :default-activate="2"
         router
@@ -261,6 +262,9 @@ const importProject = ()=> {
         experiments.importProject(val.filePaths[0])
         
     })
+}
+const openSettings = () => {
+  settings.toggleShow()
 }
 
 </script>

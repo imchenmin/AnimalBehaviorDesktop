@@ -9,6 +9,8 @@
       </el-main>
     </el-container>
   </el-container>
+  <SoftwareSettings></SoftwareSettings>
+
 </template>
 
 <script lang="ts" setup>

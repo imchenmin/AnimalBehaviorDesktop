@@ -71,7 +71,7 @@ class CameraJob {
             let bufferStream = new stream.PassThrough();
             this._ffmpegCommand = ffmpeg()
                 .input('video='+this._camera_name)
-                .inputOptions(['-f dshow', '-s ' + this._video_size])
+                .inputOptions(['-f dshow', '-video_size', this._video_size,'-framerate', '120'])
                 .output(this._saveVideoPath)
                 .videoCodec('copy')
                 .output(bufferStream)

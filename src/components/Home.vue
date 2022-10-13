@@ -1,7 +1,6 @@
 <template lang="">
   <div class="Home">Home</div>
   <el-button @click="showSetting">settings</el-button>
-  <SoftwareSettings></SoftwareSettings>
 </template>
 <script lang="ts" setup>
 import useStore from '../store'

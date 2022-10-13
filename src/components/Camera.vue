@@ -1,13 +1,9 @@
 <template >
     <step-control :_id="current_exp._id" :active="1"></step-control>
-    <el-form >
-        <el-form-item>
-            <el-button type="primary" @click="run_preview" v-if="cameraflag">打开相机</el-button>
-            <el-button type="primary" @click="stop_preview" v-else>关闭相机</el-button>
-            <el-button type="primary" @click="handleStart" v-if="!cameraflag && recordflag">开始录制</el-button>
-            <el-button type="primary" @click="handleStop" v-if="!cameraflag && ! recordflag">关闭录制</el-button>
-        </el-form-item>
-    </el-form>
+    <el-button type="primary" @click="run_preview" v-if="cameraflag">打开相机</el-button>
+    <el-button type="primary" @click="stop_preview" v-else>关闭相机</el-button>
+<!--    <el-button type="primary" @click="handleStart" v-if="!cameraflag && recordflag">开始录制</el-button>-->
+<!--    <el-button type="primary" @click="handleStop" v-if="!cameraflag && ! recordflag">关闭录制</el-button>-->
     <div v-show="!cameraflag" >
       <div v-for="camera in cameraList" >
         <p>{{camera.name}}</p>
@@ -46,7 +42,7 @@ export default {
     },
     beforeMount() {
         const { experiments } = useStore()
-        this.cameraList = experiments.config.cameraList
+        this.cameraList = experiments.getActiveCameraList()
     },
     mounted() {
         console.log(this.itemRefs)
@@ -59,7 +55,7 @@ export default {
                 preload: 'metadata',
                 sources: [
                     {
-                        src: `http://127.0.0.1:${8889+index}/`,
+                        src: `http://127.0.0.1:${18889+index}/`,
                         type: 'video/mp4'
                     }
                 ],
@@ -96,7 +92,7 @@ export default {
                     this.players.forEach(element => {
                     element.load();
                     element.play();
-                },2000);
+                },5000);
                 })
 
             });
