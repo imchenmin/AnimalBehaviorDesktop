@@ -3,28 +3,30 @@ import deeplabcut
 #track part
 #sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
 # sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend')
-#sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend\\yolov5')
-# sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend')
+sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend\\yolov5')
+sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend')
 
 from track_part.track_process import *
 from track_part.draw_result import draw_raw_img
-from track_part.ouput_video import output_video
 from track_part.output_video_part import output_video_part
 from track_part.convert_dlc_to_simple_csv import convert_dlc_to_simple_csv
 from track_part.gazeheatplot import draw_heat_main
 #from deeplabcut import analyze_videos
 ###
-from distutils.command.config import config
-from camera_device import Camera
 from flask import Flask
 app = Flask(__name__)
 from flask import request
 from flask import json
 from flask_cors import CORS
 CORS(app, resources=r'/*')	# 注册CORS, "/*" 允许访问所有api
+# EZVIZ_CAM PACKAGE
 from behavior_recognition import start_recognition
+from EZVIZ_CAM.transcaction_manager import Transaction_Manager
+from multiprocessing import Process
+from EZVIZ_CAM.sql import SQL_manager
+# EZVIZ_CAM PACKAGE END
 config_json = None
-cam = Camera()
+
 @app.route('/')
 def hello_world():
     return 'Hello World'
@@ -53,47 +55,45 @@ def load_config():
                 mimetype='application/json'
             )
 
-@app.route('/api/open_camera',methods=['POST','GET'])
-def open_camera():
-    data = json.loads(request.data)
-    analyzer = data['analyzer']
-    if analyzer != "tracking":
-        cam.open(oneCam=False)
-    else:
-        cam.open(oneCam=True)
-    return ('done')
-
 @app.route('/api/start_record',methods=['POST','GET'])
 def start_record():
-    data = json.loads(request.data)
-    filename = data['video_filename']
-    print(filename)
-    analyzer = data['analyzer']
-    if analyzer != "tracking":
-        cam.start(filename, oneCam=False)
-    else:
-        cam.start(filename, oneCam=True)
-    return ('done')
+    filename = json.loads(request.data)
+    filename = filename['video_filename']
+    filename = filename.replace('\\', '/')
 
-@app.route('/api/close_camera',methods=['POST','GET'])
-def close_camera():
-    cam.close()
-    return ('done')
+    try:
+        os.makedirs(filename + '/back')
+    except:
+        print('Error in making dir in back' + filename)
+    
+    try:
+        os.makedirs(filename + '/left')
+    except:
+        print('Error in making dir in left' + filename)
+    
+    try:
+        os.makedirs(filename + '/top')
+    except:
+        print('Error in making dir in top' + filename)
+    p0 = Process(target=Transaction_Manager, args=('10.15.12.102', filename + '/back'))
+    p1 = Process(target=Transaction_Manager, args=('10.15.12.103', filename + '/left'))
+    p2 = Process(target=Transaction_Manager, args=('10.15.12.101', filename + '/top'))
+
+    p0.start()
+    p1.start()
+    p2.start()
+
+    return 'Done'
     
 @app.route('/api/stop_record',methods=['POST','GET'])
 def stop_record():
-    try:
-        cam.stop()
-    except:
-        print('error')
-    
-    data = json.loads(request.data)
-    filename = data['video_filename']
-
-    analyzer = data['analyzer']
-    if analyzer != "tracking":
-        start_recognition(filename)
-    return ('done')
+    sql_mgr = SQL_manager('10.15.12.102')
+    sql_mgr.update_record_status(0)
+    sql_mgr = SQL_manager('10.15.12.103')
+    sql_mgr.update_record_status(0)
+    sql_mgr = SQL_manager('10.15.12.101')
+    sql_mgr.update_record_status(0)
+    return 'Done'
 
 @app.route('/api/runtrack', methods=['GET', 'POST'])
 def execute():
@@ -163,10 +163,17 @@ def get_status():
     filename = filename['video_filename']
     print(filename)
 
-@app.route('/api/record', methods=['POST', 'GET'])
-def btn_record():
-    
-    print()
-
+# @app.route('/api/run_tracker', methods=['POST', 'GET'])
+# def run_tracker():
+#     resultpath = video_path+"/result/"
+#     csv_path = resultpath+video_name+".csv"
+#     if not os.path.exists(resultpath):
+#         os.mkdir(resultpath)
+#     if not os.path.exists(csv_path):
+#         originalvideopath = video_path+"/"+video_name+".mkv"
+#         deeplabcut.analyze_videos(config="D:/workspace/DLC/config.yaml",videos=[originalvideopath],destfolder=video_path,save_as_csv=True,n_tracks=1)
+#         deeplabcut.analyze_videos_converth5_to_csv(video_path,'.mkv')  
+#         originalcsv = video_path+"/"+video_name+"DLC_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv"
+#         convert_dlc_to_simple_csv(originalcsv,csv_path)
 if __name__ == '__main__':
     app.run(host='127.0.0.1',port=5001)

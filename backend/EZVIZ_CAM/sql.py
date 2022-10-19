@@ -1,9 +1,9 @@
 import sqlite3
 import os
-from ezviz import EZVIZ_Status, EZVIZ
-from ftp_manager import FTP_Manager
+from EZVIZ_CAM.ezviz import EZVIZ_Status, EZVIZ
+from EZVIZ_CAM.ftp_manager import FTP_Manager
 class SQL_manager:
-    def __init__(self, wifi_name, full_name):
+    def __init__(self, ip, full_name):
         self.sql_create_FILE_TABLE = '''CREATE TABLE "FILE_TABLE" (
                                         "ID"	INTEGER NOT NULL UNIQUE,
                                         "FILE_NAME"	VARCHAR(255) NOT NULL,
@@ -25,13 +25,15 @@ class SQL_manager:
                                     "FLAG"	INTEGER NOT NULL,
                                     PRIMARY KEY("ID" AUTOINCREMENT)
                                 )'''
-        self.connection_name = wifi_name + '.db'
+        self.connection_name = ip + '.db'
         self.full_name = full_name
+        self.ip = ip
         if not os.path.exists(self.connection_name):
             self.create_database()
             self.init_status()
             self.init_record()
         self.check_init()
+
             
     def init_status(self):
         sqls = ['''INSERT INTO "main"."STATUS" ("TYPE") VALUES ('UNFETECH')''',
@@ -83,24 +85,22 @@ class SQL_manager:
             self.update_status(item[0], EZVIZ_Status.UNFETCHING.value)
         cour.close()
         
-        mgr = FTP_Manager()
+        mgr = FTP_Manager(self.ip, self.full_name)
         ezviz_list = mgr.openFTPFile()
-        for item in ezviz_list:
-            print(item.file_name, item.modify_time)
+        # for item in ezviz_list:
+        #     print(item.file_name, item.modify_time)
         for item in ezviz_list:
             # 创建游标
             cour = conn.cursor()
             # 编写sql语句
             sql = "INSERT INTO FILE_TABLE (FILE_NAME, MODIFY_TIME, STATUS, FILE_PATH, SERVER_PATH, FULL_NAME) SELECT ?, ?, ?, ?, ?, ? WHERE not exists (select * from FILE_TABLE where MODIFY_TIME=? AND SERVER_PATH=?)"
             # 执行sql语句
-            cour.execute(sql, (item.file_name, str(item.modify_time), int(EZVIZ_Status.WAITINGFORDOWNLOADING.value), item.file_path, item.server_path, self.full_name, str(item.modify_time), item.server_path))
+            cour.execute(sql, (item.file_name, str(item.modify_time), int(EZVIZ_Status.UNFETCHING.value), item.file_path, item.server_path, self.full_name, str(item.modify_time), item.server_path))
             # 关闭游标
             conn.commit()
             cour.close()
             # 关闭连接
         conn.close()
-
-
     
     def update_status(self, id, status):
         conn = sqlite3.connect(self.connection_name)
@@ -117,12 +117,12 @@ class SQL_manager:
         conn.close()
 
     def get_file_table(self, record_flag):
-        mgr = FTP_Manager()
+        mgr = FTP_Manager(self.ip, self.full_name)
         ezviz_list = mgr.openFTPFile()
         if record_flag:
             ezviz_list = ezviz_list[:-1]
-        for item in ezviz_list:
-            print(item.file_name, item.modify_time)
+        # for item in ezviz_list:
+        #     print(item.file_name, item.modify_time)
         conn = sqlite3.connect(self.connection_name)
         for item in ezviz_list:
             # 创建游标
@@ -160,7 +160,7 @@ class SQL_manager:
         cour.execute(sql,(int(id),))
         # 打印查询结果
         res = cour.fetchall()
-        print([sql,id,res])
+        print([self.connection_name, sql, id, res])
         # 关闭游标
         cour.close()
         # 关闭连接

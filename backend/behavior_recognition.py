@@ -6,7 +6,7 @@ import cv2
 import torch
 import numpy as np
 from yolov5.utils.datasets import letterbox
-
+from multiprocessing import Process
 def xyxy_to_xywh(*xyxy):
     """" Calculates the relative bounding box from absolute pixel values. """
     bbox_left = min([xyxy[0].item(), xyxy[2].item()])
@@ -57,24 +57,20 @@ def detect(source, yolo_weights, imgsz, csv_path):
     # Set Dataloader
     cap = cv2.VideoCapture(source)
     frameps = int(cap.get(cv2.CAP_PROP_FPS))
-    cap.set(cv2.CAP_PROP_POS_FRAMES, (4*60 + 30)*60)
     # Run inference
     if device.type != 'cpu':
         model(torch.zeros(1, 3, imgsz, imgsz).to(device).type_as(next(model.parameters())))  # run once
     frame_idx = 0
 
-    vid_writer = cv2.VideoWriter(csv_path[:-4]+'.mp4', cv2.VideoWriter_fourcc(*'mp4v'), frameps, (2560, 720))
+    vid_writer = cv2.VideoWriter(csv_path[:-4]+'.mp4', cv2.VideoWriter_fourcc(*'mp4v'), frameps, (1920, 1080))
     #cv2.namedWindow('res',0)
     #cv2.resizeWindow('res',width=1280,height=360)
     while True:
         frame_idx+=1
-        if frame_idx > 1000:
-            break
         ret, frame = cap.read()
         if not ret:
             break
-        frame_right = frame[:, 1280:]
-        frame_left = frame[:, :1280]
+        frame_right = frame
 
         img_right = letterbox(frame_right)[0]
         # Convert
@@ -125,77 +121,7 @@ def detect(source, yolo_weights, imgsz, csv_path):
                             conf_max_right = 1.5 * conf
                             conf_max_right_box = [x_c, y_c, bbox_w, bbox_h]
     
-        conf_max_left = 0
-        conf_max_left_label = 0
-        conf_max_left_box = [0,0,0,0]
-        img_left = letterbox(frame_left)[0]
-        # Convert
-        img_left = img_left[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
-        img_left = np.ascontiguousarray(img_left)
-        img_left = torch.from_numpy(img_left).to(device)
-        if half:
-            img_left = img_left.half()  # uint8 to fp16/32
-        else:
-            img_left = img_left.float()
-        img_left /= 255.0  # 0 - 255 to 0.0 - 1.0
-        if img_left.ndimension() == 3:
-            img_left = img_left.unsqueeze(0)
-
-        pred_right = model(img_left, augment=False)[0]
-        pred_right = non_max_suppression(pred_right, 0.2, 0.5, None, False)
- 
-        for i, det in enumerate(pred_right):  # detections per image
-            if len(det):
-                # Rescale boxes from img_size to im0 size
-                det[:, :4] = scale_coords(img_left.shape[2:], det[:, :4], frame_left.shape).round()
-                # Write results
-                for *xyxy, conf, cls in reversed(det):
-                    # to deep sort format
-                    x_c, y_c, bbox_w, bbox_h = xyxy_to_xywh(*xyxy)
-                    if int(cls.item()) == 0:
-                        if 2 * conf > conf_max_left:
-                            conf_max_left_label = 0
-                            conf_max_left = 1.2 * conf
-                            conf_max_left_box = [x_c, y_c, bbox_w, bbox_h]
-                    if int(cls.item()) == 1:
-                        if conf > conf_max_left:
-                            conf_max_left_label = 1
-                            conf_max_left = 1 * conf
-                            conf_max_left_box = [x_c, y_c, bbox_w, bbox_h]
-                    if int(cls.item()) == 3:
-                        if 3 * conf > conf_max_left:
-                            conf_max_left_label = 3
-                            conf_max_left = 1.5 * conf
-                            conf_max_left_box = [x_c, y_c, bbox_w, bbox_h]
-                    if int(cls.item()) == 4:
-                        if 3 * conf > conf_max_left:
-                            conf_max_left_label = 4
-                            conf_max_left = 1.5 * conf
-                            conf_max_left_box = [x_c, y_c, bbox_w, bbox_h]
-        
-        if conf_max_left > 0 and conf_max_right > 0:
-            tmp_left = clsweight[conf_max_left_label] * conf_max_left
-            tmp_right = clsweight[conf_max_right_label] * conf_max_right
-
-            if tmp_left > tmp_right:
-                cur_label = conf_max_left_label
-                x_c, y_c, bbox_w, bbox_h = conf_max_left_box    
-            else:
-                x_c1, y_c1, bbox_w1, bbox_h1 = conf_max_right_box
-                cur_label = conf_max_right_label
-
-            cv2.rectangle(frame_left, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
-            cv2.putText(frame_left, clsname[cur_label], (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
-
-            cv2.rectangle(frame_right, (int(x_c1 - bbox_w1/2), int(y_c1 - bbox_h1/2)), (int(x_c1 + bbox_w1/2), int(y_c1 + bbox_h1/2)), (0, 0, 255), 2)
-            cv2.putText(frame_right, clsname[cur_label], (int(x_c1 - bbox_w1/2), int(y_c1 - bbox_h1/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
-
-        elif conf_max_left > 0:
-            cur_label = conf_max_left_label
-            x_c, y_c, bbox_w, bbox_h = conf_max_left_box    
-            cv2.rectangle(frame_left, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
-            cv2.putText(frame_left, clsname[conf_max_left_label], (int(x_c - bbox_w/2), int(y_c - bbox_h/2 - 20)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
-        elif conf_max_right > 0:
+        if conf_max_right > 0:
             cur_label = conf_max_right_label
             x_c, y_c, bbox_w, bbox_h = conf_max_right_box
             cv2.rectangle(frame_right, (int(x_c - bbox_w/2), int(y_c - bbox_h/2)), (int(x_c + bbox_w/2), int(y_c + bbox_h/2)), (0, 0, 255), 2)
@@ -229,11 +155,7 @@ def detect(source, yolo_weights, imgsz, csv_path):
             else:
                 groom_counter.read(0)
         
-        whole_frame = cv2.hconcat([frame_left, frame_right])#拼接
-
-        vid_writer.write(whole_frame)
-        # cv2.imshow('res', whole_frame)
-        # cv2.waitKey(1)
+        vid_writer.write(frame_right)
     cv2.destroyAllWindows()
     vid_writer.release()
     df_wall = pd.DataFrame(wall_counter.res)
@@ -273,6 +195,6 @@ def init(source,output_path):
         detect(source, 'C:\\assets\\reserve.pt', 640, output_path)
     
 def start_recognition(filepath):
-    print('Recognition Start')
-    init(filepath + '/video1.mkv', filepath + "/detection_result.csv")
+    print('Recognition Start ' + filepath)
+    Process(target = init, args = (filepath, filepath + "_detection_result.csv")).start()
     return 'done'
