@@ -6,12 +6,14 @@ from EZVIZ_CAM.ftp_manager import FTP_Manager
 import time
 from EZVIZ_CAM.sql import SQL_manager
 from behavior_recognition import start_recognition
+import queue 
 class Transaction_Manager:
     def __init__(self, device, path='') -> None:
         self.full_name = path
         self.device = device
         self.sql_mgr = SQL_manager(device, self.full_name)
         self.sql_mgr.update_record_status(1)
+        self.process_queue = Queue()
         while True:
             if self.sql_mgr.check_record_status() == 0:
                 self.schedule_check()
