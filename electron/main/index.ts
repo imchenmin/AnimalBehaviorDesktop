@@ -7,7 +7,6 @@ const { spawn, exec } = require("child_process");
 import { videoSupport } from "./ffmpeg-helper";
 import VideoServer from "./VideoServer";
 //--- add native video part
-let CameraJobs = []
 let videoServer;
 let isRendererReady = false;
 let win: BrowserWindow | null = null;
@@ -15,36 +14,68 @@ let win: BrowserWindow | null = null;
 const fork = require("child_process").fork;
 app.disableHardwareAcceleration()
 
-function onCameraRecording(saveVideoPath, cameraListStr) {
-  let playParams = {
-    type: "stream",
-  };
-  console.log("cameraRecording", saveVideoPath)
-  let cameraList = JSON.parse(cameraListStr)
-  cameraList.forEach((element, index) => {
-    // 需要assert selected 为true
-    let job = fork("./electron/main/cameraJob.js",
-        [join(saveVideoPath,`video${index}.mkv`),element.alternativeName,18889 + index,"1280x720"]
-      )
-    console.log(job);
-    
-    CameraJobs.push(job);
-    Object.defineProperty(playParams,
-      `videoSource${index}`,
-      {
-        value: `http://127.0.0.1:${18889 + index}/`,
-        writable: true, 
-        enumerable: true, 
-        configurable: true
-      }
-    );
+const Stream = require('node-rtsp-stream')
+/**
+ * rtsp列表
+ * interface {
+ *   rtspUrl: {
+ *     ws: websocket地址
+ *     stream: stream实例
+ *   }
+ * }
+ */
+const rtspOpenders = {}
+let addPort = 9000
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+var express = require("express");
+var expressWebSocket = require("express-ws");
+const ffmpeg = require('fluent-ffmpeg');
+ffmpeg.setFfmpegPath(ffmpegPath);
+var webSocketStream = require("websocket-stream/stream");
+var WebSocket = require("websocket-stream");
+var http = require("http");
+function localServer() {
+  let app = express();
+  app.use(express.static(__dirname));
+  expressWebSocket(app, null, {
+    perMessageDeflate: true
   });
-
-  console.log("createVideoServer success");
-
-  console.log("cameraRecoridng=", playParams);
-
-  win.webContents.send("cameraRecoridngReady", playParams);
+  app.ws("/rtsp/:id/", rtspRequestHandle)
+  app.listen(8899);
+  console.log("express listened")
+}
+function rtspRequestHandle(ws, req) {
+  console.log("rtsp request handle");
+  const stream = webSocketStream(ws, {
+    binary: true,
+    browserBufferTimeout: 1000000
+  }, {
+    browserBufferTimeout: 1000000
+  });
+  let url = req.query.url;
+  console.log("rtsp url:", url);
+  console.log("rtsp params:", req.params);
+  try {
+    ffmpeg(url)
+      .addInputOption("-rtsp_transport", "tcp", "-buffer_size", "102400")  // 这里可以添加一些 RTSP 优化的参数
+      .on("start", function () {
+        console.log(url, "Stream started.");
+      })
+      .on("codecData", function () {
+        console.log(url, "Stream codecData.")
+        // 摄像机在线处理
+      })
+      .on("error", function (err) {
+        console.log(url, "An error occured: ", err.message);
+      })
+      .on("end", function () {
+        console.log(url, "Stream end!");
+        // 摄像机断线的处理
+      })
+      .outputFormat("flv").videoCodec("copy").noAudio().pipe(stream);
+  } catch (error) {
+    console.log(error);
+  }
 }
 function onVideoFileSeleted(videoFilePath) {
   videoSupport(videoFilePath)
@@ -208,36 +239,12 @@ async function createWindow() {
     if (url.startsWith("https:")) shell.openExternal(url);
     return { action: "deny" };
   });
-  ipcMain.on("cameraRecording", function (event, arg1, arg2) {
-    console.log("cameraRecording:", arg1, arg2);
-    onCameraRecording(arg1, arg2);
-  });
-  ipcMain.on("stopRecord", function (event, arg) {
-    console.log("stopRecord", arg);
-    CameraJobs.forEach(element => {
-      if (!element) {
-        console.log("To HTTPServer didn't exist, so ignore stop command");
-        return;
-      }
-      element.send("stop", () => {
-        console.log("top camera stop");
-  
-      })
-      element.on('close', function () {
-        console.log('子进程关闭了')
-      })
-  
-      element.on('exit', function () {
-        console.log('子进程退出了')
-      })
-    });
-    
-  });
   ipcMain.on("playVideoFromFile", function (event, arg1, arg2) {
     console.log("playVideoFromFile", arg1, arg2);
     onVideoFileSeleted(arg1); //目前只处理一个视频。
   });
   checkUpdate();
+  localServer();
 }
 
 app.whenReady().then(createWindow);

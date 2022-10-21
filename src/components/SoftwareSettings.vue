@@ -7,16 +7,14 @@
 
             </el-tab-pane>
             <el-tab-pane label="相机设置">
-                <el-button @click="getCameraList">加载相机</el-button>
-        <div v-if="experiments">
-            <div v-for="device in experiments.config.cameraList">
-            <el-checkbox  v-model="device.selected" @change="updateConfigWrapper">
-                {{device.name}}
-            </el-checkbox>
-            <textarea>{{device.alternativeName}}</textarea>
-            </div>
-
-        </div>
+                <el-button @click="addRTSPSource">添加相机源</el-button>
+                <p>请不要独自修改该配置</p>
+                <div v-for="device in experiments.config.rtspSourceList">
+                <el-checkbox  v-model="device.selected" @change="updateConfigWrapper">
+                    名称:<el-input v-model="device.name" placeholder="请输入摄像头名称" @change="updateConfigWrapper" />
+                    网址:<el-input v-model="device.alternativeName" placeholder="请输入rtsp路径" @change="updateConfigWrapper" />
+                </el-checkbox>
+                </div>
             </el-tab-pane>
             <el-tab-pane label="关于">Task</el-tab-pane>
         </el-tabs>
@@ -32,7 +30,7 @@ import { ref } from 'vue';
 import useStore from '../store'
 import CameraObject from '../objects/CameraObject'
 
-const { settings,experiments } = useStore()
+const { settings, experiments } = useStore()
 const config = experiments.config
 console.log(config);
 
@@ -52,6 +50,11 @@ const getCameraList = async () => {
             experiments.config.cameraList.push(curCam)
         });
     });
+}
+const addRTSPSource = ()=> {
+    console.log(experiments.config);
+    
+    experiments.config.rtspSourceList.push(new CameraObject())
 }
 const updateConfigWrapper = () => {
     experiments.updateConfig()

@@ -50,3 +50,8 @@ const stepClick = (item) => {
     }
 }
 </script>
+<style>
+.el-steps{
+    margin-top: 20px;
+}
+</style>
