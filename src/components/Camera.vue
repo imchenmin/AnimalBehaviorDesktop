@@ -40,8 +40,8 @@
 <script lang="ts">
 import useStore from '../store'
 let ipcRenderer = require('electron').ipcRenderer;
-import flvjs from "flv.js";
 
+import flvjs from "flv.js";
 import path from 'path'
 import CameraObject from '../objects/CameraObject';
 export default {
@@ -103,7 +103,6 @@ export default {
     beforeRouteLeave(to, from) {
         console.log("router leave")
         ipcRenderer.send("stopRecord")
-
     },
     methods: {
         setVideoRef(el) {
@@ -138,7 +137,6 @@ export default {
                     'Content-Type': 'application/json'
                 }
             }).then(function (data) {
-
             })
             this.cameraflag = false
         },
@@ -150,7 +148,6 @@ export default {
                     'Content-Type': 'application/json'
                 }
             }).then(function (data) {
-
             })
             this.recordflag = false
         },
@@ -162,7 +159,6 @@ export default {
                     'Content-Type': 'application/json'
                 }
             }).then(function (data) {
-
             })
             this.recordflag = true
         },
