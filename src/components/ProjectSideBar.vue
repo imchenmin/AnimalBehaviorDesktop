@@ -1,5 +1,6 @@
 <template>
     <el-scrollbar>
+        <!-- TODO: 提取出一个单独组建 -->
         <el-dialog v-model="createNewProjectVisible" title="新建项目">
             <el-form ref="ruleFormRef" :model="form" :rules="rules" label-width="120px">
                 <h2>实验信息</h2>
@@ -61,31 +62,49 @@
                 </el-form-item>
             </el-form>
         </el-dialog>
-        <el-button @click="createNewProjectVisible = true" size="large">Add</el-button>
-        <el-button @click="importProject" size="large">Import</el-button>
-        <el-button @click="openSettings" size="large">Settings</el-button>
-      <!-- 列表 -->
-        <el-menu
-        :default-activate="2"
-        router
-        >
-        <el-sub-menu index="1">
-          <template #title>
-            <el-icon><location /></el-icon>
-            <span>追踪</span>
-          </template>
-            <el-menu-item v-for="{name, _id, date} in tracking_list" :index="'/project/' + _id">{{name}}| {{dateFormat("YYYY-mm-dd HH:MM",date)}}</el-menu-item>
-        </el-sub-menu>
-        <el-sub-menu index="2">
-          <template #title>
-            <el-icon><location /></el-icon>
-            <span>精细行为</span>
-          </template>
-          <el-menu-item v-for="{name, _id, date} in detection_list" :index="'/project/' + _id"> {{name}} | {{dateFormat("YYYY-mm-dd HH:MM",date)}} </el-menu-item>
+        <el-button-group>
+            <el-button @click="createNewProjectVisible = true" size="large"><el-icon><Plus/></el-icon></el-button>
+        <el-button @click="importProject" size="large">打开项目</el-button>
+        <el-button @click="openSettings" size="large"><el-icon><Setting/></el-icon></el-button>
+        </el-button-group>
 
-        </el-sub-menu>
+        <!-- 列表 -->
+        <!-- TODO: 右键弹窗删除 -->
+        <!-- TODO: 默认分析参数 -->
 
-        </el-menu>
+        <el-input v-model="searchContent" placeholder="搜索名称"
+            style="float:left;margin:auto" clearable></el-input>
+        <el-table :data="project_list" :table-layout="tableLayout" stripe @row-click="rowClick" :row-key="row=>row._id"
+            :default-sort="{ prop: 'date', order: 'descending' }">
+            <el-table-column prop="name" label="Name" sortable>
+                <template #default="scope">
+                    <div style="display: flex; align-items: center">
+                        <span style="margin-left: 10px">{{scope.row.name }}</span>
+                        <el-tooltip :content="scope.row.description" placement="left-end">
+                            <el-icon>
+                                <InfoFilled />
+                            </el-icon>
+                        </el-tooltip>
+                    </div>
+                </template>
+            </el-table-column>
+            <el-table-column label="Date" sortable prop="date">
+                <template #default="scope">
+                    <div style="display: flex; align-items: center">
+                        <el-icon>
+                            <timer />
+                        </el-icon>
+                        <span style="margin-left: 10px">{{ dateFormat("YYYY/mm/dd HH:MM",scope.row.date) }}</span>
+                    </div>
+                </template>
+            </el-table-column>
+            <el-table-column prop="description" label="Tags">
+                <template #default="scope">
+                    <el-tag :type="scope.row.tag === 'Home' ? '' : 'success'" disable-transitions>{{ scope.row.tag }}
+                    </el-tag>
+                </template>
+            </el-table-column>
+        </el-table>
     </el-scrollbar>
 
 </template>
@@ -96,6 +115,8 @@ import type { FormInstance, FormRules } from 'element-plus'
 import useStore from '../store'
 import path from 'path'
 import ExperiemntObj from '../objects/experiment'
+import { column } from 'element-plus/es/components/table-v2/src/common'
+import router from '../routers'
 
 
 const { settings, experiments, } = useStore()
@@ -105,7 +126,8 @@ experiments.loadProject()
 
 const ruleFormRef = ref<FormInstance>()
 const createNewProjectVisible = ref(false)
-
+const tableLayout = ref('auto')
+const searchContent = ref('')
 const form = reactive({
     name: '',
     date1: new Date(),
@@ -119,7 +141,12 @@ const form = reactive({
     tracking_mouse_number: 1
 })
 
-const dateFormat = (fmt, val)=> {
+const rowClick = (row, event, column) => {
+    experiments.setCurrentExp(row._id)
+    router.push('/project/' + row._id)
+}
+
+const dateFormat = (fmt, val) => {
     var date = new Date(val); //时间戳为10位需*1000，时间戳为13位的话不需乘1000
     let ret;
     const opt = {
@@ -171,13 +198,13 @@ const rules = reactive<FormRules>({
     ]
 
 })
-let sortDateFn = (a,b)=>{
-        if (a.date < b.date) return 1
-        if (a.date > b.date) return -1
-        return 0
-    }
+let sortDateFn = (a, b) => {
+    if (a.date < b.date) return 1
+    if (a.date > b.date) return -1
+    return 0
+}
 const detection_list = computed(() => {
-    
+
     let filterArr = experiments.opened_project.filter(p => p.analysis_method == "detection")
     filterArr.sort(sortDateFn)
     console.log(filterArr)
@@ -189,6 +216,25 @@ const tracking_list = computed(() => {
     console.log(filterArr)
     return filterArr
 
+})
+const project_list = computed(() => {
+    let filterArr = experiments.opened_project
+    var input = searchContent && searchContent.value.toLowerCase();
+    let output;
+    if (input) {
+        output = filterArr.filter(function (item) {
+            return Object.keys(item).some(function (key1) {
+                console.log(item[key1],key1);
+                
+                return String(item[key1])
+                    .toLowerCase()
+                    .match(input);
+            });
+        });
+    } else {
+        output = filterArr;
+    }
+    return output;
 })
 const folder_path = computed(() => form.parent_path + '/' + form.name)
 const isReadyToCreate = computed(() => form.name != '' && form.parent_path != '' && form.type != '')
@@ -227,13 +273,13 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                                 mouse_genetype: form.mouse_genetype,
                                 mouse_dob: form.mouse_dob,
                                 tracking_mouse_number: form.tracking_mouse_number,
-                                detection_behavior_kinds: ['理毛','扶墙站立','不扶墙站立','洗脸'],
+                                detection_behavior_kinds: ['理毛', '扶墙站立', '不扶墙站立', '洗脸'],
                                 record_state: false,
                                 detection_state: false,
                                 tracking_state: false
 
                             } as ExperiemntObj
-                            experiments.addProject(record).then(()=>{
+                            experiments.addProject(record).then(() => {
                                 // tabledata.value = experiments.opened_project
                             })
                             createNewProjectVisible.value = false
@@ -247,7 +293,7 @@ const submitForm = async (formEl: FormInstance | undefined) => {
         }
     })
 }
-const importProject = ()=> {
+const importProject = () => {
     // select from folder
     const { dialog } = require('@electron/remote')
     dialog.showOpenDialog({
@@ -256,15 +302,15 @@ const importProject = ()=> {
         properties: ['openFile'],
         buttonLabel: "选择项目配置文件",
         filters: [
-            {name: "项目配置文件", extentsions: ['json']}
+            { name: "项目配置文件", extentsions: ['json'] }
         ]
     }).then((val) => {
         experiments.importProject(val.filePaths[0])
-        
+
     })
 }
 const openSettings = () => {
-  settings.toggleShow()
+    settings.toggleShow()
 }
 
 </script>

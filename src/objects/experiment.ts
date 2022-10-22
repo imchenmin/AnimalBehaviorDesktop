@@ -16,7 +16,6 @@ class ExperiemntObj {
     detection_state: boolean;
     constructor() {
         this.record_state = false;
-        
     }
 }
 export default ExperiemntObj
