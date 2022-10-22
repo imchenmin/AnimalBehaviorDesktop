@@ -4,22 +4,20 @@
         <el-form-item>
             <el-button type="primary" @click="run_preview" v-if="cameraflag">打开相机</el-button>
             <el-button type="primary" @click="stop_preview" v-else>关闭相机</el-button>
-            <!-- <el-button type="primary" @click="handleStart" v-if="!cameraflag && recordflag">开始录制</el-button> -->
-            <!-- <el-button type="primary" @click="handleStop" v-if="!cameraflag && ! recordflag">关闭录制</el-button> -->
+            <el-button type="primary" @click="handleStart" v-if="!cameraflag && recordflag">开始录制</el-button>
+            <el-button type="primary" @click="handleStop" v-if="!cameraflag && ! recordflag">关闭录制</el-button>
         </el-form-item>
     </el-form>
     <div v-show="!cameraflag" >
         <video ref="videoPlayerTop" class="video-js"></video>
         <video ref="videoPlayerSide" class="video-js"></video>
     </div>
+
 </template>
 <script lang="ts">
-import { ref } from 'vue';
-const value = ref('')
-import useStore from '../store';
+import useStore from '../store'
 let ipcRenderer = require('electron').ipcRenderer;
 import videojs from 'video.js';
-
 import path from 'path'
 export default {
     props: ['exp_id'],
@@ -62,7 +60,6 @@ export default {
             ],
             techOrder: ['StreamPlay']
         }
-
     }),
     computed: {
         current_exp() {
@@ -97,9 +94,7 @@ export default {
         }
         const { experiments } = useStore()
         // experiments.loadProject()
-
         ipcRenderer.send("stopRecord")
-
     },
     methods: {
         run_preview() {
@@ -128,7 +123,6 @@ export default {
                     'Content-Type': 'application/json'
                 }
             }).then(function (data) {
-
             })
             this.cameraflag = false
         },
@@ -140,7 +134,6 @@ export default {
                     'Content-Type': 'application/json'
                 }
             }).then(function (data) {
-
             })
             this.recordflag = false
         },
@@ -152,7 +145,6 @@ export default {
                     'Content-Type': 'application/json'
                 }
             }).then(function (data) {
-
             })
             this.recordflag = true
         },
