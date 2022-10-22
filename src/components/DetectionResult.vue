@@ -11,7 +11,7 @@
     <v-chart v-if="displayChart" class="chart" :option="option" />
 </template>
 <script lang="ts" setup>
-import { ref, defineComponent, defineProps, onMounted, reactive } from 'vue';
+import { ref, defineComponent, onMounted, reactive } from 'vue';
 import VChart, { THEME_KEY } from 'vue-echarts';
 import * as echarts from 'echarts';
 import useStore from '../store'

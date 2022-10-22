@@ -1,38 +1,81 @@
 import { app, BrowserWindow, shell, ipcMain, dialog } from "electron";
 import { release } from "os";
 import { join } from "path";
+const { spawn, exec } = require("child_process");
+
 
 import { videoSupport } from "./ffmpeg-helper";
 import VideoServer from "./VideoServer";
 //--- add native video part
-let topCameraJob, sideCameraJob , videoServer;
+let videoServer;
 let isRendererReady = false;
 let win: BrowserWindow | null = null;
 // Here, you can also use other preload
 const fork = require("child_process").fork;
 app.disableHardwareAcceleration()
 
-function onCameraRecording(saveVideoPathTop = "", saveVideoPathSide = "") {
-  topCameraJob = fork("./electron/main/cameraJob.js",[saveVideoPathTop, "USB GS CAM", 8889,'1280x720'])
-  sideCameraJob = fork("./electron/main/cameraJob.js",[saveVideoPathSide,"KS2A293-D", 8890,'2560x720' ])
-  // httpServer = new CameraServer({
-  //   _side: true,
-  //   _top: true,
-  //   _saveVideoPath: {
-  //     saveVideoPathTop: saveVideoPathTop,
-  //     saveVideoPathSide: saveVideoPathSide,
-  //   },
-  // });
-  // httpServer.createCameraServer();
-  console.log("createVideoServer success");
-  let playParams = {
-    type: "stream",
-    videoSourceTop: "http://127.0.0.1:8889",
-    videoSourceSide: "http://127.0.0.1:8890",
-  };
-  console.log("cameraRecoridng=", playParams);
-
-  win.webContents.send("cameraRecoridngReady", playParams);
+const Stream = require('node-rtsp-stream')
+/**
+ * rtsp列表
+ * interface {
+ *   rtspUrl: {
+ *     ws: websocket地址
+ *     stream: stream实例
+ *   }
+ * }
+ */
+const rtspOpenders = {}
+let addPort = 9000
+const ffmpegPath = require('@ffmpeg-installer/ffmpeg').path;
+var express = require("express");
+var expressWebSocket = require("express-ws");
+const ffmpeg = require('fluent-ffmpeg');
+ffmpeg.setFfmpegPath(ffmpegPath);
+var webSocketStream = require("websocket-stream/stream");
+var WebSocket = require("websocket-stream");
+var http = require("http");
+function localServer() {
+  let app = express();
+  app.use(express.static(__dirname));
+  expressWebSocket(app, null, {
+    perMessageDeflate: true
+  });
+  app.ws("/rtsp/:id/", rtspRequestHandle)
+  app.listen(8899);
+  console.log("express listened")
+}
+function rtspRequestHandle(ws, req) {
+  console.log("rtsp request handle");
+  const stream = webSocketStream(ws, {
+    binary: true,
+    browserBufferTimeout: 1000000
+  }, {
+    browserBufferTimeout: 1000000
+  });
+  let url = req.query.url;
+  console.log("rtsp url:", url);
+  console.log("rtsp params:", req.params);
+  try {
+    ffmpeg(url)
+      .addInputOption("-rtsp_transport", "tcp", "-buffer_size", "102400")  // 这里可以添加一些 RTSP 优化的参数
+      .on("start", function () {
+        console.log(url, "Stream started.");
+      })
+      .on("codecData", function () {
+        console.log(url, "Stream codecData.")
+        // 摄像机在线处理
+      })
+      .on("error", function (err) {
+        console.log(url, "An error occured: ", err.message);
+      })
+      .on("end", function () {
+        console.log(url, "Stream end!");
+        // 摄像机断线的处理
+      })
+      .outputFormat("flv").videoCodec("copy").noAudio().pipe(stream);
+  } catch (error) {
+    console.log(error);
+  }
 }
 function onVideoFileSeleted(videoFilePath) {
   videoSupport(videoFilePath)
@@ -40,7 +83,7 @@ function onVideoFileSeleted(videoFilePath) {
       if (!checkResult.videoCodecSupport) {
         if (!videoServer) {
           videoServer = new VideoServer();
-        } else{
+        } else {
           videoServer.killFfmpegCommand();
           videoServer = new VideoServer();
         }
@@ -196,47 +239,12 @@ async function createWindow() {
     if (url.startsWith("https:")) shell.openExternal(url);
     return { action: "deny" };
   });
-  ipcMain.on("cameraRecording", function (event, arg1, arg2) {
-    console.log("cameraRecording:", arg1, arg2);
-    onCameraRecording(arg1, arg2);
-  });
-  ipcMain.on("stopRecord", function (event, arg) {
-    console.log("stopRecord", arg);
-    if (!topCameraJob) {
-      console.log("To HTTPServer didn't exist, so ignore stop command");
-      return;
-    }
-    topCameraJob.send("stop",()=>{
-      console.log("top camera stop");
-      
-    })
-    topCameraJob.on('close', function () {
-      console.log('子进程关闭了')
-    })
-    
-    topCameraJob.on('exit', function () {
-      console.log('子进程退出了')
-    })
-    if (!sideCameraJob) {
-      console.log("To HTTPServer didn't exist, so ignore stop command");
-      return;
-    }
-    sideCameraJob.send("stop",()=>{
-      console.log("side camera stop");
-      
-    })
-    sideCameraJob.on('close', function () {
-      console.log('子进程关闭了')
-    })
-    sideCameraJob.on('exit', function () {
-      console.log('子进程退出了')
-    })
-  });
   ipcMain.on("playVideoFromFile", function (event, arg1, arg2) {
     console.log("playVideoFromFile", arg1, arg2);
     onVideoFileSeleted(arg1); //目前只处理一个视频。
   });
   checkUpdate();
+  localServer();
 }
 
 app.whenReady().then(createWindow);

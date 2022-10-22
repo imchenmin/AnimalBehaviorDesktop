@@ -1,19 +1,25 @@
 <template>
   <el-container class="common-layout">
-    <el-aside>
-      <project-side-bar></project-side-bar>
-    </el-aside>
+    <el-header>
+      <h2 class="title" v-if="experiments.current_experiment">{{experiments.current_experiment.name}}</h2>
+    </el-header>
     <el-container>
+      <el-aside>
+        <project-side-bar></project-side-bar>
+      </el-aside>
       <el-main class="main">
         <router-view :key="$route.fullPath"></router-view>
       </el-main>
     </el-container>
+
   </el-container>
+  <SoftwareSettings></SoftwareSettings>
+
 </template>
 
-<script lang="ts" setup>
-import ProjectSideBar from './components/ProjectSideBar.vue';
-
+<script setup lang="ts">
+import useStore from './store'
+const { settings, experiments } = useStore()
 </script>
 <style scoped>
 * {
@@ -36,14 +42,17 @@ import ProjectSideBar from './components/ProjectSideBar.vue';
   color: var(--el-text-color-primary);
   padding: 0;
 }
-
+.el-header .title {
+  text-align: center;
+}
 .common-layout .el-aside {
   color: var(--el-text-color-primary);
   background: var(--el-color-primary-light-8);
+  width: 300px;
 }
 
 .common-layout .el-menu {
-  border-right: none;
+  border-right: 2px;
 }
 
 .common-layout .el-main {
@@ -62,6 +71,7 @@ body {
   margin: 0;
   padding: 0;
 }
+
 .main {
   margin-left: 20px;
   margin-right: 20px;

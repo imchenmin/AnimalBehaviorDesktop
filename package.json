@@ -23,6 +23,7 @@
         "echarts": "^5.3.3",
         "electron-updater": "^5.2.1",
         "element-plus": "^2.2.13",
+        "ffmpeg-device-list-parser": "^0.1.0",
         "fluent-ffmpeg": "^2.1.2",
         "http-shutdown": "^1.2.2",
         "i": "^0.3.7",

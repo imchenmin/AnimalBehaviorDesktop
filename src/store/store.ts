@@ -16,7 +16,8 @@ export const useVersionStore = defineStore('version', {
 export const useDefaultSetting = defineStore('settings', {
     state: () => {
         return {
-            default_parent_folder: ""
+            default_parent_folder: "",
+            showSettingWidgt: false,
         }
     },
     actions: {
@@ -25,6 +26,9 @@ export const useDefaultSetting = defineStore('settings', {
             let homedir=os.homedir();
             this.default_parent_folder = homedir;
             console.log(homedir)
+        },
+        toggleShow() {
+            this.showSettingWidgt = ! this.showSettingWidgt;
         }
     },
     persist: true

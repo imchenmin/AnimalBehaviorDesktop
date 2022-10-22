@@ -42,6 +42,11 @@
         <input type="button" value="根据当前标记进行分析"  style="display: none" id="rundetect" ref="runItButton" />
         <el-button type="simple" plain @click="embyPot">查看结果</el-button>
     </el-button-group>
+    <el-container>
+        <div>
+            
+        </div>
+    </el-container>
 </template>
 <script >
     let fs = window.require('fs');

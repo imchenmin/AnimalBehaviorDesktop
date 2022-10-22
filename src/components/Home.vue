@@ -1,16 +1,15 @@
 <template lang="">
   <div class="Home">Home</div>
+  <el-button @click="showSetting">settings</el-button>
 </template>
-<script lang="ts">
+<script lang="ts" setup>
 import useStore from '../store'
-export default {
-  setup() {
-    const { version, experiments } = useStore();
-    // experiments.loadProject()
-    return {
-      version
-    }
-  }
+const { settings } = useStore();
+// let ipcRenderer = require('electron').ipcRenderer;
+// ipcRenderer.send("listDshowDevices")
+const showSetting = () => {
+  settings.toggleShow()
+  console.log(settings.showSettingWidgt)
 }
 </script>
 <style>
