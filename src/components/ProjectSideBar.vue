@@ -66,6 +66,8 @@
             <el-button @click="createNewProjectVisible = true" size="large"><el-icon><Plus/></el-icon></el-button>
         <el-button @click="importProject" size="large">打开项目</el-button>
         <el-button @click="openSettings" size="large"><el-icon><Setting/></el-icon></el-button>
+        <el-button><NotificationCenter></NotificationCenter></el-button>
+
         </el-button-group>
 
         <!-- 列表 -->

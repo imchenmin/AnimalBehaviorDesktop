@@ -58,6 +58,7 @@ export const useExperimentsStore = defineStore('experiments', () => {
 
             console.log("load finish")
         })
+        console.log(opened_project)
         // this.updateConfig()
     }
     async function addProject(payload: ExperiemntObj) {

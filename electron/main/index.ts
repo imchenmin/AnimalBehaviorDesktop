@@ -103,14 +103,11 @@ function onVideoFileSeleted(videoFilePath) {
     })
     .catch((err) => {
       console.log("video format error", err);
-      const options = {
+      dialog.showMessageBox({
+        title: "错误信息",
         type: "info",
-        title: "Error",
         message: "It is not a video file!",
-        buttons: ["OK"],
-      };
-      dialog.showMessageBox(options, function (index) {
-        console.log("showMessageBox", index);
+        buttons: ["OK"]
       });
     });
 }
