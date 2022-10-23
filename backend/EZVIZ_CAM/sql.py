@@ -3,7 +3,7 @@ import os
 from EZVIZ_CAM.ezviz import EZVIZ_Status, EZVIZ
 from EZVIZ_CAM.ftp_manager import FTP_Manager
 class SQL_manager:
-    def __init__(self, ip, full_name):
+    def __init__(self, ip, full_name=""):
         self.sql_create_FILE_TABLE = '''CREATE TABLE "FILE_TABLE" (
                                         "ID"	INTEGER NOT NULL UNIQUE,
                                         "FILE_NAME"	VARCHAR(255) NOT NULL,
@@ -25,16 +25,25 @@ class SQL_manager:
                                     "FLAG"	INTEGER NOT NULL,
                                     PRIMARY KEY("ID" AUTOINCREMENT)
                                 )'''
+        self.sql_create_NV_CARD = '''CREATE TABLE "NV_CARD" (
+                                    "ID"	INTEGER NOT NULL UNIQUE,
+                                    "STATUS"	INTEGER NOT NULL,
+                                    PRIMARY KEY("ID" AUTOINCREMENT)
+                                )'''
         self.connection_name = ip + '.db'
-        self.full_name = full_name
         self.ip = ip
+        self.full_name = full_name
+
         if not os.path.exists(self.connection_name):
             self.create_database()
             self.init_status()
-            self.init_record()
-        self.check_init()
 
-            
+        if full_name != "":
+            self.check_init()
+            self.init_record()
+            self.init_nv_card()
+        else:
+            pass            
     def init_status(self):
         sqls = ['''INSERT INTO "main"."STATUS" ("TYPE") VALUES ('UNFETECH')''',
         '''INSERT INTO "main"."STATUS" ("TYPE") VALUES ('WAITINGFORDOWNLOADING')''',
@@ -53,7 +62,18 @@ class SQL_manager:
         conn.close()
 
     def init_record(self):
-        sql = '''INSERT INTO "main"."RECORD" ("FLAG") VALUES (0)'''
+        sql = '''INSERT OR REPLACE INTO "main"."RECORD" ("ID", "FLAG") VALUES (1, 0)'''
+        conn = sqlite3.connect(self.connection_name)
+        # 创建游标
+        cour = conn.cursor()
+        # 编写sql语句
+        cour.execute(sql)
+        cour.close()
+        conn.commit()
+        conn.close()
+
+    def init_nv_card(self):
+        sql = '''INSERT OR REPLACE INTO "main"."NV_CARD" ("ID", "STATUS") VALUES (1, 0)'''
         conn = sqlite3.connect(self.connection_name)
         # 创建游标
         cour = conn.cursor()
@@ -71,6 +91,7 @@ class SQL_manager:
         cour.execute(self.sql_create_FILE_TABLE)
         cour.execute(self.sql_create_STATUS)
         cour.execute(self.sql_create_RECORD)
+        cour.execute(self.sql_create_NV_CARD)
         cour.close()
         conn.commit()
         conn.close()
@@ -119,10 +140,10 @@ class SQL_manager:
     def get_file_table(self, record_flag):
         mgr = FTP_Manager(self.ip, self.full_name)
         ezviz_list = mgr.openFTPFile()
+        print(self.ip, record_flag, [item.file_name for item in ezviz_list])
         if record_flag:
             ezviz_list = ezviz_list[:-1]
-        # for item in ezviz_list:
-        #     print(item.file_name, item.modify_time)
+        print(self.ip, record_flag, [item.file_name for item in ezviz_list])
         conn = sqlite3.connect(self.connection_name)
         for item in ezviz_list:
             # 创建游标
@@ -137,6 +158,23 @@ class SQL_manager:
             # 关闭连接
         cour = conn.cursor()
         sql = 'select * from FILE_TABLE WHERE STATUS = 2'
+        cour.execute(sql)
+        res = []
+        for item in cour.fetchall():
+            temp = EZVIZ(item[4],item[5],item[1],item[2])
+            temp.id = item[0]
+            temp.status = item[3]
+            temp.full_name = self.full_name
+            res.append(temp)
+        conn.commit()
+        cour.close()
+        conn.close()
+        return res
+
+    def get_downloaded_file_table(self):
+        conn = sqlite3.connect(self.connection_name)
+        cour = conn.cursor()
+        sql = 'select * from FILE_TABLE WHERE STATUS = 4'
         cour.execute(sql)
         res = []
         for item in cour.fetchall():
@@ -192,3 +230,45 @@ class SQL_manager:
         cour.close()
         conn.close()
         return flag
+
+    def check_running_status(self):
+        conn = sqlite3.connect(self.connection_name)
+        cour = conn.cursor()
+        sql = 'select * from FILE_TABLE WHERE STATUS=5 OR STATUS=2 OR STATUS=3 OR STATUS=4'
+        cour.execute(sql)
+        flag = False
+        if len(cour.fetchall()) > 0:
+            flag = True
+        cour.close()
+        conn.close()
+        return flag
+
+    def check_nv_status(self, w):
+        conn = sqlite3.connect(self.connection_name)
+        cour = conn.cursor()
+        sql = 'select STATUS from NV_CARD WHERE STATUS = 0'
+        cour.execute(sql)
+        flag = True
+        cur = int(cour.fetchall()[0][0])
+        if cur + w > 9:
+            flag = False
+        cour.close()
+        conn.close()
+        return flag
+    
+    def update_nv_status(self, cost):
+        conn = sqlite3.connect(self.connection_name)
+        # 创建游标
+        cour = conn.cursor()
+        sql = 'select STATUS from NV_CARD'
+        cour.execute(sql)
+        ori = cour.fetchall()[0]
+        cost += int(ori[0])
+        sql = 'UPDATE NV_CARD SET STATUS=?'
+        # 执行sql语句
+        cour.execute(sql,(cost,))
+        # 关闭游标
+        cour.close()
+        # 关闭连接
+        conn.commit()
+        conn.close()
