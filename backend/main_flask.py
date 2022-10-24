@@ -1,5 +1,4 @@
 import sys,os
-from tkinter.messagebox import NO
 import deeplabcut
 #track part
 #sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
