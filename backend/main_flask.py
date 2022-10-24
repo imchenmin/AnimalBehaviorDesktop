@@ -1,4 +1,5 @@
 import sys,os
+from tkinter.messagebox import NO
 import deeplabcut
 #track part
 #sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
@@ -150,15 +151,31 @@ def execute():
     #output_video(video_path,video_name,polylist,namelist,resultpath)
     return ('done')
 
+import subprocess
+from behavior.export_csv import export_csv
 @app.route('/api/rat_sleap', methods=['GET', 'POST'])
 def rat_sleap():
     """
     调用sleap-track推理，然后调用sleap-convert转换成h5，再生成csv文件。
     """
     data = json.loads(request.data)
-    
-    argvs = data['argvs']
-	
+    video_name = data['VideoName']
+    pose_worker = subprocess.Popen(f"conda activate sleap && sleap-track {video_name} --frames 0-100 -m D://zjh//AnimalBehaviorDesktop//backend//behavior//221024_104102.single_instance.n=353", shell=True)
+    # for line in iter(pose_worker.stdout.readline, b''):
+    #     print(line)
+    #     pose_worker.stdout.close()
+    pose_worker.wait()
+    slp_file = video_name + '.predictions.slp'
+    h5_file = video_name + '.predictions.h5'
+    csv_file = video_name + '.predictions.csv'
+    convert_worker = subprocess.Popen(f"conda activate sleap && sleap-convert {slp_file} --format analysis -o {h5_file}", shell=True)
+    # for line in iter(convert_worker.stdout.readline, b''):
+    #     print(line)
+    #     convert_worker.stdout.close()
+    convert_worker.wait()
+    export_csv(h5_file,csv_file)
+    return ('done')
+    	
 @app.route('/api/wash_recognition', methods=['POST', 'GET'])
 def wash_recognition():
     filename = json.loads(request.data)
