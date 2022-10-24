@@ -27,6 +27,7 @@ from behavior_recognition import start_recognition
 from EZVIZ_CAM.transcaction_manager import Transaction_Manager
 from multiprocessing import Process
 from EZVIZ_CAM.sql import SQL_manager
+import time
 # EZVIZ_CAM PACKAGE END
 config_json = None
 socketio = SocketIO(app)
@@ -195,26 +196,24 @@ def test_connect():
 def test_disconnect():
     print('get disconnection')
 
-from dao.ProcessingObject import ProcessingObject,p_type
-import time
 @socketio.on('require_project_status',namespace='/')
 def require_project_status(data):
     print('received message: ' , data['project_list'])
 
     progressList = []
-    for i in data['project_list']:
-        progressList.append(ProcessingObject(i,p_type.DOWNLOADING))
-    for i in range(10):
-        for j in range(len(progressList)):
-            progressList[j].progress += 10
-        time.sleep(1)
-        json_list = []
-        for i in progressList:
-            json_list.append(i.to_dict())
-        socketio.emit("project_status",{
-            'msg': json_list,
-            'code': 200
-        })
+    # for i in data['project_list']:
+    #     progressList.append(ProcessingObject(i,p_type.DOWNLOADING))
+    # for i in range(10):
+    #     for j in range(len(progressList)):
+    #         progressList[j].progress += 10
+    #     time.sleep(10)
+    #     json_list = []
+    #     for i in progressList:
+    #         json_list.append(i.to_dict())
+    #     socketio.emit("project_status",{
+    #         'msg': json_list,
+    #         'code': 200
+    #     })
 
 
 

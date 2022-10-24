@@ -2,6 +2,10 @@ import sqlite3
 import os
 from EZVIZ_CAM.ezviz import EZVIZ_Status, EZVIZ
 from EZVIZ_CAM.ftp_manager import FTP_Manager
+
+from dao.ProcessingObject import ProcessingObject,p_type
+import time
+
 class SQL_manager:
     def __init__(self, ip, full_name=""):
         self.sql_create_FILE_TABLE = '''CREATE TABLE "FILE_TABLE" (
@@ -30,6 +34,13 @@ class SQL_manager:
                                     "STATUS"	INTEGER NOT NULL,
                                     PRIMARY KEY("ID" AUTOINCREMENT)
                                 )'''
+        self.sql_create_PROGRESS = '''CREATE TABLE "PROGRESS" (
+                                    "ID"	INTEGER NOT NULL UNIQUE,
+                                    "PATH"	VARCHAR(255) NOT NULL,
+                                    "START" VARCHAR(255) NOT NULL,
+                                    "END" VARCHAR(255) NOT NULL,
+                                    PRIMARY KEY("ID" AUTOINCREMENT)
+                                )'''
         self.connection_name = ip + '.db'
         self.ip = ip
         self.full_name = full_name
@@ -42,8 +53,10 @@ class SQL_manager:
             self.check_init()
             self.init_record()
             self.init_nv_card()
+            self.init_progress()
         else:
             pass            
+            
     def init_status(self):
         sqls = ['''INSERT INTO "main"."STATUS" ("TYPE") VALUES ('UNFETECH')''',
         '''INSERT INTO "main"."STATUS" ("TYPE") VALUES ('WAITINGFORDOWNLOADING')''',
@@ -92,6 +105,7 @@ class SQL_manager:
         cour.execute(self.sql_create_STATUS)
         cour.execute(self.sql_create_RECORD)
         cour.execute(self.sql_create_NV_CARD)
+        cour.execute(self.sql_create_PROGRESS)
         cour.close()
         conn.commit()
         conn.close()
@@ -272,3 +286,65 @@ class SQL_manager:
         # 关闭连接
         conn.commit()
         conn.close()
+
+    def init_progress(self):
+        conn = sqlite3.connect(self.connection_name)
+        # 创建游标
+        cour = conn.cursor()
+        sql = 'truncate table PROGRESS'
+        cour.execute(sql)
+        # 关闭游标
+        cour.close()
+        # 关闭连接
+        conn.commit()
+        conn.close()
+
+    def  get_progress(self, path, cur):
+        conn = sqlite3.connect(self.connection_name)
+        # 创建游标
+        cour = conn.cursor()
+        sql = 'select * from PROGRESS'
+        cour.execute(sql)
+        progressList = []
+
+        for item in cour.fetchall():
+            path = item[1]
+            start = item[2]
+            end = item[3]
+            temp = ProcessingObject(path, p_type.ANALYSIS)
+            temp.progress = ((cur - start) / (end - start)) * 100
+            if temp.progress >= 100:
+                sql = 'select COUNT(*) from FILE_TABLE WHERE FULL_NAME=?'
+                cour.execute(sql, (path,))
+                count_total = int(cour.fetchall()[0])
+                sql = 'select COUNT(*) from FILE_TABLE WHERE FULL_NAME=? AND STATUS=6'
+                cour.execute(sql, (path,))
+                complete_total = int(cour.fetchall()[0])
+                if count_total != complete_total:
+                    temp.progress = 99
+            progressList.append(temp)
+
+        # 关闭游标
+        cour.close()
+        # 关闭连接
+        conn.close()
+        return progressList
+
+    def get_waitingruning(self):
+        conn = sqlite3.connect(self.connection_name)
+        res = []
+        # 创建游标
+        cour = conn.cursor()
+        sql = 'select * from FILE_TABLE WHERE STATUS=4'
+        cour.execute(sql)
+
+        for item in cour.fetchall():
+            temp = EZVIZ(item[4],item[5],item[1],item[2])
+            temp.id = item[0]
+            temp.status = item[3]
+            temp.full_name = self.full_name
+            res.append(temp)
+        conn.commit()
+        cour.close()
+        conn.close()
+        return res

@@ -41,55 +41,55 @@ class Transaction_Manager:
     def stop_record_event(self):
         self.sql_mgr.update_record_status(0)
 
-    def duration_check(self):
-        unfetch = self.sql_mgr.get_file_table(self.sql_mgr.check_record_status())
-        mgr = FTP_Manager(self.device, self.full_name)
-        for item in unfetch:
-            print(item.file_name, item.status)
-            if self.sql_mgr.check_status(item.id) == EZVIZ_Status.WAITINGFORDOWNLOADING.value and self.download_queue.qsize() == 0:
-                self.sql_mgr.update_status(item.id, EZVIZ_Status.DOWNLOADING.value)
-                print('start download ' + item.file_name)
-                self.download_queue.put(1)
-                flag = mgr.download_video(item.file_path, item.server_path, item.file_name, item.modify_time)
-                self.download_queue.get()
-                if flag == 1:
-                    print('finish download ' + item.file_name)
-                    self.sql_mgr.update_status(item.id, EZVIZ_Status.WAITINGFORRUNNING.value)
-                else:
-                    print('error in downloading', [flag, item.id, item.file_name, item.modify_time])
-                time.sleep(5)
-            if self.sql_mgr.check_status(item.id) == EZVIZ_Status.WAITINGFORRUNNING.value and self.process_queue.qsize() == 0 and self.sql_mgr.check_nv_status(self.w):
-                self.process_queue.put(1)
-                print('start reco')
-                self.sql_mgr.update_nv_status(self.w)
-                self.sql_mgr.update_status(item.id, EZVIZ_Status.RUNNING)
-                try:
-                    if self.full_name.endswith('top'):
-                        video_path = item.file_path
-                        video_name = item.file_name
-                        resultpath = video_path+"/result/"
-                        csv_path = resultpath + video_name + ".csv"
-                        print(['top', self.full_name])
-                        originalvideopath = item.file_path
-                        deeplabcut.analyze_videos(config="D:/workspace/DLC/config.yaml",videos=[originalvideopath],destfolder=self.full_name,save_as_csv=True,n_tracks=1)
-                        deeplabcut.analyze_videos_converth5_to_csv(video_path)  
-                        originalcsv = video_path+"/"+video_name+"DLC_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv"
-                        convert_dlc_to_simple_csv(originalcsv, csv_path)
-                    else:
-                        start_recognition(item.file_path)
-                    self.sql_mgr.update_status(item.id, EZVIZ_Status.FINISH)
-                except:
-                    print('ERROR in recognition')
-                finally:
-                    self.sql_mgr.update_nv_status(-self.w)
-                    self.process_queue.get()
-                print('finish reco')    
+    # def duration_check(self):
+    #     unfetch = self.sql_mgr.get_file_table(self.sql_mgr.check_record_status())
+    #     mgr = FTP_Manager(self.device, self.full_name)
+    #     for item in unfetch:
+    #         print(item.file_name, item.status)
+    #         if self.sql_mgr.check_status(item.id) == EZVIZ_Status.WAITINGFORDOWNLOADING.value and self.download_queue.qsize() == 0:
+    #             self.sql_mgr.update_status(item.id, EZVIZ_Status.DOWNLOADING.value)
+    #             print('start download ' + item.file_name)
+    #             self.download_queue.put(1)
+    #             flag = mgr.download_video(item.file_path, item.server_path, item.file_name, item.modify_time)
+    #             self.download_queue.get()
+    #             if flag == 1:
+    #                 print('finish download ' + item.file_name)
+    #                 self.sql_mgr.update_status(item.id, EZVIZ_Status.WAITINGFORRUNNING.value)
+    #             else:
+    #                 print('error in downloading', [flag, item.id, item.file_name, item.modify_time])
+    #             time.sleep(5)
+    #         if self.sql_mgr.check_status(item.id) == EZVIZ_Status.WAITINGFORRUNNING.value and self.process_queue.qsize() == 0 and self.sql_mgr.check_nv_status(self.w):
+    #             self.process_queue.put(1)
+    #             print('start reco')
+    #             self.sql_mgr.update_nv_status(self.w)
+    #             self.sql_mgr.update_status(item.id, EZVIZ_Status.RUNNING)
+    #             try:
+    #                 if self.full_name.endswith('top'):
+    #                     video_path = item.file_path
+    #                     video_name = item.file_name
+    #                     resultpath = video_path+"/result/"
+    #                     csv_path = resultpath + video_name + ".csv"
+    #                     print(['top', self.full_name])
+    #                     originalvideopath = item.file_path
+    #                     deeplabcut.analyze_videos(config="D:/workspace/DLC/config.yaml",videos=[originalvideopath],destfolder=self.full_name,save_as_csv=True,n_tracks=1)
+    #                     deeplabcut.analyze_videos_converth5_to_csv(video_path)  
+    #                     originalcsv = video_path+"/"+video_name+"DLC_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv"
+    #                     convert_dlc_to_simple_csv(originalcsv, csv_path)
+    #                 else:
+    #                     start_recognition(item.file_path)
+    #                 self.sql_mgr.update_status(item.id, EZVIZ_Status.FINISH)
+    #             except:
+    #                 print('ERROR in recognition')
+    #             finally:
+    #                 self.sql_mgr.update_nv_status(-self.w)
+    #                 self.process_queue.get()
+    #             print('finish reco')    
             
-    def recognition_check(self):
-        print('here')
-        unfetch = self.sql_mgr.get_downloaded_file_table()
-        for item in unfetch:
-            print([item.id, item.file_name])
+    # def recognition_check(self):
+    #     print('here')
+    #     unfetch = self.sql_mgr.get_downloaded_file_table()
+    #     for item in unfetch:
+    #         print([item.id, item.file_name])
             
 
     def concat_video(self):
@@ -135,7 +135,56 @@ class Transaction_Manager:
         df = pd.concat(df_res,axis=0)
         df[['class','start_time','end_time','type']].to_csv(self.full_name[:-3] + '/detection_result.csv')
 
-    def schedule_check(self):
-        Process(target=self.duration_check, args=()).start()
+    # def schedule_check(self):
+    #     Process(target=self.duration_check, args=()).start()
         # Process(target=self.recognition_check, args=()).start()
     
+    def schedule_check(self):
+        Process(target=self.check_download, args=()).start()
+        Process(target=self.check_recog, args=()).start()
+
+    def check_download(self):
+        unfetch = self.sql_mgr.get_file_table(self.sql_mgr.check_record_status())
+        mgr = FTP_Manager(self.device, self.full_name)
+        for item in unfetch:
+            if self.sql_mgr.check_status(item.id) == EZVIZ_Status.WAITINGFORDOWNLOADING.value and self.download_queue.qsize() == 0:
+                self.sql_mgr.update_status(item.id, EZVIZ_Status.DOWNLOADING.value)
+                print('start download ' + item.file_name)
+                self.download_queue.put(1)
+                flag = mgr.download_video(item.file_path, item.server_path, item.file_name, item.modify_time)
+                self.download_queue.get()
+                if flag == 1:
+                    print('finish download ' + item.file_name)
+                    self.sql_mgr.update_status(item.id, EZVIZ_Status.WAITINGFORRUNNING.value)
+                else:
+                    print('error in downloading', [flag, item.id, item.file_name, item.modify_time])
+    
+    def check_recog(self):
+        waitingrunning = self.sql_mgr.get_waitingruning()
+        for item in waitingrunning:
+            if self.process_queue.qsize() == 0 and self.sql_mgr.check_nv_status(self.w):
+                self.process_queue.put(1)
+                print('start reco')
+                self.sql_mgr.update_nv_status(self.w)
+                self.sql_mgr.update_status(item.id, EZVIZ_Status.RUNNING)
+                try:
+                    if self.full_name.endswith('top'):
+                        video_path = item.file_path
+                        video_name = item.file_name
+                        resultpath = video_path+"/result/"
+                        csv_path = resultpath + video_name + ".csv"
+                        print(['top', self.full_name])
+                        originalvideopath = item.file_path
+                        deeplabcut.analyze_videos(config="D:/workspace/DLC/config.yaml",videos=[originalvideopath],destfolder=self.full_name,save_as_csv=True,n_tracks=1)
+                        deeplabcut.analyze_videos_converth5_to_csv(video_path)  
+                        originalcsv = video_path+"/"+video_name+"DLC_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv"
+                        convert_dlc_to_simple_csv(originalcsv, csv_path)
+                    else:
+                        start_recognition(item.file_path)
+                    self.sql_mgr.update_status(item.id, EZVIZ_Status.FINISH)
+                except:
+                    print('ERROR in recognition')
+                finally:
+                    self.sql_mgr.update_nv_status(-self.w)
+                    self.process_queue.get()
+                print('finish reco')    
