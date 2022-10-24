@@ -149,6 +149,15 @@ def execute():
     output_video_part(video_path,video_name,polylist,namelist,resultpath,check_out_list)
     #output_video(video_path,video_name,polylist,namelist,resultpath)
     return ('done')
+
+@app.route('/api/rat_sleap', methods=['GET', 'POST'])
+def rat_sleap():
+    """
+    调用sleap-track推理，然后调用sleap-convert转换成h5，再生成csv文件。
+    """
+    data = json.loads(request.data)
+    
+    argvs = data['argvs']
 	
 @app.route('/api/wash_recognition', methods=['POST', 'GET'])
 def wash_recognition():
