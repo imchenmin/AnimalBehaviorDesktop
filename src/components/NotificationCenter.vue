@@ -1,6 +1,6 @@
 <template lang="">
 <el-popover
-    placement="top-start"
+    placement="bottom"
     title="处理进度"
     :width="400"
     trigger="click">
@@ -43,6 +43,9 @@ export default {
         this.sockets.subscribe('project_status', (data) => {
             // 判断是否存在
             let recvList = data.msg
+            console.log(recvList);
+            
+            if (!recvList) return
             recvList.forEach((po: ProcessingObject) => {
                 let firstmatch_idx = this.ProgressList.findIndex((obj) => {
                     return obj.project_path == po.project_path

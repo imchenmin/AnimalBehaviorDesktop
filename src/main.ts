@@ -31,7 +31,8 @@ import VueSocketIO from 'vue-3-socket.io'
 import io from 'socket.io-client';
 const socketio = new VueSocketIO({
     debug: true,
-    connection: io('http://127.0.0.1:8867',{ transports : ['websocket'] }),
+    connection: io('http://127.0.0.1:5001'),
+    extraHeaders: {"Access-Control-Allow-Origin": '*'},
 });
 const app = createApp(App);
 app.use(ElementPlus);

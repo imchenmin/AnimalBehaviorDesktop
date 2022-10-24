@@ -1,4 +1,5 @@
 import sys,os
+from time import sleep
 import deeplabcut
 #track part
 #sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
@@ -15,6 +16,7 @@ from track_part.gazeheatplot import draw_heat_main
 ###
 from flask import Flask
 app = Flask(__name__)
+from flask_socketio import SocketIO
 from flask import request
 from flask import json
 from flask_cors import CORS
@@ -26,6 +28,7 @@ from multiprocessing import Process
 from EZVIZ_CAM.sql import SQL_manager
 # EZVIZ_CAM PACKAGE END
 config_json = None
+socketio = SocketIO(app)
 
 @app.route('/')
 def hello_world():
@@ -163,6 +166,37 @@ def get_status():
     filename = filename['video_filename']
     print(filename)
 
+@socketio.on('connection')
+def test_connect():
+    print('get connection')
+
+@socketio.on('disconnection')
+def test_disconnect():
+    print('get disconnection')
+
+from dao.ProcessingObject import ProcessingObject,p_type
+import time
+@socketio.on('require_project_status',namespace='/')
+def require_project_status(data):
+    print('received message: ' , data['project_list'])
+
+    progressList = []
+    for i in data['project_list']:
+        progressList.append(ProcessingObject(i,p_type.DOWNLOADING))
+    for i in range(10):
+        for j in range(len(progressList)):
+            progressList[j].progress += 10
+        time.sleep(1)
+        json_list = []
+        for i in progressList:
+            json_list.append(i.to_dict())
+        socketio.emit("project_status",{
+            'msg': json_list,
+            'code': 200
+        })
+
+
+
 # @app.route('/api/run_tracker', methods=['POST', 'GET'])
 # def run_tracker():
 #     resultpath = video_path+"/result/"
@@ -176,4 +210,5 @@ def get_status():
 #         originalcsv = video_path+"/"+video_name+"DLC_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv"
 #         convert_dlc_to_simple_csv(originalcsv,csv_path)
 if __name__ == '__main__':
-    app.run(host='127.0.0.1',port=5001)
+    # app.run(host='127.0.0.1',port=5001)
+    socketio.run(app, host='127.0.0.1', port=5001, debug=True)
