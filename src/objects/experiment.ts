@@ -14,8 +14,10 @@ class ExperiemntObj {
     record_state: boolean;
     tracking_state: boolean;
     detection_state: boolean;
+    tags: Array<String>;
     constructor() {
         this.record_state = false;
+        this.tags = [];
     }
 }
 export default ExperiemntObj

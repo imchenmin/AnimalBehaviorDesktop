@@ -45,6 +45,9 @@ export const useExperimentsStore = defineStore('experiments', () => {
                             let current_exp = docs[0] as ExperiemntObj
                             let capture = await util.promisify(fs.exists)(path.join(config.value.openedProjectList[i], '..', 'video.mkv'))
                             current_exp.record_state = capture
+                            if (!current_exp.tags) {
+                                current_exp.tags = []
+                            }
                             opened_project.value.push(current_exp)
                         } else {
                             console.log("project database load error", config.value.openedProjectList[i])
