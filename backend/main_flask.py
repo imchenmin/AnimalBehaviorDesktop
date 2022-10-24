@@ -1,10 +1,11 @@
 import sys,os
 import deeplabcut
+from serial_manager import btn_record
 #track part
 #sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
 # sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend')
-sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend\\yolov5')
-sys.path.insert(0, 'D:\\zjh\AnimalBehaviorDesktop\\backend')
+sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend\\yolov5')
+sys.path.insert(0, 'D:\\workspace\\AnimalBehaviorDesktop\\backend')
 
 from track_part.track_process import *
 from track_part.draw_result import draw_raw_img
@@ -57,6 +58,7 @@ def load_config():
 
 @app.route('/api/start_record',methods=['POST','GET'])
 def start_record():
+    btn_record()
     filename = json.loads(request.data)
     filename = filename['video_filename']
     filename = filename.replace('\\', '/')
@@ -75,9 +77,9 @@ def start_record():
         os.makedirs(filename + '/top')
     except:
         print('Error in making dir in top' + filename)
-    p0 = Process(target=Transaction_Manager, args=('10.15.12.102', filename + '/back'))
-    p1 = Process(target=Transaction_Manager, args=('10.15.12.103', filename + '/left'))
-    p2 = Process(target=Transaction_Manager, args=('10.15.12.101', filename + '/top'))
+    p0 = Process(target=Transaction_Manager, args=('10.15.12.103', filename + '/back', 1))
+    p1 = Process(target=Transaction_Manager, args=('10.15.12.102', filename + '/left', 1))
+    p2 = Process(target=Transaction_Manager, args=('10.15.12.101', filename + '/top', 9))
 
     p0.start()
     p1.start()
@@ -87,6 +89,25 @@ def start_record():
     
 @app.route('/api/stop_record',methods=['POST','GET'])
 def stop_record():
+    btn_record()
+    filename = json.loads(request.data)
+    filename = filename['video_filename']
+    filename = filename.replace('\\', '/')
+
+    try:
+        os.makedirs(filename + '/back')
+    except:
+        print('Error in making dir in back' + filename)
+    
+    try:
+        os.makedirs(filename + '/left')
+    except:
+        print('Error in making dir in left' + filename)
+    
+    try:
+        os.makedirs(filename + '/top')
+    except:
+        print('Error in making dir in top' + filename)
     sql_mgr = SQL_manager('10.15.12.102')
     sql_mgr.update_record_status(0)
     sql_mgr = SQL_manager('10.15.12.103')
