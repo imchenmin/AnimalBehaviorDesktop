@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<input type="text" id="msg">
+<input type="button" id="send" value="发送">
+<ul id="receive"></ul>
+ 
+<!-- /socket.io/socket.io.js 这个引用路径是固定的，socket.io会自动帮我们解析 -->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    var socket = io.connect('http://localhost:8867');
+ 
+    //连接成功时触发
+    socket.on('connect', function () {
+        console.log('连接成功');
+    });
+ 
+    //连接断开时触发
+    socket.on('disconnect', function () {
+        console.log('连接断开');
+    });
+ 
+    //收到消息时触发
+    socket.on('message', function (data) {
+        var node = document.createElement("li");
+        node.innerHTML = "客户端收到 : " + data;
+        document.querySelector("#receive").appendChild(node);
+    });
+ 
+    document.querySelector("#send").onclick = function () {
+        var msg = document.querySelector("#msg").value;
+        socket.send(msg);
+    };
+</script>
+</body>
+</html>
