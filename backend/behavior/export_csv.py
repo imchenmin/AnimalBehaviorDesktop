@@ -6,8 +6,7 @@ import numpy as np
 import csv
 import sys
 
-if __name__ == '__main__':
-    filename = sys.argv[1]
+def export_csv(filename: str,output_filename: str):
     with h5py.File(filename, "r") as f:
         dset_names = list(f.keys())
         locations = f["tracks"][:].T
@@ -46,7 +45,7 @@ if __name__ == '__main__':
                 temp.append(int(locations[i][j][1][0]))
         res.append(temp)
         
-    with open(filename + '.csv', 'w', newline='') as csvfile:
+    with open(output_filename, 'w', newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow([item for item in cls])
         for m in res:
