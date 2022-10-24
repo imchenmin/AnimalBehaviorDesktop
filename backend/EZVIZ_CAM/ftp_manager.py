@@ -10,7 +10,7 @@ class FTP_Manager:
 
     def openFTPFile(self):
         ftp = FTP()
-        ftp.set_pasv(False)
+        # ftp.set_pasv(False)
         try:
             ftp.connect(self.ip)
         except:
@@ -34,11 +34,11 @@ class FTP_Manager:
     def download_video(self, file_path, server_path, file_name, modify_time):
         ftp = FTP()
         ftp.connect(self.ip)
-        ftp.set_pasv(False)
+        # ftp.set_pasv(False)
         ftp.cwd(self.root)               
         flag = 0
         bufsize = 1024
-        
+
         if not os.path.exists(file_path[:-12]):
             os.mkdir(file_path[:-12])
 
@@ -59,6 +59,7 @@ class FTP_Manager:
         # except:
             # return 0
         ftp.quit()
+       
         return flag
         
         

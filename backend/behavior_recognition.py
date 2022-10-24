@@ -46,7 +46,7 @@ def detect(source, yolo_weights, imgsz, csv_path):
     groom_counter = BehaviorCounter(fps=60, threshold=10, filter_frame=10, type='Groom')
 
     # Load model
-    model = attempt_load(yolo_weights, map_location=device)  # load FP32 model
+    model = attempt_load(yolo_weights, device=device)  # load FP32 model
     stride = int(model.stride.max())  # model stride
     imgsz = check_img_size(imgsz, s=stride)  # check image size
     if half:
@@ -196,5 +196,6 @@ def init(source,output_path):
     
 def start_recognition(filepath):
     print('Recognition Start ' + filepath)
-    Process(target = init, args = (filepath, filepath + "_detection_result.csv")).start()
+    init(filepath, filepath + "_detection_result.csv")
+    print('Recognition FINISH ' + filepath)
     return 'done'
