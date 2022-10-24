@@ -201,7 +201,6 @@ def rat_sleap():
     convert_worker.wait()
     export_csv(h5_file,csv_file)
     return ('done')
-    	
 @app.route('/api/wash_recognition', methods=['POST', 'GET'])
 def wash_recognition():
     filename = json.loads(request.data)
