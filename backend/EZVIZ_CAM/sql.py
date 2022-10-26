@@ -314,17 +314,40 @@ class SQL_manager:
         return flag
 
     def check_nv_status(self, w):
-        conn = sqlite3.connect(self.connection_name)
+        conn = sqlite3.connect('10.15.12.101')
         cour = conn.cursor()
         sql = 'select STATUS from NV_CARD WHERE STATUS = 0'
         cour.execute(sql)
-        flag = True
+        flag1 = False
         cur = int(cour.fetchall()[0][0])
-        if cur + w > 9:
-            flag = False
+        if cur > 0:
+            flag1 = True
         cour.close()
         conn.close()
-        return flag
+
+        conn = sqlite3.connect('10.15.12.102')
+        cour = conn.cursor()
+        sql = 'select STATUS from NV_CARD WHERE STATUS = 0'
+        cour.execute(sql)
+        flag2 = False
+        cur = int(cour.fetchall()[0][0])
+        if cur > 0:
+            flag2 = True
+        cour.close()
+        conn.close()
+
+        conn = sqlite3.connect('10.15.12.103')
+        cour = conn.cursor()
+        sql = 'select STATUS from NV_CARD WHERE STATUS = 0'
+        cour.execute(sql)
+        flag3 = False
+        cur = int(cour.fetchall()[0][0])
+        if cur > 0:
+            flag3 = True
+        cour.close()
+        conn.close()
+
+        return flag1 and flag2 and flag3
     
     def update_nv_status(self, cost):
         conn = sqlite3.connect(self.connection_name)
