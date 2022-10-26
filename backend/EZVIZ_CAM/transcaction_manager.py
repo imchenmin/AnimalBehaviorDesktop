@@ -26,16 +26,17 @@ class Transaction_Manager:
 
         while True:
             if self.sql_mgr.check_record_status() == 0:
-                time.sleep(10)
-                self.schedule_check()
-                while self.sql_mgr.check_running_status(self.full_name):
-                    print('last check')
+                print('last check')
+                while self.sql_mgr.check_downloading_status(self.full_name):
                     time.sleep(10)
-                    self.schedule_check()
-                # self.concat_video()
-                # self.concater()
+                    self.last_check()
+                while self.sql_mgr.check_running_status(self.full_name):
+                    time.sleep(10)
+                    self.last_check()
                 time.sleep(10)
-                self.schedule_check()
+                self.last_check()
+                # self.concat_video() # 拼接视频
+                # self.concater() # 拼接识别csv
                 break
             self.schedule_check()
             time.sleep(30)
@@ -142,6 +143,10 @@ class Transaction_Manager:
         time.sleap(5)
         Process(target=self.check_recog, args=()).start()
 
+    def last_check(self):
+        self.check_download()
+        time.sleap(5)
+        self.check_recog()
     def check_download(self):
         unfetch = self.sql_mgr.get_file_table(self.sql_mgr.check_record_status())
         mgr = FTP_Manager(self.device, self.full_name)
@@ -182,7 +187,7 @@ class Transaction_Manager:
                         csv_path = os.path.join(self.full_name,resultpath,video_name[:-4] + "_part.csv")
                         convert_dlc_to_simple_csv(originalcsv, csv_path)
                     else:
-                        start_recognition(item.file_path)
+                        start_recognition(item.file_path[:-4] + '_crop.mp4')
                     self.sql_mgr.update_status(item.id, EZVIZ_Status.FINISH)
                 except:
                     print('ERROR in recognition')

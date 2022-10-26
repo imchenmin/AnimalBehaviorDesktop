@@ -145,7 +145,45 @@ class SQL_manager:
             cour.close()
             # 关闭连接
         conn.close()
-    
+
+    def check_process_init(self):
+        conn = sqlite3.connect(self.connection_name)
+        cour = conn.cursor()
+        sql = 'select * from PROCESS_FILE_TABLE'
+        cour.execute(sql)
+        for item in cour.fetchall():
+            self.update_status(item[0], EZVIZ_Status.UNFETCHING.value)
+        cour.close()
+        
+        mgr = FTP_Manager(self.ip, self.full_name)
+        ezviz_list = mgr.openFTPFile()
+        for item in ezviz_list:
+            # 创建游标
+            cour = conn.cursor()
+            # 编写sql语句
+            sql = "INSERT INTO PROCESS_FILE_TABLE (FILE_NAME, MODIFY_TIME, STATUS, FILE_PATH, SERVER_PATH, FULL_NAME) SELECT ?, ?, ?, ?, ?, ? WHERE not exists (select * from PROCESS_FILE_TABLE WHERE MODIFY_TIME=? AND SERVER_PATH=?)"
+            # 执行sql语句
+            cour.execute(sql, (item.file_name, str(item.modify_time), int(EZVIZ_Status.UNFETCHING.value), item.file_path, item.server_path, self.full_name, str(item.modify_time), item.server_path))
+            # 关闭游标
+            conn.commit()
+            cour.close()
+            # 关闭连接
+        conn.close()
+
+    def update_process_status(self, id, status):
+        conn = sqlite3.connect(self.connection_name)
+        # 创建游标
+        cour = conn.cursor()
+        # 编写sql语句
+        sql = 'UPDATE PROCESS_FILE_TABLE SET STATUS=? WHERE ID=?'
+        # 执行sql语句
+        cour.execute(sql,(int(status), int(id)))
+        # 关闭游标
+        cour.close()
+        # 关闭连接
+        conn.commit()
+        conn.close()
+
     def update_status(self, id, status):
         conn = sqlite3.connect(self.connection_name)
         # 创建游标
@@ -159,7 +197,7 @@ class SQL_manager:
         # 关闭连接
         conn.commit()
         conn.close()
-
+        
     def get_file_table(self, record_flag):
         mgr = FTP_Manager(self.ip, self.full_name)
         ezviz_list = mgr.openFTPFile()
@@ -254,7 +292,19 @@ class SQL_manager:
     def check_running_status(self, full_name):
         conn = sqlite3.connect(self.connection_name)
         cour = conn.cursor()
-        sql = 'select * from FILE_TABLE WHERE FULL_NAME=? AND (STATUS=2 OR STATUS=3 OR STATUS=4 OR STATUS=5)'
+        sql = 'select * from FILE_TABLE WHERE FULL_NAME=? AND (STATUS=4 OR STATUS=5)'
+        cour.execute(sql,(full_name,))
+        flag = False
+        if len(cour.fetchall()) > 0:
+            flag = True
+        cour.close()
+        conn.close()
+        return flag
+
+    def check_downloading_status(self, full_name):
+        conn = sqlite3.connect(self.connection_name)
+        cour = conn.cursor()
+        sql = 'select * from FILE_TABLE WHERE FULL_NAME=? AND (STATUS=2 OR STATUS=3)'
         cour.execute(sql,(full_name,))
         flag = False
         if len(cour.fetchall()) > 0:
@@ -305,7 +355,7 @@ class SQL_manager:
         conn.commit()
         conn.close()
 
-    def  get_progress(self, path, cur):
+    def get_progress(self, path, cur):
         conn = sqlite3.connect(self.connection_name)
         # 创建游标
         cour = conn.cursor()

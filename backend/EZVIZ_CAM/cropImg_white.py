@@ -3,7 +3,6 @@ import cv2
 import numpy as np
 
 def getCrop(frame, x, y, width, height):
-
     x1 = 0
     y1 = 0
     x2 = 0
@@ -43,7 +42,6 @@ def crop(filename):
     vid_writer = cv2.VideoWriter(filename[:-4]+'_crop.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 60, (320, 320))
     ret, bg = cap.read()
     kernel = np.ones((3, 3), np.uint8)
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 30)
     x=320
     y=320
     roi = [481, 2, 974, 988]
@@ -75,7 +73,7 @@ def crop(filename):
                 (x,y), (a,b) ,angle = cv2.fitEllipse(cnt[max_idx])
             except:
                 print('error')
-            flag, tcrop = getCrop(frame, int(x), int(y), width, height)
+            flag, tcrop = getCrop(frame, int(x), int(y), roi[2], roi[3])
             if flag:
                 crop = tcrop
                 realx = x
@@ -89,12 +87,13 @@ def crop(filename):
             if cv2.waitKey(1) & 0xff == 27:
                 break
     with open(filename[:-4]+'_xy.csv', 'w') as f:
-        f.write(str(x) + ',' + str(y) + '\n')
+        for i in range(len(listx)):
+            f.write(str(listx[i]) + ',' + str(listy[i]) + '\n')
     cap.release()
     cv2.destroyAllWindows()
     vid_writer.release()
 
 
-# crop('C:\\Users\\Administrator\\Desktop\\videos\\EZVZ0051.MP4')
+# crop('D:\\top\\EZVZ0051.MP4')
 # crop('C:\\Users\\Administrator\\Desktop\\videos\\EZVZ0052.MP4')
 # crop('C:\\Users\\Administrator\\Desktop\\videos\\EZVZ0053.MP4')

@@ -27,6 +27,7 @@ from behavior_recognition import start_recognition
 from EZVIZ_CAM.transcaction_manager import Transaction_Manager
 from multiprocessing import Process
 from EZVIZ_CAM.sql import SQL_manager
+from dao.ProcessingObject import ProcessingObject, p_status, p_type
 import time
 # EZVIZ_CAM PACKAGE END
 config_json = None
@@ -199,21 +200,39 @@ def test_disconnect():
 @socketio.on('require_project_status',namespace='/')
 def require_project_status(data):
     print('received message: ' , data['project_list'])
-
     progressList = []
-    for i in data['project_list']:
-        progressList.append(ProcessingObject(i,p_type.DOWNLOADING))
-    for i in range(10):
-        for j in range(len(progressList)):
-            progressList[j].progress += 10
-        time.sleep(10)
-        json_list = []
-        for i in progressList:
-            json_list.append(i.to_dict())
+
+    while True:
+        for item in data['project_list']:
+            cur = time.time()
+            p = 0
+            sql_mgr = SQL_manager('10.15.12.101')
+            p += sql_mgr.get_progress(item, cur)
+            sql_mgr = SQL_manager('10.15.12.102')
+            p += sql_mgr.get_progress(item, cur)
+            sql_mgr = SQL_manager('10.15.12.103')
+            p += sql_mgr.get_progress(item, cur)
+            p /= 3
+            temp = ProcessingObject(item, p_type.ANALYSIS)
+            temp.progress = p
+            progressList.append(temp.to_dict())
+        
         socketio.emit("project_status",{
-            'msg': json_list,
+            'msg': progressList,
             'code': 200
         })
+
+    # for i in range(10):
+    #     for j in range(len(progressList)):
+    #         progressList[j].progress += 10
+    #     time.sleep(10)
+    #     json_list = []
+    #     for i in progressList:
+    #         json_list.append(i.to_dict())
+    #     socketio.emit("project_status",{
+    #         'msg': json_list,
+    #         'code': 200
+    #     })
 
 # @app.route('/api/run_tracker', methods=['POST', 'GET'])
 # def run_tracker():
