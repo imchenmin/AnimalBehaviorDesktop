@@ -62,7 +62,7 @@ def detect(source, yolo_weights, imgsz, csv_path):
         model(torch.zeros(1, 3, imgsz, imgsz).to(device).type_as(next(model.parameters())))  # run once
     frame_idx = 0
 
-    vid_writer = cv2.VideoWriter(csv_path[:-4]+'.mp4', cv2.VideoWriter_fourcc(*'mp4v'), frameps, (1920, 1080))
+    vid_writer = cv2.VideoWriter(csv_path[:-4]+'.mp4', cv2.VideoWriter_fourcc(*'mp4v'), frameps, (320, 320))
     #cv2.namedWindow('res',0)
     #cv2.resizeWindow('res',width=1280,height=360)
     while True:

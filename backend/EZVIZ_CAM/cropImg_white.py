@@ -72,7 +72,8 @@ def crop(filename):
             try:
                 (x,y), (a,b) ,angle = cv2.fitEllipse(cnt[max_idx])
             except:
-                print('error')
+                # print('error')
+                pass
             flag, tcrop = getCrop(frame, int(x), int(y), roi[2], roi[3])
             if flag:
                 crop = tcrop
@@ -82,8 +83,8 @@ def crop(filename):
             listy.append(roi[1] + realy)
 
             vid_writer.write(crop)
-            cv2.imshow('fgmk', mask)
-            cv2.imshow('origin', crop)
+            # cv2.imshow('fgmk', mask)
+            # cv2.imshow('origin', crop)
             if cv2.waitKey(1) & 0xff == 27:
                 break
     with open(filename[:-4]+'_xy.csv', 'w') as f:

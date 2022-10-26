@@ -1,4 +1,6 @@
 # import sqlite3
+from asyncore import write
+from unittest import result
 from certifi import where
 from EZVIZ_CAM.ezviz import EZVIZ_Status
 from EZVIZ_CAM.utils import *
@@ -12,8 +14,10 @@ from multiprocessing import Process,Queue
 import pandas as pd
 from moviepy.editor import concatenate_videoclips,VideoFileClip
 import deeplabcut
+import csv
 from track_part.convert_dlc_to_simple_csv import convert_dlc_to_simple_csv
 from EZVIZ_CAM.cropImg_white import crop
+import cv2
 class Transaction_Manager:
     def __init__(self, device, path='', w=1) -> None:
         self.full_name = path
@@ -35,12 +39,25 @@ class Transaction_Manager:
                     self.last_check()
                 time.sleep(10)
                 self.last_check()
-                # self.concat_video() # 拼接视频
+                if self.full_name.endswith('top'):
+                    self.combine_csv() # 拼接视频
                 # self.concater() # 拼接识别csv
                 break
             self.schedule_check()
             time.sleep(30)
-
+    def combine_csv(self):
+        resultpath = self.full_name
+        csvparts = os.listdir(self.full_name)
+        csvcombined = os.path.join(resultpath + '/result/','video__all.csv')
+        with open(csvcombined,"w",newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            for files in csvparts:
+                if files.endswith('part.csv'):
+                    csvtoreadpath = os.path.join(resultpath,files)
+                    with open(csvtoreadpath,'r') as toread:
+                        read = csv.reader(toread)
+                        for row in read:
+                            writer.writerow(row)
     def stop_record_event(self):
         self.sql_mgr.update_record_status(0)
 
@@ -93,7 +110,39 @@ class Transaction_Manager:
     #     unfetch = self.sql_mgr.get_downloaded_file_table()
     #     for item in unfetch:
     #         print([item.id, item.file_name])
-            
+    def convert_dlc_to_simple_csv(self,originalcsvpath,simplecsvpath,BODY_PART_NUM):
+        #csvpath = str(videoname)+"_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv"
+        raw_data = pd.read_csv(originalcsvpath,skiprows=3,header=None)
+        output = []
+
+        for i in range(BODY_PART_NUM):
+            output.append([(0,0)])
+        
+        for idx,row in raw_data.iterrows():
+            partindex = 0
+            for i in range (1,3*BODY_PART_NUM,3):
+                if pd.isnull(row[i]):
+                    #bodypartlist[(pointer%BODY_PART_NUM)].append((-1,-1))
+                    output[partindex].append(output[partindex][-1])
+                else:
+                    #use threthold 
+                    if row[i+2]<=0.8:
+                        output[partindex].append(output[partindex][-1])    
+                    else:
+                        output[partindex].append((row[i],row[i+1]))
+                partindex = partindex + 1
+                        
+        with open(simplecsvpath,"w",newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            for i in range (len(output[0])):
+                towrite = []
+                for partindex in output:
+                    towrite.append(str(int(partindex[i][0])))
+                    towrite.append(str(int(partindex[i][1])))
+                    #towrite = towrite+","+str(int(partindex[i][0]))+","+str(int(partindex[i][1]))              
+                    #writer.writerow([index[0],index[1]])
+                #towrite = towrite[1:]
+                writer.writerow(towrite)        
 
     def concat_video(self):
         mp4_file = []
@@ -140,12 +189,12 @@ class Transaction_Manager:
 
     def schedule_check(self):
         Process(target=self.check_download, args=()).start()
-        time.sleap(5)
+        time.sleep(5)
         Process(target=self.check_recog, args=()).start()
 
     def last_check(self):
         self.check_download()
-        time.sleap(5)
+        time.sleep(5)
         self.check_recog()
     def check_download(self):
         unfetch = self.sql_mgr.get_file_table(self.sql_mgr.check_record_status())
@@ -172,26 +221,50 @@ class Transaction_Manager:
                 crop(item.file_path)
                 self.sql_mgr.update_nv_status(self.w)
                 self.sql_mgr.update_status(item.id, EZVIZ_Status.RUNNING)
-                try:
-                    if self.full_name.endswith('top'):
-                        video_path = item.file_path[:-4] + '_crop.mp4'
-                        video_name = item.file_name[:-4] + '_crop.mp4'
-                        resultpath = self.full_name+'/result'
-                        print(['video_path:',video_path,'video_name:',video_name,'resultpath:',resultpath,])
-                        if not os.path.exists(resultpath):
-                            os.mkdir(resultpath)
-                        print(['top', self.full_name])
-                        deeplabcut.analyze_videos(config="C:/Users/Administrator/Desktop/whitemouse1024-sbx-2022-10-24/config.yaml",videos=[video_path],destfolder=self.full_name,save_as_csv=True,n_tracks=1)
-                        deeplabcut.analyze_videos_converth5_to_csv(self.full_name)  
-                        originalcsv = self.full_name+video_name[-4]+"DLC_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv"
-                        csv_path = os.path.join(self.full_name,resultpath,video_name[:-4] + "_part.csv")
-                        convert_dlc_to_simple_csv(originalcsv, csv_path)
-                    else:
-                        start_recognition(item.file_path[:-4] + '_crop.mp4')
-                    self.sql_mgr.update_status(item.id, EZVIZ_Status.FINISH)
-                except:
-                    print('ERROR in recognition')
-                finally:
-                    self.sql_mgr.update_nv_status(-self.w)
+                # try:
+                if self.full_name.endswith('top'):
+                    video_path = item.file_path[:-4] + '_crop.mp4'
+                    video_name = item.file_name[:-4] + '_crop.mp4'
+                    resultpath = self.full_name+'/result/'
+                    print(['video_path:',video_path,'video_name:',video_name,'resultpath:',resultpath,])
+                    if not os.path.exists(resultpath):
+                        os.mkdir(resultpath)
+                    print(['top', self.full_name])
+                    deeplabcut.analyze_videos(config="C:/Users/Administrator/Desktop/whitemouse1024-sbx-2022-10-24/config.yaml",videos=[video_path],destfolder=self.full_name,save_as_csv=True,n_tracks=1)
+                    # deeplabcut.analyze_videos_converth5_to_csv(self.full_name)  
+                    originalcsv = os.path.join(self.full_name,video_name[:-4]+"DLC_resnet50_whitemouse1024Oct24shuffle1_60000.csv")
+                    csv_path = os.path.join(self.full_name,video_name[:-4] + "_partbeforeplus.csv")
+                    xycsvpath = os.path.join(self.full_name,item.file_name[:-4] + "_xy.csv")
+                    print("convert")
+                    self.convert_dlc_to_simple_csv(originalcsv, csv_path,4)
+                    print("convertover")
+                    cap = cv2.VideoCapture(video_path)
+                    len_frames = int(cap.get(7))
+                    contentinxycsv = []
+                    contentindlccsv = []
+                    with open (xycsvpath) as xycsv:
+                        read1 = csv.reader(xycsv)
+                        for line in read1:
+                            contentinxycsv.append(line)
+                    with open (csv_path) as dlcsimplecsv:
+                        read2 = csv.reader(dlcsimplecsv)
+                        for line in read2:
+                            contentindlccsv.append(line)
+                    contentindlccsv = contentindlccsv[1:]
+                    with open(os.path.join(self.full_name,video_name[:-4] + "_part.csv"),'w',newline='') as csvfile:
+                        writer = csv.writer(csvfile)    
+                        for i in range(len(contentinxycsv)):
+                            towrite = []
+                            for j in range(0,8,2):
+                                towrite.append(int(float(contentindlccsv[i][j])+float(contentinxycsv[i][0])))
+                                towrite.append(int(float(contentindlccsv[i][j+1])+float(contentinxycsv[i][1])))
+                            writer.writerow(towrite)
+                # else:
+                #     start_recognition(item.file_path[:-4] + '_crop.mp4')
+                self.sql_mgr.update_status(item.id, EZVIZ_Status.FINISH)
+                # except:
+                #     print('ERROR in recognition')
+                # finally:
+                self.sql_mgr.update_nv_status(-self.w)
                 self.process_queue.get()
                 print('finish reco')    

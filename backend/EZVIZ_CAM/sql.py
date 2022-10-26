@@ -41,17 +41,17 @@ class SQL_manager:
                                     "END" VARCHAR(255) NOT NULL,
                                     PRIMARY KEY("ID" AUTOINCREMENT)
                                 )'''
-        self.sql_create_PROCESS_FILE_TABLE = ''''CREATE TABLE "PROCESS_FILE_TABLE" (
-                                        "ID"	INTEGER NOT NULL UNIQUE,
-                                        "FILE_NAME"	VARCHAR(255) NOT NULL,
-                                        "MODIFY_TIME"	DATETIME NOT NULL,
-                                        "STATUS"	INT NOT NULL,
-                                        "FILE_PATH"	VARCHAR(255) NOT NULL,
-                                        "SERVER_PATH"	VARCHAR(255) NOT NULL,
-                                        "FULL_NAME"	INTEGER NOT NULL,
-                                        FOREIGN KEY("STATUS") REFERENCES "STATUS"("ID"),
-                                        PRIMARY KEY("ID" AUTOINCREMENT)
-                                    )'''    
+        # self.sql_create_PROCESS_FILE_TABLE = ''''CREATE TABLE "PROCESS_FILE_TABLE" (
+        #                                 "ID"	INTEGER NOT NULL UNIQUE,
+        #                                 "FILE_NAME"	VARCHAR(255) NOT NULL,
+        #                                 "MODIFY_TIME"	DATETIME NOT NULL,
+        #                                 "STATUS"	INT NOT NULL,
+        #                                 "FILE_PATH"	VARCHAR(255) NOT NULL,
+        #                                 "SERVER_PATH"	VARCHAR(255) NOT NULL,
+        #                                 "FULL_NAME"	INTEGER NOT NULL,
+        #                                 FOREIGN KEY("STATUS") REFERENCES "STATUS"("ID"),
+        #                                 PRIMARY KEY("ID" AUTOINCREMENT)
+        #                             )'''    
         self.connection_name = ip + '.db'
         self.ip = ip
         self.full_name = full_name
@@ -117,7 +117,7 @@ class SQL_manager:
         cour.execute(self.sql_create_RECORD)
         cour.execute(self.sql_create_NV_CARD)
         cour.execute(self.sql_create_PROGRESS)
-        cour.execute(self.sql_create_PROCESS_FILE_TABLE)
+        # cour.execute(self.sql_create_PROCESS_FILE_TABLE)
         cour.close()
         conn.commit()
         conn.close()
@@ -146,43 +146,43 @@ class SQL_manager:
             # 关闭连接
         conn.close()
 
-    def check_process_init(self):
-        conn = sqlite3.connect(self.connection_name)
-        cour = conn.cursor()
-        sql = 'select * from PROCESS_FILE_TABLE'
-        cour.execute(sql)
-        for item in cour.fetchall():
-            self.update_status(item[0], EZVIZ_Status.UNFETCHING.value)
-        cour.close()
+    # def check_process_init(self):
+    #     conn = sqlite3.connect(self.connection_name)
+    #     cour = conn.cursor()
+    #     sql = 'select * from PROCESS_FILE_TABLE'
+    #     cour.execute(sql)
+    #     for item in cour.fetchall():
+    #         self.update_status(item[0], EZVIZ_Status.UNFETCHING.value)
+    #     cour.close()
         
-        mgr = FTP_Manager(self.ip, self.full_name)
-        ezviz_list = mgr.openFTPFile()
-        for item in ezviz_list:
-            # 创建游标
-            cour = conn.cursor()
-            # 编写sql语句
-            sql = "INSERT INTO PROCESS_FILE_TABLE (FILE_NAME, MODIFY_TIME, STATUS, FILE_PATH, SERVER_PATH, FULL_NAME) SELECT ?, ?, ?, ?, ?, ? WHERE not exists (select * from PROCESS_FILE_TABLE WHERE MODIFY_TIME=? AND SERVER_PATH=?)"
-            # 执行sql语句
-            cour.execute(sql, (item.file_name, str(item.modify_time), int(EZVIZ_Status.UNFETCHING.value), item.file_path, item.server_path, self.full_name, str(item.modify_time), item.server_path))
-            # 关闭游标
-            conn.commit()
-            cour.close()
-            # 关闭连接
-        conn.close()
+    #     mgr = FTP_Manager(self.ip, self.full_name)
+    #     ezviz_list = mgr.openFTPFile()
+    #     for item in ezviz_list:
+    #         # 创建游标
+    #         cour = conn.cursor()
+    #         # 编写sql语句
+    #         sql = "INSERT INTO PROCESS_FILE_TABLE (FILE_NAME, MODIFY_TIME, STATUS, FILE_PATH, SERVER_PATH, FULL_NAME) SELECT ?, ?, ?, ?, ?, ? WHERE not exists (select * from PROCESS_FILE_TABLE WHERE MODIFY_TIME=? AND SERVER_PATH=?)"
+    #         # 执行sql语句
+    #         cour.execute(sql, (item.file_name, str(item.modify_time), int(EZVIZ_Status.UNFETCHING.value), item.file_path, item.server_path, self.full_name, str(item.modify_time), item.server_path))
+    #         # 关闭游标
+    #         conn.commit()
+    #         cour.close()
+    #         # 关闭连接
+    #     conn.close()
 
-    def update_process_status(self, id, status):
-        conn = sqlite3.connect(self.connection_name)
-        # 创建游标
-        cour = conn.cursor()
-        # 编写sql语句
-        sql = 'UPDATE PROCESS_FILE_TABLE SET STATUS=? WHERE ID=?'
-        # 执行sql语句
-        cour.execute(sql,(int(status), int(id)))
-        # 关闭游标
-        cour.close()
-        # 关闭连接
-        conn.commit()
-        conn.close()
+    # def update_process_status(self, id, status):
+    #     conn = sqlite3.connect(self.connection_name)
+    #     # 创建游标
+    #     cour = conn.cursor()
+    #     # 编写sql语句
+    #     sql = 'UPDATE PROCESS_FILE_TABLE SET STATUS=? WHERE ID=?'
+    #     # 执行sql语句
+    #     cour.execute(sql,(int(status), int(id)))
+    #     # 关闭游标
+    #     cour.close()
+    #     # 关闭连接
+    #     conn.commit()
+    #     conn.close()
 
     def update_status(self, id, status):
         conn = sqlite3.connect(self.connection_name)
@@ -361,15 +361,13 @@ class SQL_manager:
         cour = conn.cursor()
         sql = 'select * from PROGRESS'
         cour.execute(sql)
-        progressList = []
-
+        progress = 0
         for item in cour.fetchall():
             path = item[1]
             start = item[2]
             end = item[3]
-            temp = ProcessingObject(path, p_type.ANALYSIS)
-            temp.progress = ((cur - start) / (end - start)) * 100
-            if temp.progress >= 100:
+            progress = ((cur - start) / (end - start)) * 100
+            if progress >= 100:
                 sql = 'select COUNT(*) from FILE_TABLE WHERE FULL_NAME=?'
                 cour.execute(sql, (path,))
                 count_total = int(cour.fetchall()[0])
@@ -377,14 +375,13 @@ class SQL_manager:
                 cour.execute(sql, (path,))
                 complete_total = int(cour.fetchall()[0])
                 if count_total != complete_total:
-                    temp.progress = 99
-            progressList.append(temp)
+                    progress = 99
 
         # 关闭游标
         cour.close()
         # 关闭连接
         conn.close()
-        return progressList
+        return progress
 
     def get_waitingruning(self):
         conn = sqlite3.connect(self.connection_name)
