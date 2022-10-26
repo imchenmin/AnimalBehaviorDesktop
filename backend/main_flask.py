@@ -201,21 +201,19 @@ def require_project_status(data):
     print('received message: ' , data['project_list'])
 
     progressList = []
-    # for i in data['project_list']:
-    #     progressList.append(ProcessingObject(i,p_type.DOWNLOADING))
-    # for i in range(10):
-    #     for j in range(len(progressList)):
-    #         progressList[j].progress += 10
-    #     time.sleep(10)
-    #     json_list = []
-    #     for i in progressList:
-    #         json_list.append(i.to_dict())
-    #     socketio.emit("project_status",{
-    #         'msg': json_list,
-    #         'code': 200
-    #     })
-
-
+    for i in data['project_list']:
+        progressList.append(ProcessingObject(i,p_type.DOWNLOADING))
+    for i in range(10):
+        for j in range(len(progressList)):
+            progressList[j].progress += 10
+        time.sleep(10)
+        json_list = []
+        for i in progressList:
+            json_list.append(i.to_dict())
+        socketio.emit("project_status",{
+            'msg': json_list,
+            'code': 200
+        })
 
 # @app.route('/api/run_tracker', methods=['POST', 'GET'])
 # def run_tracker():
@@ -229,6 +227,7 @@ def require_project_status(data):
 #         deeplabcut.analyze_videos_converth5_to_csv(video_path,'.mkv')  
 #         originalcsv = video_path+"/"+video_name+"DLC_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv"
 #         convert_dlc_to_simple_csv(originalcsv,csv_path)
+
 if __name__ == '__main__':
     # app.run(host='127.0.0.1',port=5001)
     socketio.run(app, host='127.0.0.1', port=5001, debug=True)

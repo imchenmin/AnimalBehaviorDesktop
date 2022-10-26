@@ -41,6 +41,17 @@ class SQL_manager:
                                     "END" VARCHAR(255) NOT NULL,
                                     PRIMARY KEY("ID" AUTOINCREMENT)
                                 )'''
+        self.sql_create_PROCESS_FILE_TABLE = ''''CREATE TABLE "PROCESS_FILE_TABLE" (
+                                        "ID"	INTEGER NOT NULL UNIQUE,
+                                        "FILE_NAME"	VARCHAR(255) NOT NULL,
+                                        "MODIFY_TIME"	DATETIME NOT NULL,
+                                        "STATUS"	INT NOT NULL,
+                                        "FILE_PATH"	VARCHAR(255) NOT NULL,
+                                        "SERVER_PATH"	VARCHAR(255) NOT NULL,
+                                        "FULL_NAME"	INTEGER NOT NULL,
+                                        FOREIGN KEY("STATUS") REFERENCES "STATUS"("ID"),
+                                        PRIMARY KEY("ID" AUTOINCREMENT)
+                                    )'''    
         self.connection_name = ip + '.db'
         self.ip = ip
         self.full_name = full_name
@@ -53,7 +64,7 @@ class SQL_manager:
             self.check_init()
             self.init_record()
             self.init_nv_card()
-            self.init_progress()
+            # self.init_progress()
         else:
             pass            
             
@@ -106,6 +117,7 @@ class SQL_manager:
         cour.execute(self.sql_create_RECORD)
         cour.execute(self.sql_create_NV_CARD)
         cour.execute(self.sql_create_PROGRESS)
+        cour.execute(self.sql_create_PROCESS_FILE_TABLE)
         cour.close()
         conn.commit()
         conn.close()
@@ -116,14 +128,11 @@ class SQL_manager:
         sql = 'select * from FILE_TABLE'
         cour.execute(sql)
         for item in cour.fetchall():
-            print(item[0], EZVIZ_Status.UNFETCHING)
             self.update_status(item[0], EZVIZ_Status.UNFETCHING.value)
         cour.close()
         
         mgr = FTP_Manager(self.ip, self.full_name)
         ezviz_list = mgr.openFTPFile()
-        # for item in ezviz_list:
-        #     print(item.file_name, item.modify_time)
         for item in ezviz_list:
             # 创建游标
             cour = conn.cursor()
@@ -154,10 +163,8 @@ class SQL_manager:
     def get_file_table(self, record_flag):
         mgr = FTP_Manager(self.ip, self.full_name)
         ezviz_list = mgr.openFTPFile()
-        print(self.ip, record_flag, [item.file_name for item in ezviz_list])
         if record_flag:
             ezviz_list = ezviz_list[:-1]
-        print(self.ip, record_flag, [item.file_name for item in ezviz_list])
         conn = sqlite3.connect(self.connection_name)
         for item in ezviz_list:
             # 创建游标
@@ -212,7 +219,6 @@ class SQL_manager:
         cour.execute(sql,(int(id),))
         # 打印查询结果
         res = cour.fetchall()
-        print([self.connection_name, sql, id, res])
         # 关闭游标
         cour.close()
         # 关闭连接
@@ -245,11 +251,11 @@ class SQL_manager:
         conn.close()
         return flag
 
-    def check_running_status(self):
+    def check_running_status(self, full_name):
         conn = sqlite3.connect(self.connection_name)
         cour = conn.cursor()
-        sql = 'select * from FILE_TABLE WHERE STATUS=5 OR STATUS=2 OR STATUS=3 OR STATUS=4'
-        cour.execute(sql)
+        sql = 'select * from FILE_TABLE WHERE FULL_NAME=? AND (STATUS=2 OR STATUS=3 OR STATUS=4 OR STATUS=5)'
+        cour.execute(sql,(full_name,))
         flag = False
         if len(cour.fetchall()) > 0:
             flag = True

@@ -105,7 +105,8 @@
                 s = s<10?'0'+s:s
                 return h+':'+m+':'+s
             } 
-            ipcRenderer.send('playVideoFromFile', path.join(__this.current_exp.folder_path, 'video.mkv'), path.join(__this.current_exp.folder_path, 'video1.mkv'));
+            ipcRenderer.send('playVideoFromFile', path.join(__this.current_exp.folder_path, '\\top\\topvideotoshow.MP4'));
+            console.log(path.join(__this.current_exp.folder_path, '\\top\\topvideotoshow.MP4'));
             ipcRenderer.on('videoServerReady', (event, message) => {
                 console.log(message, "message")
                 let videoOptionsTop = {

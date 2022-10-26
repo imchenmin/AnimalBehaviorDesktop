@@ -2,8 +2,8 @@
     <step-control :_id="current_exp._id" :active="1"></step-control>
     <el-button type="primary" @click="run_preview" v-if="cameraflag">打开相机</el-button>
     <el-button type="primary" @click="stop_preview" v-else>关闭相机</el-button>
-    <!--    <el-button type="primary" @click="handleStart" v-if="!cameraflag && recordflag">开始录制</el-button>-->
-    <!--    <el-button type="primary" @click="handleStop" v-if="!cameraflag && ! recordflag">关闭录制</el-button>-->
+    <el-button type="primary" @click="handleStart" v-if="!cameraflag && recordflag">开始录制</el-button>
+    <el-button type="primary" @click="handleStop" v-if="!cameraflag && ! recordflag">关闭录制</el-button>
     <div v-show="!cameraflag">
         <!-- 默认考虑4个摄像头的布局 -->
 
