@@ -80,7 +80,9 @@ function rtspRequestHandle(ws, req) {
 function onVideoFileSeleted(videoFilePath) {
   videoSupport(videoFilePath)
     .then((checkResult) => {
-      if (!checkResult.videoCodecSupport) {
+      console.log(checkResult);
+      
+      if (checkResult.videoCodecSupport) {
         if (!videoServer) {
           videoServer = new VideoServer();
         } else {
