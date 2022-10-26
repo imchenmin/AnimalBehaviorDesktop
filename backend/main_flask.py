@@ -124,16 +124,16 @@ def stop_record():
 def execute():
     data = json.loads(request.data)
     argvs = data['argvs']
-    #print(argvs)
+    print(argvs)
     namelist = []
     polylist = []
     video_width = argvs[0]
     video_height = argvs[1]
-    video_path = argvs[-3]
+    video_path = argvs[-3]+'/top'
     video_name = argvs[-2]
     check_out_list = argvs[-1]
     rect_num = int(argvs[2])
-    resize = 1.6 #尺寸映射
+    resize = 2.4 #尺寸映射
     video_width = int(video_width*resize)
     video_height = int(video_height*resize)
     for i in range (3,3+rect_num):
@@ -156,22 +156,22 @@ def execute():
     print(namelist)
     print(polylist)
     resultpath = video_path+"/result/"
-    csv_path = resultpath+video_name+".csv"
+    csv_path = resultpath+'video__all.csv'
     #videopath = video.mp4's path
     #videoname = video
     #video_path = "C:\\Users\\Sun\\Desktop\\maze\\eight_maze_short_demo.mp4"
-    if not os.path.exists(resultpath):
-        os.mkdir(resultpath)
-    if not os.path.exists(csv_path):
-        originalvideopath = video_path+"/"+video_name+".mkv"
-        deeplabcut.analyze_videos(config="D:/workspace/DLC/config.yaml",videos=[originalvideopath],destfolder=video_path,save_as_csv=True,n_tracks=1)
-        deeplabcut.analyze_videos_converth5_to_csv(video_path,'.mkv')  
-        originalcsv = video_path+"/"+video_name+"DLC_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv"
-        convert_dlc_to_simple_csv(originalcsv,csv_path)
+    # if not os.path.exists(resultpath):
+    #     os.mkdir(resultpath)
+    # if not os.path.exists(csv_path):
+    #     originalvideopath = video_path+"/"+video_name+".mkv"
+    #     deeplabcut.analyze_videos(config="D:/workspace/DLC/config.yaml",videos=[originalvideopath],destfolder=video_path,save_as_csv=True,n_tracks=1)
+    #     deeplabcut.analyze_videos_converth5_to_csv(video_path,'.mkv')  
+    #     originalcsv = video_path+"/"+video_name+"DLC_dlcrnetms5_MOT_NEWJul27shuffle1_50000_el.csv"
+    #     convert_dlc_to_simple_csv(originalcsv,csv_path)
     draw_raw_img(namelist,polylist,video_width,video_height,video_name,resultpath)
     draw_heat_main(csv_path,video_height,video_width,video_name,resultpath)
-    isPoiWithinPoly(csv_path,polylist,namelist,video_name,video_path,resultpath)
-    output_video_part(video_path,video_name,polylist,namelist,resultpath,check_out_list)
+    isPoiWithinPoly(csv_path,polylist,namelist,video_name,video_path,resultpath,check_out_list)
+    #output_video_part(video_path,video_name,polylist,namelist,resultpath,check_out_list)
     #output_video(video_path,video_name,polylist,namelist,resultpath)
     return ('done')
 	
