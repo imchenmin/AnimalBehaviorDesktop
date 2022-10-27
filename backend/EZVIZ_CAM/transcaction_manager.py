@@ -17,6 +17,7 @@ import deeplabcut
 import csv
 from EZVIZ_CAM.cropImg_white import crop
 import cv2
+
 class Transaction_Manager:
     def __init__(self, device, path='', w=1) -> None:
         self.full_name = path
@@ -26,23 +27,38 @@ class Transaction_Manager:
         self.process_queue = Queue()
         self.download_queue = Queue()
         self.w = w
+        self.sql_mgr.create_progress()
 
         while True:
             if self.sql_mgr.check_record_status() == 0:
                 print('last check')
                 time.sleep(10)
                 while self.sql_mgr.check_downloading_status(self.full_name):
+                    time.sleep(20)
                     self.last_check()
-                    time.sleep(10)
                 while self.sql_mgr.check_running_status(self.full_name):
+                    time.sleep(20)
                     self.last_check()
-                    time.sleep(10)
+                time.sleep(20)
                 self.last_check()
                 if self.full_name.endswith('top'):
                     self.combine_csv() # 拼接视频
                 else:
-                    self.concater() # 拼接识别csv
-                self.concat_video()
+                    try:
+                        self.concater() # 拼接识别csv
+                    except:
+                        print('Error in concat csv left back')
+                try:
+                    self.concat_video()
+                except:
+                    print('Error in concat video')
+                fake_filename = self.full_name
+                if self.full_name.endswith('top'):
+                    fake_filename = fake_filename[:-3]
+                else:
+                    fake_filename = fake_filename[:-4]
+                with open(fake_filename + 'video.mkv', 'w') as f:
+                    f.write('fake')
                 break
             self.schedule_check()
             time.sleep(30)
@@ -122,7 +138,7 @@ class Transaction_Manager:
         timer = 0
         dfs = []
         for csv_file in csv_files:
-            if csv_file.endswith('.csv'):
+            if csv_file.endswith('_crop.csv'):
                 file_path = os.path.join(self.full_name, csv_file)
                 print(file_path + 'reader concat.')
                 df = pd.read_csv(file_path)
@@ -158,6 +174,7 @@ class Transaction_Manager:
                 self.sql_mgr.update_status(item.id, EZVIZ_Status.DOWNLOADING.value)
                 print('start download ' + item.file_name)
                 self.download_queue.put(1)
+                self.sql_mgr.update_progress()
                 flag = mgr.download_video(item.file_path, item.server_path, item.file_name, item.modify_time)
                 self.download_queue.get()
                 if flag == 1:

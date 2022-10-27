@@ -2,12 +2,9 @@ import sqlite3
 import os
 from EZVIZ_CAM.ezviz import EZVIZ_Status, EZVIZ
 from EZVIZ_CAM.ftp_manager import FTP_Manager
-
-from dao.ProcessingObject import ProcessingObject,p_type
 import time
-
 class SQL_manager:
-    def __init__(self, ip, full_name=""):
+    def __init__(self, ip, full_name="", only_query=False):
         self.sql_create_FILE_TABLE = '''CREATE TABLE "FILE_TABLE" (
                                         "ID"	INTEGER NOT NULL UNIQUE,
                                         "FILE_NAME"	VARCHAR(255) NOT NULL,
@@ -56,17 +53,18 @@ class SQL_manager:
         self.ip = ip
         self.full_name = full_name
 
-        if not os.path.exists(self.connection_name):
-            self.create_database()
-            self.init_status()
+        if not only_query:
+            if not os.path.exists(self.connection_name):
+                self.create_database()
+                self.init_status()
 
-        if full_name != "":
-            self.check_init()
-            self.init_record()
-            self.init_nv_card()
-            # self.init_progress()
-        else:
-            pass            
+            if full_name != "":
+                self.check_init()
+                self.init_record()
+                self.init_nv_card()
+                # self.init_progress()
+            else:
+                pass            
             
     def init_status(self):
         sqls = ['''INSERT INTO "main"."STATUS" ("TYPE") VALUES ('UNFETECH')''',
@@ -125,8 +123,8 @@ class SQL_manager:
     def check_init(self):
         conn = sqlite3.connect(self.connection_name)
         cour = conn.cursor()
-        sql = 'select * from FILE_TABLE'
-        cour.execute(sql)
+        sql = 'select * from FILE_TABLE WHERE FULL_NAME=?'
+        cour.execute(sql, (self.full_name,))
         for item in cour.fetchall():
             self.update_status(item[0], EZVIZ_Status.UNFETCHING.value)
         cour.close()
@@ -203,6 +201,7 @@ class SQL_manager:
         ezviz_list = mgr.openFTPFile()
         if record_flag:
             ezviz_list = ezviz_list[:-1]
+        print([(item.file_name, item.full_name, 'to fetch') for item in ezviz_list])
         conn = sqlite3.connect(self.connection_name)
         for item in ezviz_list:
             # 创建游标
@@ -225,6 +224,7 @@ class SQL_manager:
             temp.status = item[3]
             temp.full_name = self.full_name
             res.append(temp)
+            print(item[2], 'to download', temp.full_name)
         conn.commit()
         cour.close()
         conn.close()
@@ -314,34 +314,46 @@ class SQL_manager:
         return flag
 
     def check_nv_status(self, w):
-        conn = sqlite3.connect('10.15.12.101')
+        conn = sqlite3.connect('10.15.12.101.db')
         cour = conn.cursor()
-        sql = 'select STATUS from NV_CARD WHERE STATUS = 0'
-        cour.execute(sql)
+        sql = 'select STATUS from FILE_TABLE WHERE STATUS = 5 AND FULL_NAME=?'
+        cour.execute(sql, (self.full_name,))
         flag1 = False
-        cur = int(cour.fetchall()[0][0])
+        try:
+            cur = len(cour.fetchall())
+        except:
+            print('no')
+            pass
         if cur > 0:
             flag1 = True
         cour.close()
         conn.close()
 
-        conn = sqlite3.connect('10.15.12.102')
+        conn = sqlite3.connect('10.15.12.102.db')
         cour = conn.cursor()
-        sql = 'select STATUS from NV_CARD WHERE STATUS = 0'
-        cour.execute(sql)
+        sql = 'select STATUS from FILE_TABLE WHERE STATUS = 5 AND FULL_NAME=?'
+        cour.execute(sql, (self.full_name,))
         flag2 = False
-        cur = int(cour.fetchall()[0][0])
+        try:
+            cur = len(cour.fetchall())
+        except:
+            print('no')
+            pass
         if cur > 0:
             flag2 = True
         cour.close()
         conn.close()
 
-        conn = sqlite3.connect('10.15.12.103')
+        conn = sqlite3.connect('10.15.12.103.db')
         cour = conn.cursor()
-        sql = 'select STATUS from NV_CARD WHERE STATUS = 0'
-        cour.execute(sql)
+        sql = 'select STATUS from FILE_TABLE WHERE STATUS = 5 AND FULL_NAME=?'
+        cour.execute(sql, (self.full_name,))
         flag3 = False
-        cur = int(cour.fetchall()[0][0])
+        try:
+            cur = len(cour.fetchall())
+        except:
+            print('no')
+            pass
         if cur > 0:
             flag3 = True
         cour.close()
@@ -377,6 +389,36 @@ class SQL_manager:
         # 关闭连接
         conn.commit()
         conn.close()
+    
+    def create_progress(self):
+        conn = sqlite3.connect(self.connection_name)
+        start = time.time()
+        end = start + 300
+        # 创建游标
+        cour = conn.cursor()
+        sql = "INSERT INTO PROGRESS (PATH, START, END) VALUES(?,?,?)"
+        cour.execute(sql, (self.full_name, start, end,))
+       # 关闭游标
+        cour.close()
+        # 关闭连接
+        conn.commit()
+        conn.close()
+
+    def update_progress(self):
+        conn = sqlite3.connect(self.connection_name)
+        cour = conn.cursor()
+        sql = 'select END from PROGRESS WHERE PATH=?'
+        cour.execute(sql, (self.full_name,))
+        end = float(cour.fetchall()[0][0])
+        end = end + 300
+        # 创建游标
+        sql = "UPDATE PROGRESS SET END=? WHERE PATH=?"
+        cour.execute(sql, (end, self.full_name,))
+           # 关闭游标
+        cour.close()
+        # 关闭连接
+        conn.commit()
+        conn.close()
 
     def get_progress(self, path, cur):
         conn = sqlite3.connect(self.connection_name)
@@ -389,14 +431,14 @@ class SQL_manager:
             path = item[1]
             start = item[2]
             end = item[3]
-            progress = ((cur - start) / (end - start)) * 100
+            progress = ((float(cur) - float(start)) / (float(end) - float(start))) * 100
             if progress >= 100:
                 sql = 'select COUNT(*) from FILE_TABLE WHERE FULL_NAME=?'
                 cour.execute(sql, (path,))
-                count_total = int(cour.fetchall()[0])
+                count_total = int(cour.fetchall()[0][0])
                 sql = 'select COUNT(*) from FILE_TABLE WHERE FULL_NAME=? AND STATUS=6'
                 cour.execute(sql, (path,))
-                complete_total = int(cour.fetchall()[0])
+                complete_total = int(cour.fetchall()[0][0])
                 if count_total != complete_total:
                     progress = 99
 

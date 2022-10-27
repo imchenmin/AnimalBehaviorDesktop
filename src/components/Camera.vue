@@ -13,26 +13,19 @@
             <video :ref="setVideoRef" :key="camera.alternativeName" muted autoplay></video>
         </div> -->
         <el-row>
-        <el-col :span="12" v-if="cameraList[0]">
-            <p>{{cameraList[0].name}}</p>
-            <video :ref="setVideoRef" :key="cameraList[0].alternativeName" muted autoplay></video>
-        </el-col>
-        <el-col :span="12" v-if="cameraList[1]">
-            <p>{{cameraList[1].name}}</p>
-            <video :ref="setVideoRef" :key="cameraList[1].alternativeName" muted autoplay></video>
-        </el-col>
-    </el-row>
-    <el-row v-if="cameraList.length>2">
-        <el-col :span="12" v-if="cameraList[2]">
-            <p>{{cameraList[0].name}}</p>
-            <video :ref="setVideoRef" :key="cameraList[2].alternativeName" muted autoplay></video>
-        </el-col>
-        <el-col :span="12" v-if="cameraList[3]">
-            <p>{{cameraList[1].name}}</p>
-            <video :ref="setVideoRef" :key="cameraList[3].alternativeName" muted autoplay></video>
-        </el-col>
-    </el-row>
-
+            <el-col :span="8" v-if="cameraList[0]">
+                <p>{{cameraList[0].name}}</p>
+                <video :ref="setVideoRef" :key="cameraList[0].alternativeName" muted autoplay></video>
+            </el-col>
+            <el-col :span="8" v-if="cameraList[1]">
+                <p>{{cameraList[1].name}}</p>
+                <video :ref="setVideoRef" :key="cameraList[1].alternativeName" muted autoplay></video>
+            </el-col>
+            <el-col :span="8" v-if="cameraList[2]">
+                <p>{{cameraList[2].name}}</p>
+                <video :ref="setVideoRef" :key="cameraList[2].alternativeName" muted autoplay></video>
+            </el-col>
+        </el-row>
     </div>
 
 

@@ -8,7 +8,7 @@
         <el-button size="large"><el-icon><Bell /></el-icon></el-button>
     </template>
     <div>
-        <el-button @click="sentHello">测试进度条</el-button>
+        <el-button @click="sentHello">查询进度条</el-button>
     </div>
     <div  v-for="project in ProgressList">
         <el-progress

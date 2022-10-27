@@ -113,11 +113,12 @@ def stop_record():
         os.makedirs(filename + '/top')
     except:
         print('Error in making dir in top' + filename)
-    sql_mgr = SQL_manager('10.15.12.102')
-    sql_mgr.update_record_status(0)
+
     sql_mgr = SQL_manager('10.15.12.103')
     sql_mgr.update_record_status(0)
     sql_mgr = SQL_manager('10.15.12.101')
+    sql_mgr.update_record_status(0)
+    sql_mgr = SQL_manager('10.15.12.102')
     sql_mgr.update_record_status(0)
     return 'Done'
 
@@ -197,22 +198,24 @@ def test_connect():
 def test_disconnect():
     print('get disconnection')
 
+
+
 @socketio.on('require_project_status',namespace='/')
 def require_project_status(data):
     print('received message: ' , data['project_list'])
     progressList = []
-
+    p = 0
     while True:
         for item in data['project_list']:
             cur = time.time()
-            p = 0
-            sql_mgr = SQL_manager('10.15.12.101')
-            p += sql_mgr.get_progress(item, cur)
-            sql_mgr = SQL_manager('10.15.12.102')
-            p += sql_mgr.get_progress(item, cur)
-            sql_mgr = SQL_manager('10.15.12.103')
-            p += sql_mgr.get_progress(item, cur)
-            p /= 3
+            item = item[:-13]
+            sql_mgr1 = SQL_manager('10.15.12.101', only_query=True)
+            sql_mgr2 = SQL_manager('10.15.12.102', only_query=True)
+            sql_mgr3 = SQL_manager('10.15.12.103', only_query=True)
+            p += sql_mgr1.get_progress(item, cur)
+            p += sql_mgr2.get_progress(item, cur)
+            p += sql_mgr3.get_progress(item, cur)
+            p/=3
             temp = ProcessingObject(item, p_type.ANALYSIS)
             temp.progress = p
             progressList.append(temp.to_dict())
@@ -221,6 +224,7 @@ def require_project_status(data):
             'msg': progressList,
             'code': 200
         })
+        time.sleep(60)
 
     # for i in range(10):
     #     for j in range(len(progressList)):
