@@ -25,6 +25,10 @@
                 <p>{{cameraList[2].name}}</p>
                 <video :ref="setVideoRef" :key="cameraList[2].alternativeName" muted autoplay></video>
             </el-col>
+            <el-col :span="8" v-if="cameraList[3]">
+                <p>{{cameraList[3].name}}</p>
+                <video :ref="setVideoRef" :key="cameraList[3].alternativeName" muted autoplay></video>
+            </el-col>
         </el-row>
     </div>
 

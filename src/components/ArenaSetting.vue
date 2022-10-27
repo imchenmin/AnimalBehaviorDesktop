@@ -880,15 +880,27 @@
                 this.isIndeterminate = checkedCount > 0 && checkedCount < this.partsArr.length;
             },
             embyPot() {
-                let resultvideopath = this.videopath+"/result/"+this.videoname+"_result.mp4";
+                // let resultvideopath = this.videopath+"/result/"+this.videoname+"_result.mp4";
+                // console.log(resultvideopath);
+                // let poturl = `potplayer://${resultvideopath}`;
+                // poturl = poturl.replaceAll("\\","\/");
+                // console.log(poturl);
+                // window.open(poturl, "_parent");
+                let resultvideopath = this.videopath+"/result/";
                 console.log(resultvideopath);
-                let poturl = `potplayer://${resultvideopath}`;
-                poturl = poturl.replaceAll("\\","\/");
-                console.log(poturl);
-                window.open(poturl, "_parent");
+                try{ 
+                    var obj=new ActiveXObject("wscript.shell"); 
+                 
+                    if(obj){ 
+                        obj.Run(this.videopath+"/result/", 1, false );
+                        //obj.run("osk");/*打开屏幕键盘*/
+                        //obj.Run('"'+filename+'"'); 
+                        obj=null; 
+                    } 
+                }catch(e){ 
+                    alert("请确定是否存在该盘符或文件"); 
+                } 
             },
-
-
         }
 
     }

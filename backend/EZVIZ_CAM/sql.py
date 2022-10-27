@@ -4,7 +4,7 @@ from EZVIZ_CAM.ezviz import EZVIZ_Status, EZVIZ
 from EZVIZ_CAM.ftp_manager import FTP_Manager
 import time
 class SQL_manager:
-    def __init__(self, ip, full_name="", only_query=False):
+    def __init__(self, ip, full_name="", only_query=False, init=False):
         self.sql_create_FILE_TABLE = '''CREATE TABLE "FILE_TABLE" (
                                         "ID"	INTEGER NOT NULL UNIQUE,
                                         "FILE_NAME"	VARCHAR(255) NOT NULL,
@@ -15,7 +15,7 @@ class SQL_manager:
                                         "FULL_NAME"	INTEGER NOT NULL,
                                         FOREIGN KEY("STATUS") REFERENCES "STATUS"("ID"),
                                         PRIMARY KEY("ID" AUTOINCREMENT)
-                                    )'''    
+                                    )'''
         self.sql_create_STATUS = '''CREATE TABLE "STATUS" (
                                     "ID"	INTEGER NOT NULL UNIQUE,
                                     "TYPE"	VARCHAR(255) NOT NULL,
@@ -24,11 +24,6 @@ class SQL_manager:
         self.sql_create_RECORD = '''CREATE TABLE "RECORD" (
                                     "ID"	INTEGER NOT NULL UNIQUE,
                                     "FLAG"	INTEGER NOT NULL,
-                                    PRIMARY KEY("ID" AUTOINCREMENT)
-                                )'''
-        self.sql_create_NV_CARD = '''CREATE TABLE "NV_CARD" (
-                                    "ID"	INTEGER NOT NULL UNIQUE,
-                                    "STATUS"	INTEGER NOT NULL,
                                     PRIMARY KEY("ID" AUTOINCREMENT)
                                 )'''
         self.sql_create_PROGRESS = '''CREATE TABLE "PROGRESS" (
@@ -48,24 +43,30 @@ class SQL_manager:
         #                                 "FULL_NAME"	INTEGER NOT NULL,
         #                                 FOREIGN KEY("STATUS") REFERENCES "STATUS"("ID"),
         #                                 PRIMARY KEY("ID" AUTOINCREMENT)
-        #                             )'''    
+        #                             )'''
         self.connection_name = ip + '.db'
         self.ip = ip
         self.full_name = full_name
-
+        
+        if not os.path.exists(self.connection_name):
+            self.create_database()
+            self.init_status()
         if not only_query:
-            if not os.path.exists(self.connection_name):
-                self.create_database()
-                self.init_status()
-
             if full_name != "":
                 self.check_init()
                 self.init_record()
-                self.init_nv_card()
+                self.delete_nv_status()
+
                 # self.init_progress()
             else:
-                pass            
-            
+                pass
+        if init:
+            if not os.path.exists(self.connection_name):
+                self.create_database()
+                self.init_status()
+            self.check_init()
+            self.init_record()
+
     def init_status(self):
         sqls = ['''INSERT INTO "main"."STATUS" ("TYPE") VALUES ('UNFETECH')''',
         '''INSERT INTO "main"."STATUS" ("TYPE") VALUES ('WAITINGFORDOWNLOADING')''',
@@ -94,17 +95,6 @@ class SQL_manager:
         conn.commit()
         conn.close()
 
-    def init_nv_card(self):
-        sql = '''INSERT OR REPLACE INTO "main"."NV_CARD" ("ID", "STATUS") VALUES (1, 0)'''
-        conn = sqlite3.connect(self.connection_name)
-        # 创建游标
-        cour = conn.cursor()
-        # 编写sql语句
-        cour.execute(sql)
-        cour.close()
-        conn.commit()
-        conn.close()
-
     def create_database(self):
         conn = sqlite3.connect(self.connection_name)
         # 创建游标
@@ -113,7 +103,6 @@ class SQL_manager:
         cour.execute(self.sql_create_FILE_TABLE)
         cour.execute(self.sql_create_STATUS)
         cour.execute(self.sql_create_RECORD)
-        cour.execute(self.sql_create_NV_CARD)
         cour.execute(self.sql_create_PROGRESS)
         # cour.execute(self.sql_create_PROCESS_FILE_TABLE)
         cour.close()
@@ -128,7 +117,7 @@ class SQL_manager:
         for item in cour.fetchall():
             self.update_status(item[0], EZVIZ_Status.UNFETCHING.value)
         cour.close()
-        
+
         mgr = FTP_Manager(self.ip, self.full_name)
         ezviz_list = mgr.openFTPFile()
         for item in ezviz_list:
@@ -152,7 +141,7 @@ class SQL_manager:
     #     for item in cour.fetchall():
     #         self.update_status(item[0], EZVIZ_Status.UNFETCHING.value)
     #     cour.close()
-        
+
     #     mgr = FTP_Manager(self.ip, self.full_name)
     #     ezviz_list = mgr.openFTPFile()
     #     for item in ezviz_list:
@@ -195,7 +184,7 @@ class SQL_manager:
         # 关闭连接
         conn.commit()
         conn.close()
-        
+
     def get_file_table(self, record_flag):
         mgr = FTP_Manager(self.ip, self.full_name)
         ezviz_list = mgr.openFTPFile()
@@ -246,7 +235,7 @@ class SQL_manager:
         cour.close()
         conn.close()
         return res
-    
+
     def check_status(self, id):
         conn = sqlite3.connect(self.connection_name)
         # 创建游标
@@ -262,7 +251,7 @@ class SQL_manager:
         # 关闭连接
         conn.close()
         return res[0][0]
-    
+
     def update_record_status(self, flag):
         conn = sqlite3.connect(self.connection_name)
         # 创建游标
@@ -276,7 +265,7 @@ class SQL_manager:
         # 关闭连接
         conn.commit()
         conn.close()
-    
+
     def check_record_status(self):
         conn = sqlite3.connect(self.connection_name)
         cour = conn.cursor()
@@ -313,71 +302,80 @@ class SQL_manager:
         conn.close()
         return flag
 
-    def check_nv_status(self, w):
-        conn = sqlite3.connect('10.15.12.101.db')
+    def check_nv_status(self):
+        if not os.path.exists('nv.db'):
+            sql = '''CREATE TABLE "RUNNING" (
+                    "ID"	INTEGER NOT NULL UNIQUE,
+                    "RUNNING"	VARCHAR(255) NOT NULL,
+                    PRIMARY KEY("ID" AUTOINCREMENT)
+                )'''
+            conn = sqlite3.connect('nv.db')
+            cour = conn.cursor()
+            cour.execute(sql)
+            cour.close()
+            conn.commit()
+            conn.close()
+        print('check')
+        conn = sqlite3.connect('nv.db')
         cour = conn.cursor()
-        sql = 'select STATUS from FILE_TABLE WHERE STATUS = 5 AND FULL_NAME=?'
-        cour.execute(sql, (self.full_name,))
-        flag1 = False
-        try:
-            cur = len(cour.fetchall())
-        except:
-            print('no')
-            pass
-        if cur > 0:
-            flag1 = True
-        cour.close()
-        conn.close()
-
-        conn = sqlite3.connect('10.15.12.102.db')
-        cour = conn.cursor()
-        sql = 'select STATUS from FILE_TABLE WHERE STATUS = 5 AND FULL_NAME=?'
-        cour.execute(sql, (self.full_name,))
-        flag2 = False
-        try:
-            cur = len(cour.fetchall())
-        except:
-            print('no')
-            pass
-        if cur > 0:
-            flag2 = True
-        cour.close()
-        conn.close()
-
-        conn = sqlite3.connect('10.15.12.103.db')
-        cour = conn.cursor()
-        sql = 'select STATUS from FILE_TABLE WHERE STATUS = 5 AND FULL_NAME=?'
-        cour.execute(sql, (self.full_name,))
-        flag3 = False
-        try:
-            cur = len(cour.fetchall())
-        except:
-            print('no')
-            pass
-        if cur > 0:
-            flag3 = True
-        cour.close()
-        conn.close()
-
-        return flag1 and flag2 and flag3
-    
-    def update_nv_status(self, cost):
-        conn = sqlite3.connect(self.connection_name)
-        # 创建游标
-        cour = conn.cursor()
-        sql = 'select STATUS from NV_CARD'
+        sql = 'select COUNT(*) from RUNNING'
         cour.execute(sql)
-        ori = cour.fetchall()[0]
-        cost += int(ori[0])
-        sql = 'UPDATE NV_CARD SET STATUS=?'
-        # 执行sql语句
-        cour.execute(sql,(cost,))
-        # 关闭游标
+        flag = False
+       
+        cur = int(cour.fetchall()[0][0])
+        print('checkchekc ', cur)
+        if cur > 0:
+            flag = True
         cour.close()
-        # 关闭连接
+        conn.close()
+
+        return flag
+
+    def add_nv_status(self):
+        if not os.path.exists('nv.db'):
+            sql = '''CREATE TABLE "RUNNING" (
+                    "ID"	INTEGER NOT NULL UNIQUE,
+                    "RUNNING"	VARCHAR(255) NOT NULL,
+                    PRIMARY KEY("ID" AUTOINCREMENT)
+                )'''
+            conn = sqlite3.connect('nv.db')
+            cour = conn.cursor()
+            cour.execute(sql)
+            cour.close()
+            conn.commit()
+            conn.close()
+        print([self.full_name, 'add nv'])
+
+        conn = sqlite3.connect('nv.db')
+        cour = conn.cursor()
+        sql = "INSERT INTO RUNNING (RUNNING) VALUES(1)"
+        cour.execute(sql)
+        cour.close()
         conn.commit()
         conn.close()
 
+    def delete_nv_status(self):
+        if not os.path.exists('nv.db'):
+            sql = '''CREATE TABLE "RUNNING" (
+                    "ID"	INTEGER NOT NULL UNIQUE,
+                    "RUNNING"	VARCHAR(255) NOT NULL,
+                    PRIMARY KEY("ID" AUTOINCREMENT)
+                )'''
+            conn = sqlite3.connect('nv.db')
+            cour = conn.cursor()
+            cour.execute(sql)
+            cour.close()
+            conn.commit()
+            conn.close()
+        print([self.full_name, 'del nv'])
+        conn = sqlite3.connect('nv.db')
+        cour = conn.cursor()
+        sql = "DELETE FROM RUNNING"
+        cour.execute(sql)
+        cour.close()
+        conn.commit()
+        conn.close()
+        
     def init_progress(self):
         conn = sqlite3.connect(self.connection_name)
         # 创建游标
@@ -389,15 +387,20 @@ class SQL_manager:
         # 关闭连接
         conn.commit()
         conn.close()
-    
+
     def create_progress(self):
         conn = sqlite3.connect(self.connection_name)
         start = time.time()
         end = start + 300
         # 创建游标
         cour = conn.cursor()
-        sql = "INSERT INTO PROGRESS (PATH, START, END) VALUES(?,?,?)"
-        cour.execute(sql, (self.full_name, start, end,))
+        full_name = self.full_name
+        if full_name.endswith('top'):
+            full_name = full_name[:-4]
+        else:
+            full_name = full_name[:-5]
+        sql = "INSERT INTO PROGRESS (PATH, START, END) SELECT ?, ?, ? WHERE not exists (select * from PROGRESS where PATH=?)"
+        cour.execute(sql, (full_name, start, end, full_name,))
        # 关闭游标
         cour.close()
         # 关闭连接
@@ -407,13 +410,19 @@ class SQL_manager:
     def update_progress(self):
         conn = sqlite3.connect(self.connection_name)
         cour = conn.cursor()
+        full_name = self.full_name
+        if full_name.endswith('top'):
+            full_name = full_name[:-4]
+        else:
+            full_name = full_name[:-5]
+
         sql = 'select END from PROGRESS WHERE PATH=?'
-        cour.execute(sql, (self.full_name,))
+        cour.execute(sql, (full_name,))
         end = float(cour.fetchall()[0][0])
         end = end + 300
         # 创建游标
         sql = "UPDATE PROGRESS SET END=? WHERE PATH=?"
-        cour.execute(sql, (end, self.full_name,))
+        cour.execute(sql, (end, full_name,))
            # 关闭游标
         cour.close()
         # 关闭连接
@@ -424,14 +433,21 @@ class SQL_manager:
         conn = sqlite3.connect(self.connection_name)
         # 创建游标
         cour = conn.cursor()
-        sql = 'select * from PROGRESS'
-        cour.execute(sql)
+        sql = 'select * from PROGRESS WHERE PATH=?'
+        cour.execute(sql, (path,))
         progress = 0
-        for item in cour.fetchall():
+        print(path)
+        items = cour.fetchall()
+        if len(items) == 0:
+            progress = 100
+        else:
+            item = items[0]
             path = item[1]
             start = item[2]
             end = item[3]
             progress = ((float(cur) - float(start)) / (float(end) - float(start))) * 100
+            print(path, start, end, cur, progress)
+
             if progress >= 100:
                 sql = 'select COUNT(*) from FILE_TABLE WHERE FULL_NAME=?'
                 cour.execute(sql, (path,))

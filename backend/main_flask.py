@@ -199,16 +199,16 @@ def test_disconnect():
     print('get disconnection')
 
 
-
 @socketio.on('require_project_status',namespace='/')
 def require_project_status(data):
     print('received message: ' , data['project_list'])
-    progressList = []
-    p = 0
     while True:
+        progressList = []
         for item in data['project_list']:
+            p = 0
             cur = time.time()
             item = item[:-13]
+            item = item.replace('\\','/')
             sql_mgr1 = SQL_manager('10.15.12.101', only_query=True)
             sql_mgr2 = SQL_manager('10.15.12.102', only_query=True)
             sql_mgr3 = SQL_manager('10.15.12.103', only_query=True)
@@ -218,8 +218,12 @@ def require_project_status(data):
             p/=3
             temp = ProcessingObject(item, p_type.ANALYSIS)
             temp.progress = p
-            progressList.append(temp.to_dict())
-        
+            print([item, p])
+            if item not in visit:
+                progressList.append(temp.to_dict())
+                if p >= 100:
+                    visit.append(item)
+                
         socketio.emit("project_status",{
             'msg': progressList,
             'code': 200
@@ -253,4 +257,8 @@ def require_project_status(data):
 
 if __name__ == '__main__':
     # app.run(host='127.0.0.1',port=5001)
+    sql_init = SQL_manager('10.15.12.101', init=True)
+    sql_init = SQL_manager('10.15.12.102', init=True)
+    sql_init = SQL_manager('10.15.12.103', init=True)
+    visit=[]
     socketio.run(app, host='127.0.0.1', port=5001)

@@ -131,7 +131,7 @@ class Transaction_Manager:
                     mp4_file.append(video)
 
         final_clip = concatenate_videoclips(mp4_file)
-        final_clip.to_videofile(self.full_name + '/topvideotoshow.MP4', fps=60, remove_temp=False)
+        final_clip.to_videofile(self.full_name + '/topvideotoshow.MP4', fps=60, remove_temp=True)
 
     def concater(self):
         csv_files = os.listdir(self.full_name)
@@ -186,13 +186,14 @@ class Transaction_Manager:
     def check_recog(self):
         waitingrunning = self.sql_mgr.get_waitingruning()
         for item in waitingrunning:
-            while self.sql_mgr.check_nv_status(self.w):
+            while self.sql_mgr.check_nv_status():
+                print('wait 1')
                 time.sleep(10)
             if self.process_queue.qsize() == 0:
                 self.process_queue.put(1)
                 print('start reco')
                 crop(item.file_path)
-                self.sql_mgr.update_nv_status(self.w)
+                self.sql_mgr.add_nv_status()
                 self.sql_mgr.update_status(item.id, EZVIZ_Status.RUNNING)
                 try:
                     if self.full_name.endswith('top'):
@@ -239,6 +240,6 @@ class Transaction_Manager:
                 finally:
                     self.sql_mgr.update_status(item.id, EZVIZ_Status.FINISH)
 
-                self.sql_mgr.update_nv_status(-self.w)
+                self.sql_mgr.delete_nv_status()
                 self.process_queue.get()
                 print('finish reco')    
