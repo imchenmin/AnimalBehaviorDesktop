@@ -229,7 +229,7 @@ class SQL_manager:
             temp = EZVIZ(item[4],item[5],item[1],item[2])
             temp.id = item[0]
             temp.status = item[3]
-            temp.full_name = self.full_name
+            temp.full_name = item[6]
             res.append(temp)
         conn.commit()
         cour.close()
@@ -449,6 +449,7 @@ class SQL_manager:
             print(path, start, end, cur, progress)
 
             if progress >= 100:
+                progress = 100
                 sql = 'select COUNT(*) from FILE_TABLE WHERE FULL_NAME=?'
                 cour.execute(sql, (path,))
                 count_total = int(cour.fetchall()[0][0])
@@ -476,7 +477,7 @@ class SQL_manager:
             temp = EZVIZ(item[4],item[5],item[1],item[2])
             temp.id = item[0]
             temp.status = item[3]
-            temp.full_name = self.full_name
+            temp.full_name = item[6]
             res.append(temp)
         conn.commit()
         cour.close()

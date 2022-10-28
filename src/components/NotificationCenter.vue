@@ -55,15 +55,15 @@ export default {
                 } else {
                     this.ProgressList.push(po)
                 }
-                if (po.progress >=100) {
-                    // 消息通知
-                    ElNotification({
-                        title: 'Success',
-                        message: `项目分析完成 ${po.project_path}`,
-                        type: 'success',
-                        duration: 0
-                    })
-                }
+                // if (po.progress >=100) {
+                    // // 消息通知
+                    // ElNotification({
+                    //     title: 'Success',
+                    //     message: `项目分析完成 ${po.project_path}`,
+                    //     type: 'success',
+                    //     duration: 0
+                    // })
+                // }
             })
         })
     },

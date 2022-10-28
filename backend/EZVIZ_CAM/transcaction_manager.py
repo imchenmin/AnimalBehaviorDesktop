@@ -138,7 +138,7 @@ class Transaction_Manager:
         timer = 0
         dfs = []
         for csv_file in csv_files:
-            if csv_file.endswith('_crop.csv'):
+            if csv_file.endswith('_detection_result.csv'):
                 file_path = os.path.join(self.full_name, csv_file)
                 print(file_path + 'reader concat.')
                 df = pd.read_csv(file_path)
@@ -154,23 +154,29 @@ class Transaction_Manager:
             group = group.reset_index(drop=True)
             df_res.append(group)
         df = pd.concat(df_res,axis=0)
-        df[['class','start_time','end_time','type']].to_csv(self.full_name[:-3] + '/detection_result.csv')
+        df[['class','start_time','end_time','type']].to_csv(self.full_name[:-5] + '/detection_result.csv')
 
     def schedule_check(self):
-        Process(target=self.check_download, args=()).start()
+        Process(target=self.check_download, args=(False,)).start()
         time.sleep(5)
-        Process(target=self.check_recog, args=()).start()
+        Process(target=self.check_recog, args=(False,)).start()
 
     def last_check(self):
-        self.check_download()
+        self.check_download(True)
         time.sleep(5)
-        self.check_recog()
+        self.check_recog(True)
 
-    def check_download(self):
+    def check_download(self, last=False):
+        if not last:
+            if self.download_queue.qsize() > 0:
+                return
+        else:
+            while self.download_queue.qsize() > 0:
+                time.sleep(10)
         unfetch = self.sql_mgr.get_file_table(self.sql_mgr.check_record_status())
         mgr = FTP_Manager(self.device, self.full_name)
         for item in unfetch:
-            if self.sql_mgr.check_status(item.id) == EZVIZ_Status.WAITINGFORDOWNLOADING.value and self.download_queue.qsize() == 0:
+            if self.sql_mgr.check_status(item.id) == EZVIZ_Status.WAITINGFORDOWNLOADING.value:
                 self.sql_mgr.update_status(item.id, EZVIZ_Status.DOWNLOADING.value)
                 print('start download ' + item.file_name)
                 self.download_queue.put(1)
@@ -183,12 +189,15 @@ class Transaction_Manager:
                 else:
                     print('error in downloading', [flag, item.id, item.file_name, item.modify_time])
     
-    def check_recog(self):
+    def check_recog(self, last):
         waitingrunning = self.sql_mgr.get_waitingruning()
         for item in waitingrunning:
-            while self.sql_mgr.check_nv_status():
-                print('wait 1')
-                time.sleep(10)
+            if not last:
+                if self.sql_mgr.check_nv_status():
+                    return
+            else:
+                while self.sql_mgr.check_nv_status():
+                    time.sleep(10)
             if self.process_queue.qsize() == 0:
                 self.process_queue.put(1)
                 print('start reco')
@@ -199,16 +208,16 @@ class Transaction_Manager:
                     if self.full_name.endswith('top'):
                         video_path = item.file_path[:-4] + '_crop.mp4'
                         video_name = item.file_name[:-4] + '_crop.mp4'
-                        resultpath = self.full_name+'/result/'
+                        resultpath = item.full_name+'/result/'
                         print(['video_path:',video_path,'video_name:',video_name,'resultpath:',resultpath,])
                         if not os.path.exists(resultpath):
                             os.mkdir(resultpath)
-                        print(['top', self.full_name])
+                        print(['top', item.full_name])
                         deeplabcut.analyze_videos(config="C:/Users/Administrator/Desktop/whitemouse1024-sbx-2022-10-24/config.yaml",videos=[video_path],destfolder=self.full_name,save_as_csv=True,n_tracks=1)
                         # deeplabcut.analyze_videos_converth5_to_csv(self.full_name)  
-                        originalcsv = os.path.join(self.full_name,video_name[:-4]+"DLC_resnet50_whitemouse1024Oct24shuffle1_60000.csv")
-                        csv_path = os.path.join(self.full_name,video_name[:-4] + "_partbeforeplus.csv")
-                        xycsvpath = os.path.join(self.full_name,item.file_name[:-4] + "_xy.csv")
+                        originalcsv = os.path.join(item.full_name,video_name[:-4]+"DLC_resnet50_whitemouse1024Oct24shuffle1_60000.csv")
+                        csv_path = os.path.join(item.full_name,video_name[:-4] + "_partbeforeplus.csv")
+                        xycsvpath = os.path.join(item.full_name,item.file_name[:-4] + "_xy.csv")
                         print("convert")
                         self.convert_dlc_to_simple_csv(originalcsv, csv_path,4)
                         print("convertover")

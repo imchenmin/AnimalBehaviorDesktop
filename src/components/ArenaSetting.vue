@@ -40,7 +40,7 @@
     <el-button-group>
         <el-button type="simple" plain @click="onRunit">根据当前标记进行分析</el-button>
         <input type="button" value="根据当前标记进行分析"  style="display: none" id="rundetect" ref="runItButton" />
-        <el-button type="simple" plain @click="embyPot">查看结果</el-button>
+        <!-- <el-button type="simple" plain @click="embyPot">查看结果</el-button> -->
     </el-button-group>
     <el-container>
         <div>
@@ -880,26 +880,26 @@
                 this.isIndeterminate = checkedCount > 0 && checkedCount < this.partsArr.length;
             },
             embyPot() {
-                // let resultvideopath = this.videopath+"/result/"+this.videoname+"_result.mp4";
-                // console.log(resultvideopath);
-                // let poturl = `potplayer://${resultvideopath}`;
-                // poturl = poturl.replaceAll("\\","\/");
-                // console.log(poturl);
-                // window.open(poturl, "_parent");
                 let resultvideopath = this.videopath+"/result/";
                 console.log(resultvideopath);
-                try{ 
-                    var obj=new ActiveXObject("wscript.shell"); 
+                let poturl = `file:///${resultvideopath}`;
+                poturl = poturl.replaceAll("\\","\/");
+                // console.log(poturl);
+                window.open(poturl, "_parent");
+                // let resultvideopath = this.videopath+"/result/";
+                // console.log(resultvideopath);
+                // try{ 
+                //     var obj=new ActiveXObject("wscript.shell"); 
                  
-                    if(obj){ 
-                        obj.Run(this.videopath+"/result/", 1, false );
-                        //obj.run("osk");/*打开屏幕键盘*/
-                        //obj.Run('"'+filename+'"'); 
-                        obj=null; 
-                    } 
-                }catch(e){ 
-                    alert("请确定是否存在该盘符或文件"); 
-                } 
+                //     if(obj){ 
+                //         obj.Run(this.videopath+"/result/", 1, false );
+                //         obj.run("osk");/*打开屏幕键盘*/
+                //         obj.Run('"'+filename+'"'); 
+                //         obj=null; 
+                //     } 
+                // }catch(e){ 
+                //     alert("请确定是否存在该盘符或文件"); 
+                // } 
             },
         }
 
