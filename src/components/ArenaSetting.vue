@@ -64,7 +64,7 @@
     export default {
         data(){
             return{
-                videoname : "video",
+                videoname : "topvideotoshow",
                 videopath : "",
                 _id: this.$route.params._id,
                 partsArr: bodypartOptions, //一共有多少个选项
@@ -105,7 +105,8 @@
                 s = s<10?'0'+s:s
                 return h+':'+m+':'+s
             } 
-            ipcRenderer.send('playVideoFromFile', path.join(__this.current_exp.folder_path, 'video.mkv'), path.join(__this.current_exp.folder_path, 'video1.mkv'));
+            ipcRenderer.send('playVideoFromFile', path.join(__this.current_exp.folder_path, '\\top\\topvideotoshow.MP4'),'a');
+            console.log(path.join(__this.current_exp.folder_path, '\\top\\topvideotoshow.MP4'));
             ipcRenderer.on('videoServerReady', (event, message) => {
                 console.log(message, "message")
                 let videoOptionsTop = {
@@ -218,7 +219,7 @@
             //console.log(o.mouseBeginY);
             o.style.height = 0; 
             o.style.width = 0; 
-            o.style.border = "solid black 1px"; 
+            o.style.border = "solid green 1px"; 
             //向o添加一个叉叉，点击叉叉可以删除这个矩形 
             var deleteLink = document.createElement('a'); 
             deleteLink.href="javascript:void(0);"; 
@@ -415,6 +416,7 @@
                 document.getElementById("canvas").style.display='none';
                 ctxSave.closePath();//结束路径状态，结束当前路径，如果是一个未封闭的图形，会自动将首尾相连封闭起来
                 //ctxSave.fill();//填充
+                ctxSave.strokeStyle = 'green'
                 ctxSave.stroke();//绘制
                 console.log(pointArr);
                 var str = "";
@@ -592,7 +594,7 @@
                 r.style.top = (parseInt(top)+canvasindextop)+"px";
                 r.style.height = height;
                 r.style.width = width;
-                r.style.border = "solid black 1px"; 
+                r.style.border = "solid green 1px"; 
                 r.style.transform = transform;
                 var deleteLink = document.createElement('a'); 
                 deleteLink.href="javascript:void(0);"; 
@@ -661,6 +663,7 @@
                     ctx.lineTo(detail[j],detail[j+1]); 
                 }
                 ctx.closePath();
+                ctx.strokeStyle = 'green'
                 ctx.stroke();
                 sum_xindex = sum_xindex/((detail.length-2)/2);
                 sum_yindex = sum_yindex/((detail.length-2)/2);
@@ -802,7 +805,7 @@
                 let result = response.text()
                 result.then(res => {
                     console.log(res);
-                    window.alert('通知', '处理完毕').then(() => {});
+                    window.alert('处理完毕').then(() => {});
                 })})
 
             }

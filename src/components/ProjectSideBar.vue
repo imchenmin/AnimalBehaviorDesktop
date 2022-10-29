@@ -66,6 +66,8 @@
             <el-button @click="createNewProjectVisible = true" size="large"><el-icon><Plus/></el-icon></el-button>
         <el-button @click="importProject" size="large">打开项目</el-button>
         <el-button @click="openSettings" size="large"><el-icon><Setting/></el-icon></el-button>
+        <NotificationCenter></NotificationCenter>
+
         </el-button-group>
 
         <!-- 列表 -->
@@ -100,7 +102,7 @@
             </el-table-column>
             <el-table-column prop="description" label="Tags">
                 <template #default="scope">
-                    <el-tag :type="scope.row.tag === 'Home' ? '' : 'success'" disable-transitions>{{ scope.row.tag }}
+                    <el-tag v-for="tag in scope.row.tags" :type="tag === 'Home' ? '' : 'success'" disable-transitions>{{ tag }}
                     </el-tag>
                 </template>
             </el-table-column>

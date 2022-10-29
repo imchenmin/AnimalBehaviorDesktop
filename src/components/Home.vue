@@ -1,6 +1,8 @@
 <template lang="">
-  <div class="Home">Home</div>
-  <el-button @click="showSetting">settings</el-button>
+  <H2>
+    使用说明
+  </H2>
+  
 </template>
 <script lang="ts" setup>
 import useStore from '../store'

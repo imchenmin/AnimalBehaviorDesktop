@@ -2,8 +2,8 @@
     <step-control :_id="current_exp._id" :active="1"></step-control>
     <el-button type="primary" @click="run_preview" v-if="cameraflag">打开相机</el-button>
     <el-button type="primary" @click="stop_preview" v-else>关闭相机</el-button>
-    <!--    <el-button type="primary" @click="handleStart" v-if="!cameraflag && recordflag">开始录制</el-button>-->
-    <!--    <el-button type="primary" @click="handleStop" v-if="!cameraflag && ! recordflag">关闭录制</el-button>-->
+    <el-button type="primary" @click="handleStart" v-if="!cameraflag && recordflag">开始录制</el-button>
+    <el-button type="primary" @click="handleStop" v-if="!cameraflag && ! recordflag">关闭录制</el-button>
     <div v-show="!cameraflag">
         <!-- 默认考虑4个摄像头的布局 -->
 
@@ -13,26 +13,19 @@
             <video :ref="setVideoRef" :key="camera.alternativeName" muted autoplay></video>
         </div> -->
         <el-row>
-        <el-col :span="12" v-if="cameraList[0]">
-            <p>{{cameraList[0].name}}</p>
-            <video :ref="setVideoRef" :key="cameraList[0].alternativeName" muted autoplay></video>
-        </el-col>
-        <el-col :span="12" v-if="cameraList[1]">
-            <p>{{cameraList[1].name}}</p>
-            <video :ref="setVideoRef" :key="cameraList[1].alternativeName" muted autoplay></video>
-        </el-col>
-    </el-row>
-    <el-row v-if="cameraList.length>2">
-        <el-col :span="12" v-if="cameraList[2]">
-            <p>{{cameraList[0].name}}</p>
-            <video :ref="setVideoRef" :key="cameraList[2].alternativeName" muted autoplay></video>
-        </el-col>
-        <el-col :span="12" v-if="cameraList[3]">
-            <p>{{cameraList[1].name}}</p>
-            <video :ref="setVideoRef" :key="cameraList[3].alternativeName" muted autoplay></video>
-        </el-col>
-    </el-row>
-
+            <el-col :span="8" v-if="cameraList[0]">
+                <p>{{cameraList[0].name}}</p>
+                <video :ref="setVideoRef" :key="cameraList[0].alternativeName" muted autoplay></video>
+            </el-col>
+            <el-col :span="8" v-if="cameraList[1]">
+                <p>{{cameraList[1].name}}</p>
+                <video :ref="setVideoRef" :key="cameraList[1].alternativeName" muted autoplay></video>
+            </el-col>
+            <el-col :span="8" v-if="cameraList[2]">
+                <p>{{cameraList[2].name}}</p>
+                <video :ref="setVideoRef" :key="cameraList[2].alternativeName" muted autoplay></video>
+            </el-col>
+        </el-row>
     </div>
 
 

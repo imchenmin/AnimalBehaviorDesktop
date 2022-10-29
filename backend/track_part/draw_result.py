@@ -19,7 +19,7 @@ def draw_raw_img(namelist,polylist,width,height,videoname,resultpath):
         midy/=len(polylist[i])
         cv.putText(newImg,namelist[i],(int(midx),int(midy)), font, 2,(0,0,0),4,cv.LINE_AA)
         #cv.putText(newImg,namelist[i],(int(midx),int(midy)), font, 0.5,( 0,0,0),1,cv.LINE_AA)
-    cv.imwrite(resultpath+videoname+'_raw.png', newImg, [cv.IMWRITE_PNG_COMPRESSION, 0])
+    cv.imwrite(resultpath+videoname+'_raw.png', newImg)
 
 # def read_points(path):
 #     df = pd.read_table(path,sep=',',header=None)

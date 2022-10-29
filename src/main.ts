@@ -27,6 +27,13 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import ECharts from 'vue-echarts'
 import "echarts"
 
+import VueSocketIO from 'vue-3-socket.io'
+import io from 'socket.io-client';
+const socketio = new VueSocketIO({
+    debug: true,
+    connection: io('http://127.0.0.1:5001'),
+    extraHeaders: {"Access-Control-Allow-Origin": '*'},
+});
 const app = createApp(App);
 app.use(ElementPlus);
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
@@ -35,6 +42,7 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 app.use(router)
 pinia.use(piniaPluginPersistedstate)
 app.use(pinia)
+app.use(socketio)
 app.component('v-chart', ECharts)
 app.mount("#app")
 

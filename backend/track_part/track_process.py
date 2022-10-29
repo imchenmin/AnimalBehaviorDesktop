@@ -107,8 +107,8 @@ def isRayIntersectsSegment(poi,s_poi,e_poi): #[x,y] [lng,lat]
     return True  #排除上述情况之后
 
 #poly,namelist可作为全局变量在detect方法中存在，仅需将每一帧的坐标poi传入即可,嵌入了csv结果的输出
-def isPoiWithinPoly(csv_path,poly,namelist,videoname,videopath,resultpath):
-    cap = cv2.VideoCapture(videopath+"/"+videoname+".mkv")
+def isPoiWithinPoly(csv_path,poly,namelist,videoname,videopath,resultpath,checkout_list):
+    cap = cv2.VideoCapture(videopath+"/"+videoname+".MP4")
     #print("!!!!!!!!!!!!!!!!!!!!")
     print(videopath)
     FPS = int(cap.get(cv2.CAP_PROP_FPS))
@@ -173,7 +173,36 @@ def isPoiWithinPoly(csv_path,poly,namelist,videoname,videopath,resultpath):
             #When loop end, check for last condition
             if(pre!=""):
                 writer.writerow([beginframe,len(point_data),pre])
-    cvt_time_result(resultpath+videoname+"_result.csv",videoname,FPS,resultpath)
+    filteredtime = []
+    with open(resultpath+videoname+"_result.csv") as rawcsvfile:
+        read = csv.reader(rawcsvfile)
+        for row in read:
+            if (len(row)==1):
+                filteredtime.append(row)
+            else:
+                if (len(filteredtime[-1])==1):
+                    filteredtime.append(row)
+                else:
+                    if (filteredtime[-1][2]!=row[2]):
+                        filteredtime.append(row)
+                    else:
+                        if (int(filteredtime[-1][1])+30>=int(row[0])):
+                            filteredtime[-1][1]=row[1]
+                        else:
+                            filteredtime.append(row)
+    filteredtime2 = []
+    for towrite in filteredtime:
+        if (len(towrite)!=1):
+            if (int(towrite[1])-int(towrite[0])>30):
+                filteredtime2.append(towrite)
+        else:
+            filteredtime2.append(towrite)
+    
+    with open(resultpath+videoname+"_result.csv","w",newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        for towrite in filteredtime2:
+            writer.writerow(towrite)
+    cvt_time_result(resultpath+videoname+"_result.csv",videoname,FPS,resultpath,checkout_list)
     csvfile.close()
     with open(resultpath+videoname+"_dataforoutputvideo.csv","w",newline='') as csvfile2:
         writer2 = csv.writer(csvfile2)
@@ -182,7 +211,7 @@ def isPoiWithinPoly(csv_path,poly,namelist,videoname,videopath,resultpath):
             for j in range(len(csvforoutputvideodata)):
                 towritelist.append(csvforoutputvideodata[j][i])
             writer2.writerow(towritelist)
-def cvt_time_result(csvpath,videoname,FPS,resultpath):
+def cvt_time_result(csvpath,videoname,FPS,resultpath,checkout_list):
     with open(resultpath+videoname+"_timeresult.csv","w",newline='') as csvfile:
         writer = csv.writer(csvfile)
         with open(csvpath) as f:
@@ -204,3 +233,13 @@ def cvt_time_result(csvpath,videoname,FPS,resultpath):
             #     writer.writerow([datetime.timedelta(seconds=(begin/FPS)),datetime.timedelta(seconds=(end/FPS)),name])
     f.close()
     csvfile.close()
+    with open(resultpath+videoname+"_resultfortable.csv","w",newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        with open(resultpath+videoname+"_timeresult.csv") as allresult:
+            read = csv.reader(allresult)
+            tocheck = ''
+            for row in read:
+                if len(row)==1:
+                    tocheck = row[0]
+                if tocheck in checkout_list:
+                    writer.writerow(row)

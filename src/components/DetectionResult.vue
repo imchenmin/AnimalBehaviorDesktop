@@ -7,7 +7,12 @@
     <!-- <video ref="videoPlayerSide" class="video-js"></video> -->
 
 
-
+    <el-table :data="tableData" style="width: 100%">
+        <el-table-column prop="section" label="部位" width="180" />
+        <el-table-column prop="start" label="开始时间" width="180" />
+        <el-table-column prop="end" label="结束时间" width="180" />
+        <el-table-column prop="position" label="区域" />
+    </el-table>
     <v-chart v-if="displayChart" class="chart" :option="option" />
 </template>
 <script lang="ts" setup>
@@ -44,6 +49,7 @@ let categories = current_exp.detection_behavior_kinds;
 let fs = require("fs")
 const displayChart = ref(true)
 let array: any = [];
+let trackarray: any = [];
 // let playerTop: videojs.Player | null = null
 // let playerSide: videojs.Player | null = null
 function getWindowSize() {
@@ -54,6 +60,36 @@ function getWindowSize() {
         innerHeight > offsetHeight ? offsetHeight : innerHeight
     ]
 }
+try {
+    let csv_path = path.join(current_exp.folder_path,'result','video_timeresult.csv')
+    let csvstr: string = fs.readFileSync(csv_path, "utf8", 'r+');
+    let arr: string[] = csvstr.split('\r\n');
+    arr.forEach((line,index) => {
+                    if (line != '') trackarray.push(line.split(','));
+                })
+} catch {
+    console.log("no track result")
+}
+const tableData=[{
+    section: '鼻子',
+    start : '00:09',
+    end : '00:12',
+    position: 'A2'
+}]
+console.log("wwwwwwwwwwwwwww")
+console.log(trackarray)
+let tempname = ""
+trackarray.forEach((list,index)=>{
+        if (list.length==1)
+            tempname = list[0];
+        else{
+            tableData.push({section: tempname,
+                start : list[0],
+                end : list[1],
+                position: list[2]})
+        }
+
+    })
 
 try {
     let csv_path = path.join(current_exp.folder_path, 'detection_result.csv')

@@ -80,7 +80,9 @@ function rtspRequestHandle(ws, req) {
 function onVideoFileSeleted(videoFilePath) {
   videoSupport(videoFilePath)
     .then((checkResult) => {
-      if (!checkResult.videoCodecSupport) {
+      console.log(checkResult);
+      
+      if (checkResult.videoCodecSupport) {
         if (!videoServer) {
           videoServer = new VideoServer();
         } else {
@@ -103,14 +105,11 @@ function onVideoFileSeleted(videoFilePath) {
     })
     .catch((err) => {
       console.log("video format error", err);
-      const options = {
+      dialog.showMessageBox({
+        title: "错误信息",
         type: "info",
-        title: "Error",
         message: "It is not a video file!",
-        buttons: ["OK"],
-      };
-      dialog.showMessageBox(options, function (index) {
-        console.log("showMessageBox", index);
+        buttons: ["OK"]
       });
     });
 }

@@ -1,7 +1,9 @@
 <template>
   <el-container class="common-layout">
     <el-header>
-      <h2 class="title" v-if="experiments.current_experiment">{{experiments.current_experiment.name}}</h2>
+      <h2 class="title" v-if="experiments.current_experiment">项目：{{experiments.current_experiment.name}}</h2>
+      <h2 class="title" v-else>启动页</h2>
+
     </el-header>
     <el-container>
       <el-aside>
