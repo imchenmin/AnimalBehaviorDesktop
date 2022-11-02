@@ -10,6 +10,7 @@ def export_csv(filename: str,output_filename: str):
     with h5py.File(filename, "r") as f:
         dset_names = list(f.keys())
         locations = f["tracks"][:].T
+        point_scores = f['point_scores'][:].T
         node_names = [n.decode() for n in f["node_names"][:]]
 
     print("===filename===")
@@ -22,6 +23,8 @@ def export_csv(filename: str,output_filename: str):
 
     print("===locations data shape===")
     print(locations.shape)
+    print("===tracking_scores shape===")
+    print(point_scores.shape)
 
     cls = ['frames'] 
     print("===nodes===")
@@ -29,6 +32,7 @@ def export_csv(filename: str,output_filename: str):
         print(f"{i}: {name}")
         cls.append(name + '_x')
         cls.append(name + '_y')
+        cls.append(name + '_score')
 
     print()
 
@@ -40,9 +44,11 @@ def export_csv(filename: str,output_filename: str):
             if str(locations[i][j][0][0]) == 'nan':
                 temp.append(0)
                 temp.append(0)
+                temp.append(0)
             else:
                 temp.append(int(locations[i][j][0][0]))
                 temp.append(int(locations[i][j][1][0]))
+                temp.append(point_scores[i][j][0])
         res.append(temp)
         
     with open(output_filename, 'w', newline='') as csvfile:

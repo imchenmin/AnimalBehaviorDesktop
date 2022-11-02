@@ -8,7 +8,7 @@ from EZVIZ_CAM.ftp_manager import FTP_Manager
 # import schedule
 import time
 from EZVIZ_CAM.sql import SQL_manager
-from behavior_recognition import start_recognition
+# from behavior_recognition import start_recognition
 import os
 from multiprocessing import Process,Queue
 import pandas as pd
@@ -233,7 +233,8 @@ class Transaction_Manager:
                                     towrite.append(int(float(contentindlccsv[i][j+1])+float(contentinxycsv[i][1])))
                                 writer.writerow(towrite)
                     else:
-                        start_recognition(item.file_path[:-4] + '_crop.mp4')
+                        # start_recognition(item.file_path[:-4] + '_crop.mp4')
+                        pass
                 except:
                     print('ERROR in recognition')
                 finally:

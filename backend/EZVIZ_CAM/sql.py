@@ -1,3 +1,7 @@
+"""
+SQL wrapper
+
+"""
 import sqlite3
 import os
 from EZVIZ_CAM.ezviz import EZVIZ_Status, EZVIZ
@@ -37,18 +41,7 @@ class SQL_manager:
                                     "START" VARCHAR(255) NOT NULL,
                                     "END" VARCHAR(255) NOT NULL,
                                     PRIMARY KEY("ID" AUTOINCREMENT)
-                                )'''
-        # self.sql_create_PROCESS_FILE_TABLE = ''''CREATE TABLE "PROCESS_FILE_TABLE" (
-        #                                 "ID"	INTEGER NOT NULL UNIQUE,
-        #                                 "FILE_NAME"	VARCHAR(255) NOT NULL,
-        #                                 "MODIFY_TIME"	DATETIME NOT NULL,
-        #                                 "STATUS"	INT NOT NULL,
-        #                                 "FILE_PATH"	VARCHAR(255) NOT NULL,
-        #                                 "SERVER_PATH"	VARCHAR(255) NOT NULL,
-        #                                 "FULL_NAME"	INTEGER NOT NULL,
-        #                                 FOREIGN KEY("STATUS") REFERENCES "STATUS"("ID"),
-        #                                 PRIMARY KEY("ID" AUTOINCREMENT)
-        #                             )'''    
+                                )'''   
         self.connection_name = ip + '.db'
         self.ip = ip
         self.full_name = full_name
@@ -143,44 +136,6 @@ class SQL_manager:
             cour.close()
             # 关闭连接
         conn.close()
-
-    # def check_process_init(self):
-    #     conn = sqlite3.connect(self.connection_name)
-    #     cour = conn.cursor()
-    #     sql = 'select * from PROCESS_FILE_TABLE'
-    #     cour.execute(sql)
-    #     for item in cour.fetchall():
-    #         self.update_status(item[0], EZVIZ_Status.UNFETCHING.value)
-    #     cour.close()
-        
-    #     mgr = FTP_Manager(self.ip, self.full_name)
-    #     ezviz_list = mgr.openFTPFile()
-    #     for item in ezviz_list:
-    #         # 创建游标
-    #         cour = conn.cursor()
-    #         # 编写sql语句
-    #         sql = "INSERT INTO PROCESS_FILE_TABLE (FILE_NAME, MODIFY_TIME, STATUS, FILE_PATH, SERVER_PATH, FULL_NAME) SELECT ?, ?, ?, ?, ?, ? WHERE not exists (select * from PROCESS_FILE_TABLE WHERE MODIFY_TIME=? AND SERVER_PATH=?)"
-    #         # 执行sql语句
-    #         cour.execute(sql, (item.file_name, str(item.modify_time), int(EZVIZ_Status.UNFETCHING.value), item.file_path, item.server_path, self.full_name, str(item.modify_time), item.server_path))
-    #         # 关闭游标
-    #         conn.commit()
-    #         cour.close()
-    #         # 关闭连接
-    #     conn.close()
-
-    # def update_process_status(self, id, status):
-    #     conn = sqlite3.connect(self.connection_name)
-    #     # 创建游标
-    #     cour = conn.cursor()
-    #     # 编写sql语句
-    #     sql = 'UPDATE PROCESS_FILE_TABLE SET STATUS=? WHERE ID=?'
-    #     # 执行sql语句
-    #     cour.execute(sql,(int(status), int(id)))
-    #     # 关闭游标
-    #     cour.close()
-    #     # 关闭连接
-    #     conn.commit()
-    #     conn.close()
 
     def update_status(self, id, status):
         conn = sqlite3.connect(self.connection_name)
@@ -314,6 +269,7 @@ class SQL_manager:
         return flag
 
     def check_nv_status(self, w):
+        # TODO: 进行不定参数调整
         conn = sqlite3.connect('10.15.12.101.db')
         cour = conn.cursor()
         sql = 'select STATUS from FILE_TABLE WHERE STATUS = 5 AND FULL_NAME=?'
@@ -326,36 +282,6 @@ class SQL_manager:
             pass
         if cur > 0:
             flag1 = True
-        cour.close()
-        conn.close()
-
-        conn = sqlite3.connect('10.15.12.102.db')
-        cour = conn.cursor()
-        sql = 'select STATUS from FILE_TABLE WHERE STATUS = 5 AND FULL_NAME=?'
-        cour.execute(sql, (self.full_name,))
-        flag2 = False
-        try:
-            cur = len(cour.fetchall())
-        except:
-            print('no')
-            pass
-        if cur > 0:
-            flag2 = True
-        cour.close()
-        conn.close()
-
-        conn = sqlite3.connect('10.15.12.103.db')
-        cour = conn.cursor()
-        sql = 'select STATUS from FILE_TABLE WHERE STATUS = 5 AND FULL_NAME=?'
-        cour.execute(sql, (self.full_name,))
-        flag3 = False
-        try:
-            cur = len(cour.fetchall())
-        except:
-            print('no')
-            pass
-        if cur > 0:
-            flag3 = True
         cour.close()
         conn.close()
 

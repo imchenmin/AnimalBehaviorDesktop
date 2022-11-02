@@ -136,7 +136,7 @@ export default {
         handleStart() {
             fetch('http://127.0.0.1:5001/api/start_record', {
                 method: 'post',
-                body: JSON.stringify({ video_filename: this.current_exp.folder_path, analyzer: this.current_exp.analysis_method }),
+                body: JSON.stringify({ video_filename: this.current_exp.folder_path, analyzer: this.current_exp.analysis_method, rtsp_list: this.cameraList}),
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -147,7 +147,7 @@ export default {
         handleStop() {
             fetch('http://127.0.0.1:5001/api/stop_record', {
                 method: 'post',
-                body: JSON.stringify({ video_filename: this.current_exp.folder_path, analyzer: this.current_exp.analysis_method }),
+                body: JSON.stringify({ video_filename: this.current_exp.folder_path, analyzer: this.current_exp.analysis_method, rtsp_list: this.cameraList }),
                 headers: {
                     'Content-Type': 'application/json'
                 }

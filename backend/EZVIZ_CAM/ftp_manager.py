@@ -1,3 +1,6 @@
+"""
+进行ftp管理的类
+"""
 from ftplib import FTP            #加载ftp模块
 import os
 from EZVIZ_CAM.ezviz import EZVIZ
@@ -37,7 +40,7 @@ class FTP_Manager:
         # ftp.set_pasv(False)
         ftp.cwd(self.root)               
         flag = 0
-        bufsize = 1024
+        bufsize = 2048*2048*10
 
         if not os.path.exists(file_path[:-12]):
             os.mkdir(file_path[:-12])

@@ -70,7 +70,8 @@ export default {
     methods: {
         sentHello() {
             this.$socket.emit('require_project_status', {
-                project_list: this.experiments.config.openedProjectList
+                project_list: this.experiments.config.openedProjectList,
+                rtsp_list: this.cameraList
             })
         },
     }
