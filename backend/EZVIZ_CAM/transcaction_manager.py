@@ -244,8 +244,8 @@ class Transaction_Manager:
                                 writer.writerow(towrite)
                     else:
                         start_recognition(item.file_path[:-4] + '_crop.mp4')
-                except:
-                    print('ERROR in recognition')
+                except Exception as e:
+                    print('ERROR in recognition', e)
                 finally:
                     self.sql_mgr.update_status(item.id, EZVIZ_Status.FINISH)
 
