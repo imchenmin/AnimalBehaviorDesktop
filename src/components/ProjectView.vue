@@ -94,8 +94,8 @@ const stepClick = (item) => {
             } else {
                 // 判断哪种类型的界面
                 let router_prefix = ""
-                if (current_exp.value.analysis_method == "tracking") router_prefix = "/arena-settings/"
-                if (current_exp.value.analysis_method == "detection") router_prefix = "/detection-result/"
+                // router_prefix = "/arena-settings/"
+                router_prefix = "/detection-result/"
                 router.push(router_prefix + current_exp.value._id)
             }
         }

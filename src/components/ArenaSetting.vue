@@ -1,5 +1,9 @@
 <template>
     <StepControl :_id="current_exp._id" :activate="2"></StepControl>
+    <div>
+        <el-button  value="分析" id="analysis" @click="run_analysis" v-if="isAnalyzed" status="finish">分析</el-button>
+        <el-button  value="查看结果" id="showresult" @click="embyPot">打开视频</el-button>
+    </div>
     <div id="main" style="border: solid black 1px; curssor: default; " ref="mainboard">
         <video ref="videoPlayerTop" class="video-js" style="position: absolute;"></video>
         <!-- <video id="video_id" preload  style="position: absolute;" data-setup="{}" ref="videoObj" type='video/mp4' :src="videoSrc">
@@ -30,13 +34,13 @@
     <input type="file"  id="uploadbutton" style="display: none;" accept=".txt" ref="markInput" />    
     <input type="button" value="选择视频" style="display: none" @click="onSelectVideo" />
     <input type="file" id="file-uploader" style="margin-left:140; display: none;" accept="video/*" @change="selectvideo" ref="videoInput" />
-    <el-form-item label="感兴趣的身体部位">
+    <!-- <el-form-item label="感兴趣的身体部位">
         <el-checkbox :indeterminate="isIndeterminate" v-model="checkAll"                 
                     @change="handleCheckAllChange" style="margin-right:20px">全选</el-checkbox>                   
         <el-checkbox-group v-model="checkedParts" @change="handleCheckedPartsChange">
             <el-checkbox v-for="part in partsArr" :label="part" :key="part">{{part}}</el-checkbox>
         </el-checkbox-group>
-    </el-form-item>
+    </el-form-item> -->
     <el-button-group>
         <el-button type="simple" plain @click="onRunit">根据当前标记进行分析</el-button>
         <input type="button" value="根据当前标记进行分析"  style="display: none" id="rundetect" ref="runItButton" />
@@ -742,14 +746,14 @@
             //get result
             function runit(){
                 // fileImport()
-                console.log(__this.checkedParts)
-                if (__this.checkedParts.length==0){
-                    window.alert('请至少选择一个感兴趣的部位').then(() => {
-                        console.log('ok');
-                    });
-                    //console.log("no select!!!!")
-                    return;
-                }
+                // console.log(__this.checkedParts)
+                // if (__this.checkedParts.length==0){
+                //     window.alert('请至少选择一个感兴趣的部位').then(() => {
+                //         console.log('ok');
+                //     });
+                //     //console.log("no select!!!!")
+                //     return;
+                // }
                 console.log(__this.videopath)
                 if (__this.videopath==""){
                     return;}
@@ -791,7 +795,7 @@
                 //console.log(that.videopath)
                 data.push(__this.videopath)
                 data.push(__this.videoname)
-                data.push(__this.checkedParts)
+                data.push(['body'])
                 console.log(data)
                 fetch('http://127.0.0.1:5001/api/runtrack', {
                     method: 'POST',

@@ -1,121 +1,60 @@
-# from netifaces import interfaces, ifaddresses, AF_INET, AF_INET6
-# import winreg
-# import platform
-# import pywifi,time
-# from pywifi import const
+import os
+from moviepy.editor import concatenate_videoclips,VideoFileClip
+import pandas as pd
+import csv
+def combine_csv(full_name):
+    resultpath = full_name
+    csvparts = os.listdir(full_name)
+    csvcombined = os.path.join(resultpath + '/result/','video__all.csv')
+    with open(csvcombined,"w",newline='') as csvfile:
+        writer = csv.writer(csvfile)
+        for files in csvparts:
+            if files.endswith('part.csv'):
+                csvtoreadpath = os.path.join(resultpath,files)
+                with open(csvtoreadpath,'r') as toread:
+                    read = csv.reader(toread)
+                    for row in read:
+                        writer.writerow(row)
 
-# class WIFI_DEVICE:
-#     def __init__(self, wlan_name, wifi_name, ind) -> None:
-#         self.wlan_name = wlan_name
-#         self.wifi_name = wifi_name
-#         self.index = ind
-#         key = get_key(self.wlan_name)  # 获取网卡的键值
-#         print(key)
-#         print(ifaddresses(key)[AF_INET])
+def concat_video(full_name):
+    mp4_file = []
+    # 访问 video 文件夹 (假设视频都放在这里面)
+    for root, dirs, files in os.walk(full_name):
+        # 按文件名排序
+        files.sort()
+        # 遍历所有文件
+        for file in files:
+            # 如果后缀名为 .mp4
+            if os.path.splitext(file)[1] == '.MP4':
+                # 拼接成完整路径
+                filePath = os.path.join(root, file)
+                # 载入视频
+                video = VideoFileClip(filePath)
+                # 添加到数组
+                mp4_file.append(video)
 
-#     def connect_wifi(self):
-#         wifi = pywifi.PyWiFi()
-#         ifaces = wifi.interfaces()[self.index]
-#         print(ifaces.name())               #输出无线网卡名称
-#         ifaces.disconnect()
-#         time.sleep(3)
-    
-#         profile = pywifi.Profile()                          #配置文件
-#         profile.ssid = self.wifi_name                       #wifi名称
-#         profile.auth = const.AUTH_ALG_OPEN                  #需要密码
-#         profile.akm.append(const.AKM_TYPE_WPA2PSK)          #加密类型
-#         profile.cipher = const.CIPHER_TYPE_CCMP             #加密单元
-#         profile.key = "1234567890"                          #wifi密码
-    
-#         ifaces.remove_all_network_profiles()                #删除其它配置文件
-#         tmp_profile = ifaces.add_network_profile(profile)   #加载配置文件
-#         ifaces.connect(tmp_profile)
-#         time.sleep(5)
-#         isok = True
-    
-#         if ifaces.status() == const.IFACE_CONNECTED:
-#             print("connect successfully!")
-#         else:
-#             print("connect failed!")
-    
-#         time.sleep(1)
-#         return isok
+    final_clip = concatenate_videoclips(mp4_file)
+    final_clip.to_videofile(full_name + '/topvideotoshow.MP4', fps=60, remove_temp=True)
 
+def concat_behavior_csv(full_name):
+    csv_files = os.listdir(full_name)
+    timer = 0
+    dfs = []
+    for csv_file in csv_files:
+        if csv_file.endswith('_detection_result.csv'):
+            file_path = os.path.join(full_name, csv_file)
+            print(file_path + 'reader concat.')
+            df = pd.read_csv(file_path)
+            df['start_time'] = df['start_time'] + timer
+            df['end_time'] = df['end_time'] + timer
+            timer += 300
+            dfs.append(df)
 
-# # 获取ipv4地址
-# def get_ipv4_address(key_name):
-#     if platform.system() == "Linux":
-#         try:
-#             return ifaddresses(key_name)[AF_INET][0]['addr']  # 返回ipv4地址信息
-#         except ValueError:
-#             return None
-#     elif platform.system() == "Windows":
-#         key = get_key(key_name)  # 获取网卡的键值
-#         if not key:
-#             return
-#         else:
-#             return ifaddresses(key)[AF_INET][0]['addr']  # 返回ipv4地址信息
-#     else:
-#         print('您的系统本程序暂时不支持')
-
-# # 获取ipv6地址
-# def get_ipv6_address(key_name):
-#     if platform.system() == "Linux":
-#         try:
-#             return ifaddresses(key_name)[AF_INET6][0]['addr']
-#         except ValueError:
-#             return None
-#     elif platform.system() == "Windows":
-#         key = get_key(key_name)
-#         if not key:
-#             return
-#         else:
-#             return ifaddresses(key)[AF_INET6][0]['addr']
-#     else:
-#         print('您的系统本程序暂时不支持')
-
-# # 获取Windows系统网卡接口在注册表的键值
-# def get_key(key_name):
-#     keys = interfaces()  # 获取所有网卡的键值
-#     print(keys)
-#     key_name_dict = {}  # 存放网卡键值与键值名称的字典
-#     try:
-#         reg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)  # 建立注册表链接
-#         reg_key = winreg.OpenKey(reg , r'SYSTEM\CurrentControlSet\Control\Network\{4d36e972-e325-11ce-bfc1-08002be10318}')
-#     except Exception as e:
-#         return '路径出错或者其他问题，请仔细检查'
-
-#     for key in keys:
-#         try:
-#             reg_subkey = winreg.OpenKey(reg_key , key + r'\Connection')  # 读取网卡键值的Name
-#             key_name_dict[winreg.QueryValueEx(reg_subkey , 'Name')[0]] = key  # 写入key_name字典
-#         except FileNotFoundError:
-#             pass
-#     print('所有接口信息字典列表： ' + str(key_name_dict))
-#     return key_name_dict[key_name]
- 
-# def wifi_connect_status():
-#     wifi = pywifi.PyWiFi()
-#     iface = wifi.interfaces()[0] #acquire the first Wlan card,maybe not
- 
-#     if iface.status() in [const.IFACE_CONNECTED,const.IFACE_INACTIVE]:
-#         print("wifi connected!")
-#         return 1
-#     else:
-#         print("wifi not connected!")
-    
-#     return 0
- 
-# def scan_wifi():
-#     wifi = pywifi.PyWiFi()
-#     iface = wifi.interfaces()[0]
- 
-#     iface.scan()
-#     time.sleep(1)
-#     basewifi = iface.scan_results()
- 
-#     for i in basewifi:
-#         print("wifi scan result:{}".format(i.ssid))
-#         print("wifi device MAC address:{}".format(i.bssid))
-        
-#     return basewifi
+    df = pd.concat(dfs, axis=0)
+    gp = df.groupby('type')
+    df_res = []
+    for name, group in gp:
+        group = group.reset_index(drop=True)
+        df_res.append(group)
+    df = pd.concat(df_res,axis=0)
+    df[['class','start_time','end_time','type']].to_csv(full_name[:-5] + '/detection_result.csv')

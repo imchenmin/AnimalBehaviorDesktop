@@ -82,9 +82,9 @@ def start_record():
         os.makedirs(filename + '/top')
     except:
         print('Error in making dir in top' + filename)
-    p0 = Process(target=Transaction_Manager, args=('10.15.12.103', filename + '/back', 1))
-    p1 = Process(target=Transaction_Manager, args=('10.15.12.102', filename + '/left', 1))
-    p2 = Process(target=Transaction_Manager, args=('10.15.12.101', filename + '/top', 9))
+    p0 = Process(target=Transaction_Manager, args=('10.15.12.103', filename + '/back'))
+    p1 = Process(target=Transaction_Manager, args=('10.15.12.102', filename + '/left'))
+    p2 = Process(target=Transaction_Manager, args=('10.15.12.101', filename + '/top'))
 
     p0.start()
     p1.start()
@@ -158,7 +158,7 @@ def execute():
     print(namelist)
     print(polylist)
     resultpath = video_path+"/result/"
-    csv_path = resultpath+'video__all.csv'
+    csv_path = resultpath + 'video__all.csv'
     #videopath = video.mp4's path
     #videoname = video
     #video_path = "C:\\Users\\Sun\\Desktop\\maze\\eight_maze_short_demo.mp4"

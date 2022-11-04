@@ -29,21 +29,10 @@ class SQL_manager:
         self.sql_create_PROGRESS = '''CREATE TABLE "PROGRESS" (
                                     "ID"	INTEGER NOT NULL UNIQUE,
                                     "PATH"	VARCHAR(255) NOT NULL,
-                                    "START" VARCHAR(255) NOT NULL,
-                                    "END" VARCHAR(255) NOT NULL,
+                                    "P" VARCHAR(255) NOT NULL,
                                     PRIMARY KEY("ID" AUTOINCREMENT)
                                 )'''
-        # self.sql_create_PROCESS_FILE_TABLE = ''''CREATE TABLE "PROCESS_FILE_TABLE" (
-        #                                 "ID"	INTEGER NOT NULL UNIQUE,
-        #                                 "FILE_NAME"	VARCHAR(255) NOT NULL,
-        #                                 "MODIFY_TIME"	DATETIME NOT NULL,
-        #                                 "STATUS"	INT NOT NULL,
-        #                                 "FILE_PATH"	VARCHAR(255) NOT NULL,
-        #                                 "SERVER_PATH"	VARCHAR(255) NOT NULL,
-        #                                 "FULL_NAME"	INTEGER NOT NULL,
-        #                                 FOREIGN KEY("STATUS") REFERENCES "STATUS"("ID"),
-        #                                 PRIMARY KEY("ID" AUTOINCREMENT)
-        #                             )'''
+      
         self.connection_name = ip + '.db'
         self.ip = ip
         self.full_name = full_name
@@ -55,9 +44,6 @@ class SQL_manager:
             if full_name != "":
                 self.check_init()
                 self.init_record()
-                self.delete_nv_status()
-
-                # self.init_progress()
             else:
                 pass
         if init:
@@ -132,44 +118,6 @@ class SQL_manager:
             cour.close()
             # 关闭连接
         conn.close()
-
-    # def check_process_init(self):
-    #     conn = sqlite3.connect(self.connection_name)
-    #     cour = conn.cursor()
-    #     sql = 'select * from PROCESS_FILE_TABLE'
-    #     cour.execute(sql)
-    #     for item in cour.fetchall():
-    #         self.update_status(item[0], EZVIZ_Status.UNFETCHING.value)
-    #     cour.close()
-
-    #     mgr = FTP_Manager(self.ip, self.full_name)
-    #     ezviz_list = mgr.openFTPFile()
-    #     for item in ezviz_list:
-    #         # 创建游标
-    #         cour = conn.cursor()
-    #         # 编写sql语句
-    #         sql = "INSERT INTO PROCESS_FILE_TABLE (FILE_NAME, MODIFY_TIME, STATUS, FILE_PATH, SERVER_PATH, FULL_NAME) SELECT ?, ?, ?, ?, ?, ? WHERE not exists (select * from PROCESS_FILE_TABLE WHERE MODIFY_TIME=? AND SERVER_PATH=?)"
-    #         # 执行sql语句
-    #         cour.execute(sql, (item.file_name, str(item.modify_time), int(EZVIZ_Status.UNFETCHING.value), item.file_path, item.server_path, self.full_name, str(item.modify_time), item.server_path))
-    #         # 关闭游标
-    #         conn.commit()
-    #         cour.close()
-    #         # 关闭连接
-    #     conn.close()
-
-    # def update_process_status(self, id, status):
-    #     conn = sqlite3.connect(self.connection_name)
-    #     # 创建游标
-    #     cour = conn.cursor()
-    #     # 编写sql语句
-    #     sql = 'UPDATE PROCESS_FILE_TABLE SET STATUS=? WHERE ID=?'
-    #     # 执行sql语句
-    #     cour.execute(sql,(int(status), int(id)))
-    #     # 关闭游标
-    #     cour.close()
-    #     # 关闭连接
-    #     conn.commit()
-    #     conn.close()
 
     def update_status(self, id, status):
         conn = sqlite3.connect(self.connection_name)
@@ -301,80 +249,6 @@ class SQL_manager:
         cour.close()
         conn.close()
         return flag
-
-    def check_nv_status(self):
-        if not os.path.exists('nv.db'):
-            sql = '''CREATE TABLE "RUNNING" (
-                    "ID"	INTEGER NOT NULL UNIQUE,
-                    "RUNNING"	VARCHAR(255) NOT NULL,
-                    PRIMARY KEY("ID" AUTOINCREMENT)
-                )'''
-            conn = sqlite3.connect('nv.db')
-            cour = conn.cursor()
-            cour.execute(sql)
-            cour.close()
-            conn.commit()
-            conn.close()
-        print('check')
-        conn = sqlite3.connect('nv.db')
-        cour = conn.cursor()
-        sql = 'select COUNT(*) from RUNNING'
-        cour.execute(sql)
-        flag = False
-       
-        cur = int(cour.fetchall()[0][0])
-        print('checkchekc ', cur)
-        if cur > 0:
-            flag = True
-        cour.close()
-        conn.close()
-
-        return flag
-
-    def add_nv_status(self):
-        if not os.path.exists('nv.db'):
-            sql = '''CREATE TABLE "RUNNING" (
-                    "ID"	INTEGER NOT NULL UNIQUE,
-                    "RUNNING"	VARCHAR(255) NOT NULL,
-                    PRIMARY KEY("ID" AUTOINCREMENT)
-                )'''
-            conn = sqlite3.connect('nv.db')
-            cour = conn.cursor()
-            cour.execute(sql)
-            cour.close()
-            conn.commit()
-            conn.close()
-        print([self.full_name, 'add nv'])
-
-        conn = sqlite3.connect('nv.db')
-        cour = conn.cursor()
-        sql = "INSERT INTO RUNNING (RUNNING) VALUES(1)"
-        cour.execute(sql)
-        cour.close()
-        conn.commit()
-        conn.close()
-
-    def delete_nv_status(self):
-        if not os.path.exists('nv.db'):
-            sql = '''CREATE TABLE "RUNNING" (
-                    "ID"	INTEGER NOT NULL UNIQUE,
-                    "RUNNING"	VARCHAR(255) NOT NULL,
-                    PRIMARY KEY("ID" AUTOINCREMENT)
-                )'''
-            conn = sqlite3.connect('nv.db')
-            cour = conn.cursor()
-            cour.execute(sql)
-            cour.close()
-            conn.commit()
-            conn.close()
-        print([self.full_name, 'del nv'])
-        conn = sqlite3.connect('nv.db')
-        cour = conn.cursor()
-        sql = "DELETE FROM RUNNING"
-        cour.execute(sql)
-        cour.close()
-        conn.commit()
-        conn.close()
         
     def init_progress(self):
         conn = sqlite3.connect(self.connection_name)
@@ -483,3 +357,64 @@ class SQL_manager:
         cour.close()
         conn.close()
         return res
+
+    def get_downloading(self, full_name):
+        conn = sqlite3.connect(self.connection_name)
+
+        # 创建游标
+        cour = conn.cursor()
+
+        # 获取未下载文件
+        sql = 'select * from FILE_TABLE WHERE STATUS=2 AND FULL_NAME=?'
+        cour.execute(sql,(full_name,))
+        wait_download = []
+        for item in cour.fetchall():
+            wait_download.append(item)
+        
+        # 获取正在下载文件
+        sql = 'select * from FILE_TABLE WHERE STATUS=3 AND FULL_NAME=?'
+        cour.execute(sql,(full_name,))
+        downloading = []
+        for item in cour.fetchall():
+            downloading.append(item)
+        
+        # 获取已下载文件
+        sql = 'select * from FILE_TABLE WHERE STATUS=4 AND FULL_NAME=?'
+        cour.execute(sql,(full_name,))
+        downloaded = []
+        for item in cour.fetchall():
+            downloaded.append(item)
+        
+        p = len(downloaded) / (len(downloaded) + len(wait_download) + len(downloading))
+        return p == 1, p
+    
+    def get_running(self, full_name):
+        conn = sqlite3.connect(self.connection_name)
+
+        # 创建游标
+        cour = conn.cursor()
+
+        # 获取未下载文件
+        sql = 'select * from FILE_TABLE WHERE STATUS=4 AND FULL_NAME=?'
+        cour.execute(sql,(full_name,))
+        wait_running = []
+        for item in cour.fetchall():
+            wait_running.append(item)
+        
+        # 获取正在下载文件
+        sql = 'select * from FILE_TABLE WHERE STATUS=5 AND FULL_NAME=?'
+        cour.execute(sql,(full_name,))
+        running = []
+        for item in cour.fetchall():
+            running.append(item)
+        
+        # 获取已下载文件
+        sql = 'select * from FILE_TABLE WHERE STATUS=6 AND FULL_NAME=?'
+        cour.execute(sql,(full_name,))
+        finished = []
+        for item in cour.fetchall():
+            finished.append(item)
+        
+        p = len(finished) / (len(finished) + len(running) + len(wait_running))
+        return p == 1, p
+        

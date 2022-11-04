@@ -1,5 +1,6 @@
 <template>
     <el-steps :active="active" finish-status="success" align-center>
+        
         <el-step title="项目设置" :icon="Edit" @click.native="stepClick(0)" :description="state_msg[0]"/>
         <el-step title="录制" @click.native="stepClick(1)" ref="record_step" :description="state_msg[1]"/>
         <el-step title="分析" @click.native="stepClick(2)" :description="state_msg[2]"/>
@@ -37,8 +38,9 @@ const stepClick = (item) => {
             }else {
                 // 判断哪种类型的界面
                 let router_prefix = ""
-                if (current_exp.value.analysis_method == "tracking") router_prefix = "/arena-settings/"
-                if (current_exp.value.analysis_method == "detection") router_prefix = "/detection-result/"
+                router_prefix = "/arena-settings/"
+                // if (current_exp.value.analysis_method == "tracking") 
+                // if (current_exp.value.analysis_method == "detection") router_prefix = "/detection-result/"
                 router.push(router_prefix + current_exp.value._id)
             }
     }

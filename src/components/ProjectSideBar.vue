@@ -7,13 +7,6 @@
                 <el-form-item label="实验名称" prop="name">
                     <el-input v-model="form.name" />
                 </el-form-item>
-                <!-- TODO:在未来要去掉 -->
-                <el-form-item label="实验类型" prop="type">
-                    <el-select v-model="form.type" placeholder="please select your zone">
-                        <el-option label="追踪" value="tracking" />
-                        <el-option label="识别" value="detection" />
-                    </el-select>
-                </el-form-item>
                 <el-form-item label="备注">
                     <el-input v-model="form.desc" type="textarea" />
                 </el-form-item>
@@ -42,18 +35,6 @@
                         <el-input v-model="form.mouse_genetype" />
                     </el-form-item>
 
-                </div>
-                <div class="detection-setting" v-if="form.type == 'detection'">
-                    <h2>行为分析选项</h2>
-                    <el-form-item label="小鼠数量" prop="tracking_mouse_number">
-                        <el-select v-model="form.tracking_mouse_number" placeholder="数量">
-                            <el-option label="1" value=1 />
-                            <el-option label="2" value=2 />
-                        </el-select>
-                    </el-form-item>
-                </div>
-                <div class="tracking-setting" v-if="form.type == 'tracking'">
-                    <h2>追踪分析选项</h2>
                 </div>
                 <el-form-item>
                     <el-button type="primary" @click="submitForm(ruleFormRef)" :disabled="!isReadyToCreate">创建
@@ -239,7 +220,7 @@ const project_list = computed(() => {
     return output;
 })
 const folder_path = computed(() => form.parent_path + '/' + form.name)
-const isReadyToCreate = computed(() => form.name != '' && form.parent_path != '' && form.type != '')
+const isReadyToCreate = computed(() => form.name != '' && form.parent_path != '')
 const onSelectFolder = () => {
     const { dialog } = require('@electron/remote')
     dialog.showOpenDialog({
@@ -268,7 +249,6 @@ const submitForm = async (formEl: FormInstance | undefined) => {
                                 folder_path: folder_path.value,
                                 name: form.name,
                                 description: form.desc,
-                                analysis_method: form.type,
                                 date: form.date1,
                                 record_mouse_info: form.record_mouse_info,
                                 mouse_gender: form.mouse_gender,

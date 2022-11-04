@@ -38,9 +38,6 @@ var types = [
     { name: '扶墙站立', color: '#bd6d6c' },
     { name: '不扶墙站立', color: '#75d874' },
     { name: '洗脸', color: '#e0bc78'}
-    // { name: 'Listeners', color: '#e0bc78' },
-    // { name: 'GPU Memory', color: '#dc77dc' },
-    // { name: 'GPU', color: '#72b362' }
 ];
 
 const { experiments } = useStore()
@@ -50,8 +47,6 @@ let fs = require("fs")
 const displayChart = ref(true)
 let array: any = [];
 let trackarray: any = [];
-// let playerTop: videojs.Player | null = null
-// let playerSide: videojs.Player | null = null
 function getWindowSize() {
     const { offsetWidth, offsetHeight } = document.documentElement
     const { innerHeight } = window // innerHeight will be blank in Windows system
@@ -76,7 +71,6 @@ const tableData=[{
     end : '00:12',
     position: 'A2'
 }]
-console.log("wwwwwwwwwwwwwww")
 console.log(trackarray)
 let tempname = ""
 trackarray.forEach((list,index)=>{
@@ -158,61 +152,6 @@ const run_analysis = () => {
                     }
                 });
             });
-            // const option = ref({
-            //     tooltip: {
-            //         formatter: function (params) {
-            //             return params.marker + params.name + ': ' + params.value[3] + ' s';
-            //         }
-            //     },
-            //     title: {
-            //         text: '行为图谱',
-            //         left: 'center'
-            //     },
-            //     dataZoom: [
-            //         {
-            //             type: 'slider',
-            //             filterMode: 'weakFilter',
-            //             showDataShadow: false,
-            //             top: 400,
-            //             labelFormatter: '',
-            //             startValue: 0,
-            //             endValue: 100
-            //         },
-            //         {
-            //             type: 'inside',
-            //             filterMode: 'weakFilter'
-            //         }
-            //     ],
-            //     grid: {
-            //         height: 300
-            //     },
-            //     series: [
-            //         {
-            //             type: 'custom',
-            //             renderItem: renderItem,
-            //             itemStyle: {
-            //                 opacity: 0.8
-            //             },
-            //             encode: {
-            //                 x: [1, 2],
-            //                 y: 0
-            //             },
-            //             data: chartData
-            //         },
-            //     ],
-            //     xAxis: {
-            //         min: startTime,
-            //         scale: true,
-            //         axisLabel: {
-            //             formatter: function (val) {
-            //                 return Math.max(0, val - startTime) + ' s';
-            //             }
-            //         }
-            //     },
-            //     yAxis: {
-            //         data: categories
-            //     },
-            // })
         });
     });
 }
@@ -310,72 +249,6 @@ const option = ref({
         data: categories
     },
 })
-// const videoPlayerTop = ref()
-// // const videoPlayerSide = ref()
-// const videoOptionsTop = reactive({
-//     autoplay: false,
-//     controls: false,
-//     width: 800,
-//     height: 400,
-//     preload: 'metadata',
-//     sources: [
-//         {
-//             src: 'http://127.0.0.1:8888',
-//             type: 'video/mp4'
-//         }
-//     ],
-//     techOrder: ['StreamPlay'],
-//     StreamPlay: { duration: 0 }
-// })
-
-// onMounted(() => {
-//     ipcRenderer.send('playVideoFromFile', path.join(current_exp.folder_path, 'video.mkv'), path.join(current_exp.folder_path, 'video1.mkv'));
-//     ipcRenderer.on('videoServerReady', (event, message) => {
-//         console.log(message, "message")
-//         let videoOptionsTop = {
-//             width: 800,
-//             height: 400,
-//             autoplay: true,
-//             controls: true,
-//             preload: 'metadata',
-//             sources: [
-//                 {
-//                     src: 'http://127.0.0.1:8888?startTime=0',
-//                     type: 'video/mp4'
-//                 }
-//             ],
-//             techOrder: ['StreamPlay'],
-//             StreamPlay: { duration: message.duration }
-//         }
-//         console.log(videoPlayerTop)
-//         playerTop = videojs(videoPlayerTop.value, videoOptionsTop, () => {
-//             playerTop.log('onPlayerReady', this);
-//         });
-//         console.log('videoServerReady-render:', message)
-//         playerTop.load()
-//         playerTop.play()
-//         // playerSide.load()
-//         // playerSide.play()
-//     });
-
-//     // playerSide = videojs(videoPlayerSide, videoOptionsSide, () => {
-//     //     playerSide.log('onPlayerReady', this);
-//     // });
-
-// })
-// onBeforeRouteLeave(() => {
-//     if (playerTop) {
-//         playerTop.dispose();
-//     }
-//     if (playerSide) {
-//         playerSide.dispose();
-//     }
-//     ipcRenderer.send("stopVideoDisplay")
-// })
-// const playVideo = () => {
-//     playerTop.load()
-//     playerTop.play()
-// }
 </script>
 <style>
 .chart {

@@ -37,29 +37,29 @@ class FTP_Manager:
         # ftp.set_pasv(False)
         ftp.cwd(self.root)               
         flag = 0
-        bufsize = 1024
+        bufsize = 2048*2048*10
 
         if not os.path.exists(file_path[:-12]):
             os.mkdir(file_path[:-12])
 
         with open(file_path, 'wb') as fp:
-            # try:
-            ftp.retrbinary('RETR ' +  str(file_name), fp.write, bufsize)
-            flag = 1
-            time.sleep(10)
-            if flag == 1:
-                try:
-                    ftp.delete(file_name)
-                except Exception as ex:
-                    flag = -1
-                try:
-                    ftp.delete(file_name[:-4]+'.THM')      
-                except Exception as ex:
-                    flag = -2
-        # except:
-            # return 0
+            try:
+                ftp.retrbinary('RETR ' +  str(file_name), fp.write, bufsize)
+                flag = 1
+                time.sleep(5)
+                if flag == 1:
+                    try:
+                        ftp.delete(file_name)
+                    except Exception as ex:
+                        flag = -1
+                    try:
+                        ftp.delete(file_name[:-4]+'.THM')      
+                    except Exception as ex:
+                        flag = -2
+            except Exception as e:
+                print('ERROR in downloading', e)
+                return 0
         ftp.quit()
-       
         return flag
         
         
