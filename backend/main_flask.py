@@ -1,6 +1,5 @@
 import sys,os
 from time import sleep
-import deeplabcut
 from serial_manager import btn_record
 #track part
 #sys.path.insert(0, "F:\\workspace\\AnimalBehaviorDesktop\\backend\\track_part")
@@ -131,8 +130,8 @@ def execute():
     polylist = []
     video_width = argvs[0]
     video_height = argvs[1]
-    video_path = argvs[-3]+'/top'
-    video_name = argvs[-2]
+    video_path = argvs[-3]+'/top/'
+    video_name = 'fullvideo'
     check_out_list = argvs[-1]
     rect_num = int(argvs[2])
     resize = 2.4 #尺寸映射
@@ -173,7 +172,7 @@ def execute():
     draw_raw_img(namelist,polylist,video_width,video_height,video_name,resultpath)
     draw_heat_main(csv_path,video_height,video_width,video_name,resultpath)
     isPoiWithinPoly(csv_path,polylist,namelist,video_name,video_path,resultpath,check_out_list)
-    #output_video_part(video_path,video_name,polylist,namelist,resultpath,check_out_list)
+    output_video_part(video_path,video_name,polylist,namelist,resultpath,check_out_list)
     #output_video(video_path,video_name,polylist,namelist,resultpath)
     return ('done')
 	
@@ -257,8 +256,8 @@ def require_project_status(data):
 
 if __name__ == '__main__':
     # app.run(host='127.0.0.1',port=5001)
-    sql_init = SQL_manager('10.15.12.101', init=True)
-    sql_init = SQL_manager('10.15.12.102', init=True)
-    sql_init = SQL_manager('10.15.12.103', init=True)
+    # sql_init = SQL_manager('10.15.12.101', init=True)
+    # sql_init = SQL_manager('10.15.12.102', init=True)
+    # sql_init = SQL_manager('10.15.12.103', init=True)
     visit=[]
     socketio.run(app, host='127.0.0.1', port=5001)

@@ -41,7 +41,7 @@ def crop_top(filename):
     print('start crop', filename)
     cap = cv2.VideoCapture(filename)
     vid_writer = cv2.VideoWriter(filename[:-4]+'_crop.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 60, (320, 320))
-    bgcap = cv2.VideoCapture('C:\\Users\\Gianttek\\Desktop\\EZVZ0166.MP4')
+    bgcap = cv2.VideoCapture('C:\\Users\\81062\\Desktop\\EZVZ0166.MP4')
     ret, bg = bgcap.read()
     kernel = np.ones((3, 3), np.uint8)
     roi = [481, 2, 974, 974]
@@ -201,4 +201,4 @@ def combine_csv(self):
                     for row in read:
                         writer.writerow(row)
 
-# crop('C:\\Users\\Gianttek\\Desktop\\EZVZ0131.MP4')
+#crop_top('C:\\Users\\81062\\Desktop\\EZVZ0131.MP4')

@@ -113,9 +113,9 @@ def isPoiWithinPoly(csv_path,poly,namelist,videoname,videopath,resultpath,checko
     print(videopath)
     FPS = int(cap.get(cv2.CAP_PROP_FPS))
     cap.release()
-    tocheckbodypart = [0,1,2,3]
-    tocheckbodypartname = ["Body","Tail","Head","Nose"]
-    csvforoutputvideodata = [[],[],[],[]]
+    tocheckbodypart = [0]
+    tocheckbodypartname = ["Body"]
+    csvforoutputvideodata = [[]]
     with open(resultpath+videoname+"_result.csv","w",newline='') as csvfile:
         writer = csv.writer(csvfile)
         for partindex in tocheckbodypart:

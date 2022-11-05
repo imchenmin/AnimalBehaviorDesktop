@@ -5,15 +5,15 @@ import numpy as np
 def output_video_part(videopath,videoname,polylist,namelist,resultpath,check_out_list):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     posititon_to_draw=deque()
-    csv_path = resultpath+videoname+".csv"
+    csv_path = resultpath+"video__all.csv"
     result_path = resultpath+videoname+"_dataforoutputvideo.csv"
-    tocheckbodypartname = ["Body","Tail","Head","Nose"]
+    tocheckbodypartname = ["Body"]
     check_out_index = []
     for i in range(len(tocheckbodypartname)):
         if tocheckbodypartname[i] in check_out_list:
             check_out_index.append(i)
-    allareas = [[],[],[],[]]
-    allpoints = [[],[],[],[]]
+    allareas = [[]]
+    allpoints = [[]]
     with open(result_path) as f:
         reader = csv.reader(f)
         raw = list(reader)
@@ -29,7 +29,7 @@ def output_video_part(videopath,videoname,polylist,namelist,resultpath,check_out
     f.close()
     body_position_data=allpoints[0]
 
-    cap = cv2.VideoCapture(videopath+"/"+videoname+".mkv")
+    cap = cv2.VideoCapture(videopath+"/"+videoname+".MP4")
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     FPS = int(cap.get(cv2.CAP_PROP_FPS))
@@ -45,7 +45,7 @@ def output_video_part(videopath,videoname,polylist,namelist,resultpath,check_out
             temp = np.array(polylist[i],np.int32)
             pts = temp.reshape((-1,1,2))
             #draw poly
-            cv2.polylines(frame,[pts],True,(0,0,0),thickness=4)
+            cv2.polylines(frame,[pts],True,(255,255,255),thickness=4)
             midx = 0
             midy = 0
             for j in range(0, len(polylist[i])):
@@ -60,7 +60,7 @@ def output_video_part(videopath,videoname,polylist,namelist,resultpath,check_out
                     infotoshow = infotoshow+tocheckbodypartname[tocheckindex]+" in "+namelist[i]+";"
                     flag = tocheckindex
             if flag==-1:
-                cv2.putText(frame,namelist[i],(int(midx),int(midy)), font, 2,(0,0,0),4,cv2.LINE_AA)
+                cv2.putText(frame,namelist[i],(int(midx),int(midy)), font, 2,(255,255,255),4,cv2.LINE_AA)
             else:
                 cv2.putText(frame,namelist[i],(int(midx),int(midy)), font, 2,(0,0,255),4,cv2.LINE_AA)
                 #cv2.putText(frame,namelist[i],(int(midx),int(midy)), font, 2,COLORLIST[flag],4,cv2.LINE_AA)
@@ -75,10 +75,10 @@ def output_video_part(videopath,videoname,polylist,namelist,resultpath,check_out
         (s_x,s_y)=posititon_to_draw[0]
         cv2.circle(frame,(s_x,s_y),15,(255,0,0),1)
 
-        for i in range(4):
-            if i!=0:  #body has been drawn
-                (tempx,tempy) = allpoints[i][frameid]
-                cv2.circle(frame,(tempx,tempy),7,(0,0,255),-1)
+        # for i in range(4):
+        #     if i!=0:  #body has been drawn
+        #         (tempx,tempy) = allpoints[i][frameid]
+        #         cv2.circle(frame,(tempx,tempy),7,(0,0,255),-1)
         
         last_x = s_x
         last_y = s_y

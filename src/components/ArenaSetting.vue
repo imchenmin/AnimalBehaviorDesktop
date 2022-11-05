@@ -44,8 +44,9 @@
     <el-button-group>
         <el-button type="simple" plain @click="onRunit">根据当前标记进行分析</el-button>
         <input type="button" value="根据当前标记进行分析"  style="display: none" id="rundetect" ref="runItButton" />
-        <!-- <el-button type="simple" plain @click="embyPot">查看结果</el-button> -->
+        <el-button type="simple" plain @click="embyPot">查看视频结果</el-button>
     </el-button-group>
+    <img src="pulpit.jpg" alt="未生成结果" id="imgresult" width="800" height="450">
     <el-container>
         <div>
             
@@ -795,7 +796,7 @@
                 //console.log(that.videopath)
                 data.push(__this.videopath)
                 data.push(__this.videoname)
-                data.push(['body'])
+                data.push(['Body'])
                 console.log(data)
                 fetch('http://127.0.0.1:5001/api/runtrack', {
                     method: 'POST',
@@ -809,6 +810,8 @@
                 let result = response.text()
                 result.then(res => {
                     console.log(res);
+                    let newurl = path.join(__this.current_exp.folder_path, '\\top\\result\\fullvideo_result.png');
+                    document.getElementById("imgresult").src = newurl+"?t="+Math.random();
                     window.alert('处理完毕').then(() => {});
                 })})
 
@@ -884,9 +887,9 @@
                 this.isIndeterminate = checkedCount > 0 && checkedCount < this.partsArr.length;
             },
             embyPot() {
-                let resultvideopath = this.videopath+"/result/";
+                let resultvideopath = this.videopath+"/top/result/fullvideo_result.mp4";
                 console.log(resultvideopath);
-                let poturl = `file:///${resultvideopath}`;
+                let poturl = `potplayer://${resultvideopath}`;
                 poturl = poturl.replaceAll("\\","\/");
                 // console.log(poturl);
                 window.open(poturl, "_parent");
